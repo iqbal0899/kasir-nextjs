@@ -1,0 +1,76 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    sans-serif;
+  background: #f3f4f6;
+  color: #111827;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* Layout shell: sidebar di kiri, navbar + konten di kanan */
+
+.app-shell {
+  display: flex;
+  height: 100vh;
+}
+
+.app-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.app-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+/* Layout kasir: grid produk di kiri, keranjang di kanan */
+
+.pos-layout {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.pos-layout > *:first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .app-shell {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .pos-layout {
+    flex-direction: column;
+  }
+}

@@ -1,0 +1,114 @@
+.container {
+  min-height: 100vh;
+  padding: 24px;
+  background: #f5f7fb;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.title {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 700;
+  color: #172033;
+}
+
+.subtitle {
+  margin-top: 6px;
+  color: #7b8495;
+}
+
+.addButton {
+  padding: 11px 18px;
+  border: none;
+  border-radius: 9px;
+  background: #1c4966;
+  color: white;
+  cursor: pointer;
+}
+
+.productGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.productCard {
+  background: white;
+  border: 1px solid #e7eaf0;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.productContent {
+  padding: 16px;
+}
+
+.productName {
+  margin: 0 0 6px;
+  color: #172033;
+}
+
+.category {
+  color: #8a93a3;
+  font-size: 13px;
+}
+
+.price {
+  color: #1c4966;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.stock {
+  color: #687386;
+  font-size: 13px;
+}
+
+.cardActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 15px;
+}
+
+.editButton,
+.deleteButton {
+  flex: 1;
+  padding: 9px;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+}
+
+.editButton {
+  background: #eef5f9;
+  color: #1c4966;
+}
+
+.deleteButton {
+  background: #fff0f0;
+  color: #dc3545;
+}
+
+@media (max-width: 900px) {
+  .productGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .productGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+}

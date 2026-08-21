@@ -1,0 +1,147 @@
+.container {
+  min-height: 100vh;
+  padding: 24px;
+  background: #f5f7fb;
+}
+
+/* Header */
+.header {
+  margin-bottom: 24px;
+}
+
+.title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: #172033;
+}
+
+.subtitle {
+  margin: 7px 0 0;
+  font-size: 14px;
+  color: #7b8495;
+}
+
+/* Summary */
+.summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.summaryCard {
+  padding: 20px;
+  background: #ffffff;
+  border: 1px solid #e7eaf0;
+  border-radius: 12px;
+}
+
+.summaryLabel {
+  margin: 0 0 8px;
+  color: #7b8495;
+  font-size: 13px;
+}
+
+.summaryValue {
+  margin: 0;
+  color: #172033;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+/* Table Card */
+.tableContainer {
+  overflow-x: auto;
+  background: #ffffff;
+  border: 1px solid #e7eaf0;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(20, 40, 70, 0.04);
+}
+
+/* Table */
+.table {
+  width: 100%;
+  min-width: 650px;
+  border-collapse: collapse;
+}
+
+/* Table Header */
+.table thead {
+  background: #f8fafc;
+}
+
+.table th {
+  padding: 15px 18px;
+  color: #697386;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: left;
+  text-transform: uppercase;
+  border-bottom: 1px solid #e7eaf0;
+}
+
+/* Table Body */
+.table td {
+  padding: 17px 18px;
+  color: #354052;
+  font-size: 14px;
+  border-bottom: 1px solid #edf0f4;
+}
+
+.table tbody tr {
+  transition: background 0.2s ease;
+}
+
+.table tbody tr:hover {
+  background: #fafcff;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Transaction ID */
+.transactionId {
+  color: #1c4966;
+  font-weight: 700;
+}
+
+/* Total */
+.total {
+  color: #172033;
+  font-weight: 700;
+}
+
+/* Status */
+.status {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: #eaf8f0;
+  color: #18864b;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 800px) {
+  .summary {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .container {
+    padding: 16px;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  .tableContainer {
+    border-radius: 10px;
+  }
+}

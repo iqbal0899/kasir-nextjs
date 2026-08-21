@@ -1,0 +1,49 @@
+.receipt {
+  font-family: "Courier New", monospace;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.receipt-meta {
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed #d1d5db;
+}
+
+.receipt-meta p {
+  margin: 2px 0;
+  color: #4b5563;
+}
+
+.receipt-items {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed #d1d5db;
+  margin-bottom: 12px;
+}
+
+.receipt-item {
+  display: flex;
+  justify-content: space-between;
+}
+
+.receipt-total-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 15px;
+  margin-bottom: 8px;
+}
+
+.receipt-payment-row {
+  display: flex;
+  justify-content: space-between;
+  color: #6b7280;
+}
+
+.receipt-thanks {
+  text-align: center;
+  margin-top: 16px;
+  color: #6b7280;
+}
