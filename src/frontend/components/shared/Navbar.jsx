@@ -1,13 +1,6 @@
 import "../../css/Navbar.css";
+import Link from "next/link";
 
-/**
- * Navbar atas — nama toko, user aktif, tombol logout.
- *
- * Props:
- * - storeName: string
- * - userName: string
- * - onLogout: () => void
- */
 export default function Navbar({ storeName = "Toko Iqbal", userName, onLogout }) {
   return (
     <header className="navbar">
@@ -15,9 +8,11 @@ export default function Navbar({ storeName = "Toko Iqbal", userName, onLogout })
 
       <div className="navbar-user">
         {userName && <span className="navbar-username">{userName}</span>}
+        <Link href="/auth/login">
         <button className="navbar-logout" onClick={onLogout}>
           Keluar
         </button>
+        </Link>
       </div>
     </header>
   );

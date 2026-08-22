@@ -1,15 +1,5 @@
 import "../../css/Button.css";
 
-/**
- * Tombol dasar yang dipakai di seluruh aplikasi.
- *
- * Props:
- * - variant: "primary" | "secondary" | "danger" | "ghost"
- * - size: "sm" | "md" | "lg"
- * - fullWidth: boolean
- * - disabled: boolean
- * - onClick, type, children
- */
 export default function Button({
   children,
   variant = "primary",

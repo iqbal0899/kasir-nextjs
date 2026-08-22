@@ -1,0 +1,180 @@
+.loginPage {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: linear-gradient(
+    135deg,
+    #0f172a 0%,
+    #1e3a5f 50%,
+    #2563eb 100%
+  );
+}
+
+.loginCard {
+  width: 100%;
+  max-width: 420px;
+  padding: 40px;
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+}
+
+/* Logo jika nanti digunakan */
+.logo {
+  width: 70px;
+  height: 70px;
+  margin: 0 auto 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+  background: #1e3a5f;
+  color: #ffffff;
+
+  font-size: 24px;
+  font-weight: 700;
+}
+
+/* Judul */
+.loginCard h1 {
+  margin: 0;
+  text-align: center;
+
+  color: #0f172a;
+  font-size: 30px;
+  font-weight: 700;
+}
+
+/* Welcome */
+.welcome {
+  margin: 8px 0 0;
+  text-align: center;
+
+  color: #475569;
+  font-size: 16px;
+}
+
+.welcome strong {
+  color: #2563eb;
+}
+
+/* Description */
+.description {
+  margin: 12px 0 30px;
+  text-align: center;
+
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* Form */
+.formGroup {
+  margin-bottom: 20px;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 8px;
+
+  color: #1e293b;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Input */
+.formGroup input {
+  width: 100%;
+  height: 48px;
+  padding: 0 14px;
+
+  box-sizing: border-box;
+
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+
+  background: #f8fafc;
+  color: #0f172a;
+
+  font-size: 14px;
+  outline: none;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.formGroup input::placeholder {
+  color: #94a3b8;
+}
+
+.formGroup input:focus {
+  border-color: #2563eb;
+  background: #ffffff;
+
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+/* Button */
+.loginCard button {
+  width: 100%;
+  height: 48px;
+
+  border: none;
+  border-radius: 10px;
+
+  background: #2563eb;
+  color: #ffffff;
+
+  font-size: 15px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.loginCard button:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25);
+}
+
+.loginCard button:active {
+  transform: translateY(0);
+}
+
+/* Footer */
+.footer {
+  margin: 28px 0 0;
+
+  text-align: center;
+
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .loginPage {
+    padding: 16px;
+  }
+
+  .loginCard {
+    padding: 30px 24px;
+    border-radius: 16px;
+  }
+
+  .loginCard h1 {
+    font-size: 26px;
+  }
+}

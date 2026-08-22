@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Navbar from "../frontend/components/shared/Navbar";
 import Sidebar from "../frontend/components/shared/Sidebar";
 import Header from "../frontend/components/shared/Header";
@@ -39,6 +40,7 @@ let transactionCounter = 1;
 
 export default function Home() {
   const [cart, setCart] = useState([]);
+  const router = useRouter();
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [receiptOpen, setReceiptOpen] = useState(false);
   const [lastTransaction, setLastTransaction] = useState(null);
@@ -106,7 +108,10 @@ export default function Home() {
         <Navbar
           storeName="Toko Iqbal"
           userName="Admin"
-          onLogout={() => alert("Logout")}
+          onLogout={() => {
+            localStorage.removeItem("token");
+            router.push("/auth/login");
+          }}
         />
 
         <div className="app-content">
