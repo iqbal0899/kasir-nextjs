@@ -16,7 +16,7 @@ export async function POST(request) {
         },
         {
           status: 400,
-        }
+        },
       );
     }
 
@@ -34,14 +34,11 @@ export async function POST(request) {
         },
         {
           status: 401,
-        }
+        },
       );
     }
 
-    const passwordValid = await bcrypt.compare(
-      password,
-      user.password
-    );
+    const passwordValid = await bcrypt.compare(password, user.password);
 
     if (!passwordValid) {
       return Response.json(
@@ -51,7 +48,7 @@ export async function POST(request) {
         },
         {
           status: 401,
-        }
+        },
       );
     }
 
@@ -63,8 +60,8 @@ export async function POST(request) {
       },
       process.env.JWT_SECRET,
       {
-        expiresIn: process.env.JWT_EXPIRES_IN || "1d",
-      }
+        expiresIn: 86400,
+      },
     );
 
     return Response.json({
@@ -88,7 +85,7 @@ export async function POST(request) {
       },
       {
         status: 500,
-      }
+      },
     );
   }
 }

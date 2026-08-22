@@ -33,7 +33,7 @@ export default function DashboardLayout({ children }) {
         <Navbar
           storeName="Toko Iqbal"
           userName="Admin"
-          onLogout={() => alert("Logout")}
+          onLogout={() => ("Logout")}
         />
 
         <main className="app-content">
