@@ -99,8 +99,27 @@ export async function PUT(request, { params }) {
     }
 
     if (role) {
-      data.role = role;
-    }
+  const normalizedRole =
+    role.toLowerCase();
+
+  if (
+    !["admin", "cashier"].includes(
+      normalizedRole
+    )
+  ) {
+    return Response.json(
+      {
+        success: false,
+        message: "Role tidak valid",
+      },
+      {
+        status: 400,
+      }
+    );
+  }
+
+  data.role = normalizedRole;
+}
 
     if (password) {
       data.password = await bcrypt.hash(password, 10);
@@ -118,6 +137,8 @@ export async function PUT(request, { params }) {
         createdAt: true,
       },
     });
+
+    console.log(updatedUser);
 
     return Response.json({
       success: true,
@@ -170,6 +191,8 @@ export async function DELETE(request, { params }) {
         id: userId,
       },
     });
+
+    console.log(existingUser);
 
     return Response.json({
       success: true,

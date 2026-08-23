@@ -1,28 +1,57 @@
-"use client";
+import { cookies } from "next/headers";
+import jwt from "jsonwebtoken";
 
 import Navbar from "../../frontend/components/shared/Navbar";
 import Sidebar from "../../frontend/components/shared/Sidebar";
 
-const MENU_ITEMS = [
-  {
-    label: "Kasir",
-    href: "/",
-  },
-  {
-    label: "Dashboard",
-    href: "/dashboard",
-  },
-  {
-    label: "Produk",
-    href: "/dashboard/products",
-  },
-  {
-    label: "Transaksi",
-    href: "/dashboard/transactions",
-  },
-];
+export default async function DashboardLayout({ children }) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
 
-export default function DashboardLayout({ children }) {
+  let user = null;
+
+  if (token) {
+    try {
+      user = jwt.verify(
+        token,
+        process.env.JWT_SECRET
+      );
+    } catch (error) {
+      console.error("JWT ERROR:", error);
+    }
+  }
+
+  const isAdmin = user?.role === "admin";
+
+  const MENU_ITEMS = [
+    {
+      label: "Kasir",
+      href: "/",
+    },
+    {
+      label: "Dashboard",
+      href: "/dashboard",
+    },
+    {
+      label: "Produk",
+      href: "/dashboard/products",
+    },
+    {
+      label: "Transaksi",
+      href: "/dashboard/transactions",
+    },
+
+    // Hanya admin
+    ...(isAdmin
+      ? [
+          {
+            label: "Daftar User",
+            href: "/dashboard/users",
+          },
+        ]
+      : []),
+  ];
+
   return (
     <div className="app-shell">
 
@@ -32,8 +61,8 @@ export default function DashboardLayout({ children }) {
 
         <Navbar
           storeName="Toko Iqbal"
-          userName="Admin"
-          onLogout={() => alert("Logout")}
+          userName={user?.username || "User"}
+          userRole={user?.role || "cashier"}
         />
 
         <main className="app-content">
