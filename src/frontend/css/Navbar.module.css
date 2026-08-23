@@ -1,0 +1,163 @@
+.navbar {
+  width: 100%;
+  min-height: 64px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 28px;
+  box-sizing: border-box;
+
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* =========================
+   STORE NAME
+========================= */
+
+.storeName {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a3b5d;
+
+  white-space: nowrap;
+}
+
+/* =========================
+   USER INFO
+========================= */
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  
+}
+
+/* Username */
+
+.userName {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  padding: 5px 10px;
+
+  white-space: nowrap;
+}
+
+
+.userRole {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 55px;
+
+  padding: 5px 10px;
+
+  border-radius: 20px;
+
+  background: #eef4f8;
+  color: #1a3b5d;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  text-transform: capitalize;
+}
+
+.logoutButton {
+  border: none;
+  outline: none;
+
+  padding: 5px 8px;
+
+  border-radius: 10px;
+
+  background: #dc2626;
+  color: #ffffff;
+
+  font-size: 10px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.logoutButton:hover {
+  background: #b91c1c;
+}
+
+.logoutButton:active {
+  transform: scale(0.97);
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 768px) {
+  .navbar {
+    min-height: 60px;
+    padding: 0 18px;
+  }
+
+  .storeName {
+    font-size: 17px;
+  }
+
+  .userInfo {
+    gap: 8px;
+  }
+
+  .userName {
+    font-size: 13px;
+  }
+
+  .userRole {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+
+  .logoutButton {
+    padding: 7px 10px;
+    font-size: 12px;
+  }
+}
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 520px) {
+  .navbar {
+    padding: 0 14px;
+  }
+
+  .storeName {
+    font-size: 15px;
+  }
+
+  .userInfo {
+    gap: 6px;
+  }
+
+  .userName {
+    display: none;
+  }
+
+  .userRole {
+    min-width: auto;
+  }
+
+  .logoutButton {
+    padding: 7px 9px;
+  }
+}

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { cookies } from "next/headers";
 
 export async function POST(request) {
   try {
@@ -63,6 +64,16 @@ export async function POST(request) {
         expiresIn: 86400,
       },
     );
+
+    const cookieStore = await cookies();
+
+cookieStore.set("token", token, {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax",
+  maxAge: 60 * 60 * 24,
+  path: "/",
+});
 
     return Response.json({
       success: true,
