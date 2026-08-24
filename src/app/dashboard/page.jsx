@@ -1,17 +1,93 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import styles from "../../frontend/css/dashboard.module.css";
-import { products } from "../../frontend/data/products";
 
 export default function DashboardPage() {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // =========================
+  // AMBIL DATA PRODUCT
+  // =========================
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const response = await fetch(
+          "/api/v1/products"
+        );
+
+        const result = await response.json();
+
+        console.log(
+          "DASHBOARD PRODUCT API:",
+          result
+        );
+
+        if (!response.ok) {
+          throw new Error(
+            result.message ||
+              "Gagal mengambil data produk"
+          );
+        }
+
+        setProducts(result.data || []);
+
+      } catch (error) {
+        console.error(
+          "FETCH DASHBOARD PRODUCTS ERROR:",
+          error
+        );
+
+        setError(
+          error.message ||
+            "Gagal mengambil data produk"
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  // =========================
+  // TOTAL PRODUCT
+  // =========================
 
   const totalProducts = products.length;
 
+  // =========================
+  // TOTAL STOCK
+  // =========================
+
   const totalStock = products.reduce(
-    (total, product) => total + product.stock,
+    (total, product) =>
+      total + Number(product.stock || 0),
     0
   );
 
+  // =========================
+  // FORMAT HARGA
+  // =========================
+
+  const formatPrice = (price) => {
+    return Number(price || 0).toLocaleString(
+      "id-ID"
+    );
+  };
+
   return (
     <main className={styles.container}>
+
+      {/* =========================
+          HEADER
+      ========================= */}
 
       <div className={styles.header}>
         <div>
@@ -25,61 +101,159 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className={styles.cards}>
+      {/* =========================
+          LOADING
+      ========================= */}
 
-        <div className={styles.card}>
-          <p>Total Produk</p>
-          <h2>{totalProducts}</h2>
+      {loading && (
+        <div className={styles.message}>
+          Memuat data dashboard...
         </div>
+      )}
 
-        <div className={styles.card}>
-          <p>Total Stock</p>
-          <h2>{totalStock}</h2>
+      {/* =========================
+          ERROR
+      ========================= */}
+
+      {!loading && error && (
+        <div className={styles.error}>
+          {error}
         </div>
+      )}
 
-        <div className={styles.card}>
-          <p>Total Transaksi</p>
-          <h2>2</h2>
+      {/* =========================
+          CARDS
+      ========================= */}
+
+      {!loading && !error && (
+        <div className={styles.cards}>
+
+          {/* TOTAL PRODUK */}
+
+          <div className={styles.card}>
+            <p>Total Produk</p>
+
+            <h2>
+              {totalProducts}
+            </h2>
+          </div>
+
+          {/* TOTAL STOCK */}
+
+          <div className={styles.card}>
+            <p>Total Stock</p>
+
+            <h2>
+              {totalStock}
+            </h2>
+          </div>
+
+          {/* TOTAL TRANSAKSI */}
+
+          <div className={styles.card}>
+            <p>Total Transaksi</p>
+
+            <h2>
+              0
+            </h2>
+          </div>
+
+          {/* PENDAPATAN */}
+
+          <div className={styles.card}>
+            <p>Pendapatan</p>
+
+            <h2>
+              Rp 0
+            </h2>
+          </div>
+
         </div>
+      )}
 
-        <div className={styles.card}>
-          <p>Pendapatan</p>
-          <h2>Rp 200.000</h2>
-        </div>
+      {/* =========================
+          PRODUCT SECTION
+      ========================= */}
 
-      </div>
+      {!loading && !error && (
+        <section
+          className={
+            styles.productSection
+          }
+        >
 
-      <section className={styles.productSection}>
+          <div
+            className={
+              styles.sectionHeader
+            }
+          >
+            <h2>
+              Daftar Produk
+            </h2>
+          </div>
 
-        <div className={styles.sectionHeader}>
-          <h2>Daftar Produk</h2>
-        </div>
+          {/* BELUM ADA PRODUK */}
 
-        <div className={styles.productList}>
-
-          {products.map((product) => (
+          {products.length === 0 && (
             <div
-              className={styles.productItem}
-              key={product.id}
+              className={
+                styles.message
+              }
             >
-              <div>
-                <h3>{product.name}</h3>
-                <span>{product.category}</span>
-              </div>
-
-              <strong>
-                Rp {product.price.toLocaleString("id-ID")}
-              </strong>
-
-              <span>
-                Stock: {product.stock}
-              </span>
+              Belum ada produk.
             </div>
-          ))}
+          )}
 
-        </div>
+          {/* PRODUCT LIST */}
 
-      </section>
+          {products.length > 0 && (
+            <div
+              className={
+                styles.productList
+              }
+            >
+
+              {products.map(
+                (product) => (
+                  <div
+                    className={
+                      styles.productItem
+                    }
+                    key={product.id}
+                  >
+
+                    <div>
+                      <h3>
+                        {product.name}
+                      </h3>
+
+                      <span>
+                        {product.category ||
+                          "Tanpa kategori"}
+                      </span>
+                    </div>
+
+                    <strong>
+                      Rp{" "}
+                      {formatPrice(
+                        product.price
+                      )}
+                    </strong>
+
+                    <span>
+                      Stock:{" "}
+                      {product.stock}
+                    </span>
+
+                  </div>
+                )
+              )}
+
+            </div>
+          )}
+
+        </section>
+      )}
 
     </main>
   );

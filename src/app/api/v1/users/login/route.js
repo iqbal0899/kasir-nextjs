@@ -9,6 +9,11 @@ export async function POST(request) {
 
     const { username, password } = body;
 
+    console.log("LOGIN REQUEST:", {
+      username,
+      passwordAda: !!password,
+    });
+
     if (!username || !password) {
       return Response.json(
         {
@@ -17,7 +22,7 @@ export async function POST(request) {
         },
         {
           status: 400,
-        },
+        }
       );
     }
 
@@ -35,11 +40,14 @@ export async function POST(request) {
         },
         {
           status: 401,
-        },
+        }
       );
     }
 
-    const passwordValid = await bcrypt.compare(password, user.password);
+    const passwordValid = await bcrypt.compare(
+      password,
+      user.password
+    );
 
     if (!passwordValid) {
       return Response.json(
@@ -49,7 +57,7 @@ export async function POST(request) {
         },
         {
           status: 401,
-        },
+        }
       );
     }
 
@@ -62,23 +70,23 @@ export async function POST(request) {
       process.env.JWT_SECRET,
       {
         expiresIn: 86400,
-      },
+      }
     );
 
     const cookieStore = await cookies();
 
-cookieStore.set("token", token, {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "lax",
-  maxAge: 60 * 60 * 24,
-  path: "/",
-});
+    cookieStore.set("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24,
+      path: "/",
+    });
 
     return Response.json({
       success: true,
       message: "Login berhasil",
-      token,
+
       user: {
         id: user.id,
         username: user.username,
@@ -92,11 +100,10 @@ cookieStore.set("token", token, {
       {
         success: false,
         message: "Terjadi kesalahan saat login",
-        error: error.message,
       },
       {
         status: 500,
-      },
+      }
     );
   }
 }

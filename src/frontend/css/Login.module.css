@@ -1,180 +1,294 @@
-.loginPage {
+/* ========================================
+   LOGIN PAGE
+======================================== */
+
+.container {
   min-height: 100vh;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   padding: 24px;
-  background: linear-gradient(
-    135deg,
-    #0f172a 0%,
-    #1e3a5f 50%,
-    #2563eb 100%
-  );
+
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(37, 99, 235, 0.18),
+      transparent 35%
+    ),
+    linear-gradient(
+      135deg,
+      #0f172a,
+      #172554,
+      #1e3a5f
+    );
 }
 
-.loginCard {
+
+/* ========================================
+   LOGIN CARD
+======================================== */
+
+.card {
   width: 100%;
   max-width: 420px;
-  padding: 40px;
-  background: #ffffff;
-  border-radius: 20px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
-}
 
-/* Logo jika nanti digunakan */
-.logo {
-  width: 70px;
-  height: 70px;
-  margin: 0 auto 20px;
+  padding: 36px;
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: rgba(15, 23, 42, 0.92);
 
-  border-radius: 50%;
-  background: #1e3a5f;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+
+  border-radius: 16px;
+
+  box-shadow:
+    0 25px 50px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(255, 255, 255, 0.02);
+
+  backdrop-filter: blur(12px);
+
   color: #ffffff;
-
-  font-size: 24px;
-  font-weight: 700;
 }
 
-/* Judul */
-.loginCard h1 {
-  margin: 0;
+
+/* ========================================
+   HEADER
+======================================== */
+
+.header {
   text-align: center;
 
-  color: #0f172a;
+  margin-bottom: 30px;
+}
+
+.header h1 {
+  margin: 0 0 8px;
+
   font-size: 30px;
   font-weight: 700;
+
+  letter-spacing: -0.5px;
+
+  color: #ffffff;
 }
 
-/* Welcome */
-.welcome {
-  margin: 8px 0 0;
-  text-align: center;
+.header p {
+  margin: 0;
 
-  color: #475569;
-  font-size: 16px;
-}
-
-.welcome strong {
-  color: #2563eb;
-}
-
-/* Description */
-.description {
-  margin: 12px 0 30px;
-  text-align: center;
-
-  color: #64748b;
   font-size: 14px;
-  line-height: 1.6;
+
+  color: #94a3b8;
 }
 
-/* Form */
+
+/* ========================================
+   FORM
+======================================== */
+
+.form {
+  display: flex;
+  flex-direction: column;
+
+  gap: 20px;
+}
+
+
+/* ========================================
+   FORM GROUP
+======================================== */
+
 .formGroup {
-  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
 }
 
 .formGroup label {
-  display: block;
-  margin-bottom: 8px;
-
-  color: #1e293b;
   font-size: 14px;
+
   font-weight: 600;
+
+  color: #e2e8f0;
 }
 
-/* Input */
 .formGroup input {
   width: 100%;
-  height: 48px;
-  padding: 0 14px;
 
   box-sizing: border-box;
 
-  border: 1px solid #cbd5e1;
-  border-radius: 10px;
+  padding: 12px 14px;
 
-  background: #f8fafc;
-  color: #0f172a;
+  border: 1px solid #334155;
+
+  border-radius: 8px;
+
+  background: #0f172a;
+
+  color: #ffffff;
 
   font-size: 14px;
+
   outline: none;
 
   transition:
     border-color 0.2s ease,
     box-shadow 0.2s ease,
-    background 0.2s ease;
+    background-color 0.2s ease;
 }
 
 .formGroup input::placeholder {
-  color: #94a3b8;
+  color: #64748b;
+}
+
+.formGroup input:hover {
+  border-color: #475569;
 }
 
 .formGroup input:focus {
-  border-color: #2563eb;
-  background: #ffffff;
+  border-color: #3b82f6;
 
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  background: #111c33;
+
+  box-shadow:
+    0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
-/* Button */
-.loginCard button {
+
+/* ========================================
+   ERROR
+======================================== */
+
+.error {
+  padding: 11px 13px;
+
+  border: 1px solid rgba(239, 68, 68, 0.35);
+
+  border-radius: 8px;
+
+  background: rgba(239, 68, 68, 0.1);
+
+  color: #f87171;
+
+  font-size: 13px;
+
+  line-height: 1.5;
+}
+
+
+/* ========================================
+   LOGIN BUTTON
+======================================== */
+
+.button {
   width: 100%;
-  height: 48px;
+
+  padding: 12px 16px;
+
+  margin-top: 4px;
 
   border: none;
-  border-radius: 10px;
 
-  background: #2563eb;
+  border-radius: 8px;
+
+  background: #ffffff;
+
   color: #ffffff;
 
-  font-size: 15px;
+  font-size: 14px;
+
   font-weight: 600;
 
   cursor: pointer;
 
   transition:
-    background 0.2s ease,
-    transform 0.2s ease,
+    background-color 0.2s ease,
+    transform 0.15s ease,
     box-shadow 0.2s ease;
 }
 
-.loginCard button:hover {
+.button:hover {
   background: #1d4ed8;
-  transform: translateY(-1px);
 
-  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25);
+  box-shadow:
+    0 8px 20px rgba(37, 99, 235, 0.25);
 }
 
-.loginCard button:active {
-  transform: translateY(0);
+.button:active {
+  transform: scale(0.98);
 }
 
-/* Footer */
-.footer {
-  margin: 28px 0 0;
+.button:focus-visible {
+  outline: 2px solid #60a5fa;
 
-  text-align: center;
-
-  color: #94a3b8;
-  font-size: 12px;
+  outline-offset: 2px;
 }
 
-/* Responsive */
-@media (max-width: 480px) {
-  .loginPage {
+.button:disabled {
+  opacity: 0.6;
+
+  cursor: not-allowed;
+
+  box-shadow: none;
+}
+
+
+/* ========================================
+   RESPONSIVE - TABLET
+======================================== */
+
+@media (max-width: 600px) {
+  .container {
+    padding: 20px;
+  }
+
+  .card {
+    max-width: 100%;
+
+    padding: 30px 24px;
+
+    border-radius: 14px;
+  }
+
+  .header h1 {
+    font-size: 27px;
+  }
+}
+
+
+/* ========================================
+   RESPONSIVE - MOBILE
+======================================== */
+
+@media (max-width: 400px) {
+  .container {
     padding: 16px;
   }
 
-  .loginCard {
-    padding: 30px 24px;
-    border-radius: 16px;
+  .card {
+    padding: 26px 20px;
+
+    border-radius: 12px;
   }
 
-  .loginCard h1 {
-    font-size: 26px;
+  .header {
+    margin-bottom: 24px;
+  }
+
+  .header h1 {
+    font-size: 25px;
+  }
+
+  .form {
+    gap: 17px;
+  }
+
+  .formGroup input {
+    padding: 11px 12px;
+  }
+
+  .button {
+    padding: 11px 14px;
   }
 }

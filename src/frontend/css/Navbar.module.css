@@ -15,9 +15,6 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
-/* =========================
-   STORE NAME
-========================= */
 
 .storeName {
   font-size: 20px;
@@ -70,34 +67,38 @@
   text-transform: capitalize;
 }
 
-.logoutButton {
+.button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  width: 100%;
+  padding: 11px 14px;
+
   border: none;
-  outline: none;
+  border-radius: 8px;
 
-  padding: 5px 8px;
+  background: transparent;
+  color: #e5e7eb;
 
-  border-radius: 10px;
-
-  background: #dc2626;
-  color: #ffffff;
-
-  font-size: 10px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 500;
 
   cursor: pointer;
 
-  transition:
-    background 0.2s ease,
-    transform 0.2s ease;
+  transition: all 0.2s ease;
 }
 
-.logoutButton:hover {
-  background: #b91c1c;
+.button:hover {
+  background: rgba(239, 68, 68, 0.12);
+  color: #f87171;
 }
 
-.logoutButton:active {
-  transform: scale(0.97);
+.button:active {
+  transform: scale(0.98);
 }
+
+
 
 /* =========================
    RESPONSIVE
@@ -126,10 +127,7 @@
     font-size: 11px;
   }
 
-  .logoutButton {
-    padding: 7px 10px;
-    font-size: 12px;
-  }
+
 }
 
 /* =========================
@@ -157,7 +155,4 @@
     min-width: auto;
   }
 
-  .logoutButton {
-    padding: 7px 9px;
-  }
 }
