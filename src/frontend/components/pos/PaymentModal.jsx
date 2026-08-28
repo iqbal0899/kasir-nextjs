@@ -1,10 +1,14 @@
+
 "use client";
 
 import { useState } from "react";
+import Swal from "sweetalert2";
 
 import Modal from "../ui/Modal";
 import Button from "../ui/Button";
 import Input from "../ui/Input";
+
+import { createTransaction } from "../../services/transactionApi";
 
 import "../../css/PaymentModal.css";
 
@@ -12,6 +16,7 @@ export default function PaymentModal({
   open,
   onClose,
   total = 0,
+  items = [],
   onConfirm,
 }) {
   const [method, setMethod] =
@@ -30,24 +35,106 @@ export default function PaymentModal({
     method === "qris" ||
     receivedAmount >= total;
 
-  function handleConfirm() {
+  async function handleConfirm() {
     if (!canConfirm) {
       return;
     }
 
-    onConfirm?.({
-      method,
+    try {
+      // ========================================
+      // DATA PEMBAYARAN
+      // ========================================
 
-      cashReceived:
-        method === "cash"
-          ? receivedAmount
-          : 0,
+      const paymentData = {
+        method,
 
-      change:
-        method === "cash"
-          ? Math.max(change, 0)
-          : 0,
-    });
+        cashReceived:
+          method === "cash"
+            ? receivedAmount
+            : 0,
+
+        change:
+          method === "cash"
+            ? Math.max(change, 0)
+            : 0,
+      };
+
+      // ========================================
+      // SIMPAN TRANSAKSI KE DATABASE
+      // ========================================
+
+      if (!items.length) {
+        throw new Error(
+          "Keranjang masih kosong"
+        );
+      }
+
+      const { createTransaction } =
+        await import(
+          "../../services/transactionApi"
+        );
+        console.log(
+  "ITEMS DARI CART KE PAYMENT MODAL:",
+  items
+);
+
+      const transaction = await createTransaction({
+  items: items.map((item) => ({
+    productId: Number(item.id),
+    quantity: Number(item.qty),
+    price: Number(item.price),
+  })),
+
+  paymentMethod: method,
+
+  cashReceived:
+    method === "cash"
+      ? receivedAmount
+      : 0,
+});
+
+      // Tetap beri tahu parent jika callback digunakan
+      await onConfirm?.(
+        paymentData,
+        transaction
+      );
+
+      // ========================================
+      // NOTIFIKASI BERHASIL
+      // ========================================
+
+      await Swal.fire({
+        icon: "success",
+        title: "Pembayaran Berhasil!",
+        text: "Transaksi berhasil disimpan.",
+        confirmButtonText: "OK",
+      });
+
+      // ========================================
+      // TUTUP MODAL
+      // ========================================
+
+      onClose?.();
+
+      // Reset form
+      setCashReceived("");
+      setMethod("cash");
+
+    } catch (error) {
+      console.error(
+        "PAYMENT ERROR:",
+        error
+      );
+
+      Swal.fire({
+        icon: "error",
+        title: "Pembayaran Gagal",
+        text:
+          error?.message ||
+          "Terjadi kesalahan saat memproses pembayaran.",
+        confirmButtonText: "OK",
+      });
+    }
   }
 
   return (
@@ -160,3 +247,4 @@ export default function PaymentModal({
     </Modal>
   );
 }
+

@@ -36,10 +36,6 @@ export default async function DashboardLayout({ children }) {
       label: "Produk",
       href: "/dashboard/products",
     },
-    {
-      label: "Transaksi",
-      href: "/dashboard/transactions",
-    },
 
     // Hanya admin
     ...(isAdmin
@@ -47,6 +43,10 @@ export default async function DashboardLayout({ children }) {
           {
             label: "Daftar User",
             href: "/dashboard/users",
+          },
+          {
+            label: "Transaksi",
+            href: "/dashboard/transactions",
           },
         ]
       : []),
