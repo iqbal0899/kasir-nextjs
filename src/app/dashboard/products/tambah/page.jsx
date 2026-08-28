@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 
+import { createProduct } from "@/frontend/services/productApi";
 import styles from "@/frontend/css/ProductForm.module.css";
 
 export default function ProductsPage() {
@@ -96,120 +97,104 @@ export default function ProductsPage() {
   // =========================
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!form.name.trim()) {
-      Swal.fire({
-        title: "Perhatian",
-        text: "Nama produk wajib diisi.",
-        icon: "warning",
-      });
+  if (!form.name.trim()) {
+    Swal.fire({
+      title: "Perhatian",
+      text: "Nama produk wajib diisi.",
+      icon: "warning",
+    });
 
-      return;
+    return;
+  }
+
+  if (!form.price) {
+    Swal.fire({
+      title: "Perhatian",
+      text: "Harga produk wajib diisi.",
+      icon: "warning",
+    });
+
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const formData = new FormData();
+
+    formData.append(
+      "name",
+      form.name
+    );
+
+    formData.append(
+      "price",
+      form.price
+    );
+
+    formData.append(
+      "stock",
+      form.stock
+    );
+
+    formData.append(
+      "category",
+      form.category
+    );
+
+    if (form.image) {
+      formData.append(
+        "image",
+        form.image
+      );
     }
 
-    if (!form.price) {
-      Swal.fire({
-        title: "Perhatian",
-        text: "Harga produk wajib diisi.",
-        icon: "warning",
-      });
+    await createProduct(formData);
 
-      return;
-    }
+    await Swal.fire({
+      title: "Berhasil!",
+      text: "Produk berhasil ditambahkan.",
+      icon: "success",
+      confirmButtonText: "OK",
+    });
 
-    setLoading(true);
+    setForm({
+      name: "",
+      price: "",
+      stock: 0,
+      category: "",
+      image: null,
+    });
 
-    try {
-      const formData = new FormData();
+    setPreview("");
 
-      formData.append(
-        "name",
-        form.name
-      );
+    router.push(
+      "/dashboard/products"
+    );
 
-      formData.append(
-        "price",
-        form.price
-      );
+    router.refresh();
 
-      formData.append(
-        "stock",
-        form.stock
-      );
+  } catch (error) {
+    console.error(
+      "PRODUCT ERROR:",
+      error
+    );
 
-      formData.append(
-        "category",
-        form.category
-      );
+    Swal.fire({
+      title: "Gagal!",
+      text:
+        error.message ||
+        "Terjadi kesalahan.",
+      icon: "error",
+      confirmButtonText: "OK",
+    });
 
-      // Hanya append jika ada gambar
-      if (form.image) {
-        formData.append(
-          "image",
-          form.image
-        );
-      }
-
-      const response = await fetch(
-        "/api/v1/products",
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
-
-      const result =
-        await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          result.message ||
-            "Gagal menambahkan produk"
-        );
-      }
-
-      await Swal.fire({
-        title: "Berhasil!",
-        text: "Produk berhasil ditambahkan.",
-        icon: "success",
-        confirmButtonText: "OK",
-      });
-
-      setForm({
-        name: "",
-        price: "",
-        stock: 0,
-        category: "",
-        image: null,
-      });
-
-      setPreview("");
-
-      router.push(
-        "/dashboard/product"
-      );
-
-      router.refresh();
-
-    } catch (error) {
-      console.error(
-        "PRODUCT ERROR:",
-        error
-      );
-
-      Swal.fire({
-        title: "Gagal!",
-        text:
-          error.message ||
-          "Terjadi kesalahan.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  } finally {
+    setLoading(false);
+  }
+};  
 
   return (
     <main className={styles.container}>

@@ -1,10 +1,20 @@
-import { prisma } from "@/lib/prisma";
 
+import {
+  getProductById,
+  updateProduct,
+  deleteProduct,
+} from "@/backend/actions/product.action";
 
-// ========================================
-// GET PRODUCT BY ID
-// ========================================
+import fs from "fs/promises";
+import path from "path";
 
+/**
+ * ========================================
+ * GET PRODUCT
+ * ========================================
+ *
+ * GET /api/v1/products/:id
+ */
 export async function GET(
   request,
   { params }
@@ -12,18 +22,32 @@ export async function GET(
   try {
     const { id } = await params;
 
-    const product =
-      await prisma.product.findUnique({
-        where: {
-          id: Number(id),
+    const productId = Number(id);
+
+    if (Number.isNaN(productId)) {
+      return Response.json(
+        {
+          success: false,
+          message:
+            "ID produk tidak valid",
         },
-      });
+        {
+          status: 400,
+        }
+      );
+    }
+
+    const product =
+      await getProductById(
+        productId
+      );
 
     if (!product) {
       return Response.json(
         {
           success: false,
-          message: "Produk tidak ditemukan",
+          message:
+            "Produk tidak ditemukan",
         },
         {
           status: 404,
@@ -57,10 +81,13 @@ export async function GET(
 }
 
 
-// ========================================
-// UPDATE PRODUCT
-// ========================================
-
+/**
+ * ========================================
+ * UPDATE PRODUCT
+ * ========================================
+ *
+ * PUT /api/v1/products/:id
+ */
 export async function PUT(
   request,
   { params }
@@ -70,35 +97,12 @@ export async function PUT(
 
     const productId = Number(id);
 
-    if (isNaN(productId)) {
-      return Response.json(
-        {
-          success: false,
-          message: "ID produk tidak valid",
-        },
-        {
-          status: 400,
-        }
-      );
-    }
-
-    const body =
-      await request.json();
-
-    const {
-      name,
-      price,
-      stock,
-      category,
-      image,
-    } = body;
-
-    if (!name) {
+    if (Number.isNaN(productId)) {
       return Response.json(
         {
           success: false,
           message:
-            "Nama produk wajib diisi",
+            "ID produk tidak valid",
         },
         {
           status: 400,
@@ -106,12 +110,13 @@ export async function PUT(
       );
     }
 
+    /**
+     * Ambil produk lama
+     */
     const existingProduct =
-      await prisma.product.findUnique({
-        where: {
-          id: productId,
-        },
-      });
+      await getProductById(
+        productId
+      );
 
     if (!existingProduct) {
       return Response.json(
@@ -126,29 +131,316 @@ export async function PUT(
       );
     }
 
+    /**
+     * FormData
+     */
+    const formData =
+      await request.formData();
+
+    const name =
+      formData.get("name");
+
+    const price =
+      formData.get("price");
+
+    const stock =
+      formData.get("stock");
+
+    const category =
+      formData.get("category");
+
+    const image =
+      formData.get("image");
+
+
+    // ========================================
+    // VALIDASI NAME
+    // ========================================
+
+    if (
+      !name ||
+      !name.trim()
+    ) {
+      return Response.json(
+        {
+          success: false,
+          message:
+            "Nama produk wajib diisi",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+
+    // ========================================
+    // VALIDASI PRICE
+    // ========================================
+
+    if (
+      price === null ||
+      price === ""
+    ) {
+      return Response.json(
+        {
+          success: false,
+          message:
+            "Harga produk wajib diisi",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    const productPrice =
+      Number(price);
+
+    if (
+      Number.isNaN(
+        productPrice
+      ) ||
+      productPrice < 0
+    ) {
+      return Response.json(
+        {
+          success: false,
+          message:
+            "Harga tidak valid",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+
+    // ========================================
+    // VALIDASI STOCK
+    // ========================================
+
+    const productStock =
+      stock === "" ||
+      stock === null
+        ? 0
+        : Number(stock);
+
+    if (
+      Number.isNaN(
+        productStock
+      ) ||
+      productStock < 0
+    ) {
+      return Response.json(
+        {
+          success: false,
+          message:
+            "Stock tidak valid",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+
+    // ========================================
+    // IMAGE
+    // ========================================
+
+    let imagePath =
+      existingProduct.image;
+
+    let newImageUploaded =
+      false;
+
+
+    if (
+      image &&
+      typeof image !== "string" &&
+      image.size > 0
+    ) {
+      // ========================================
+      // VALIDASI FORMAT
+      // ========================================
+
+      const allowedTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+      ];
+
+      if (
+        !allowedTypes.includes(
+          image.type
+        )
+      ) {
+        return Response.json(
+          {
+            success: false,
+            message:
+              "Format gambar harus JPG, PNG, atau WEBP",
+          },
+          {
+            status: 400,
+          }
+        );
+      }
+
+
+      // ========================================
+      // VALIDASI SIZE
+      // ========================================
+
+      if (
+        image.size >
+        2 * 1024 * 1024
+      ) {
+        return Response.json(
+          {
+            success: false,
+            message:
+              "Ukuran gambar maksimal 2 MB",
+          },
+          {
+            status: 400,
+          }
+        );
+      }
+
+
+      // ========================================
+      // UPLOAD
+      // ========================================
+
+      const bytes =
+        await image.arrayBuffer();
+
+      const buffer =
+        Buffer.from(bytes);
+
+      const extension =
+        image.name
+          .split(".")
+          .pop()
+          .toLowerCase();
+
+
+      const fileName =
+        `${Date.now()}-${Math.random()
+          .toString(36)
+          .substring(2)}.${extension}`;
+
+
+      const uploadDir =
+        path.join(
+          process.cwd(),
+          "public",
+          "products"
+        );
+
+
+      await fs.mkdir(
+        uploadDir,
+        {
+          recursive: true,
+        }
+      );
+
+
+      const filePath =
+        path.join(
+          uploadDir,
+          fileName
+        );
+
+
+      await fs.writeFile(
+        filePath,
+        buffer
+      );
+
+
+      imagePath =
+        `/products/${fileName}`;
+
+      newImageUploaded =
+        true;
+    }
+
+
+    // ========================================
+    // UPDATE DATABASE
+    // ========================================
+
     const product =
-      await prisma.product.update({
-        where: {
-          id: productId,
-        },
+      await updateProduct(
+        productId,
+        {
+          name:
+            name.trim(),
 
-        data: {
-          name: name,
-          price: Number(price),
-          stock: Number(stock || 0),
+          price:
+            productPrice,
+
+          stock:
+            productStock,
+
           category:
-            category || null,
-          image:
-            image || null,
-        },
-      });
+            category?.trim() ||
+            null,
 
-    return Response.json({
-      success: true,
-      message:
-        "Produk berhasil diperbarui",
-      data: product,
-    });
+          image:
+            imagePath,
+        }
+      );
+
+
+    // ========================================
+    // HAPUS GAMBAR LAMA
+    // ========================================
+
+    if (
+      newImageUploaded &&
+      existingProduct.image
+    ) {
+      try {
+        const oldImagePath =
+          path.join(
+            process.cwd(),
+            "public",
+            existingProduct.image
+          );
+
+        await fs.unlink(
+          oldImagePath
+        );
+
+      } catch (error) {
+        console.warn(
+          "GAMBAR LAMA GAGAL DIHAPUS:",
+          error.message
+        );
+      }
+    }
+
+
+    // ========================================
+    // RESPONSE
+    // ========================================
+
+    return Response.json(
+      {
+        success: true,
+        message:
+          "Produk berhasil diperbarui",
+        data: product,
+      },
+      {
+        status: 200,
+      }
+    );
 
   } catch (error) {
     console.error(
@@ -171,10 +463,13 @@ export async function PUT(
 }
 
 
-// ========================================
-// DELETE PRODUCT
-// ========================================
-
+/**
+ * ========================================
+ * DELETE PRODUCT
+ * ========================================
+ *
+ * DELETE /api/v1/products/:id
+ */
 export async function DELETE(
   request,
   { params }
@@ -182,13 +477,17 @@ export async function DELETE(
   try {
     const { id } = await params;
 
-    const productId = Number(id);
+    const productId =
+      Number(id);
 
-    if (isNaN(productId)) {
+    if (
+      Number.isNaN(productId)
+    ) {
       return Response.json(
         {
           success: false,
-          message: "ID produk tidak valid",
+          message:
+            "ID produk tidak valid",
         },
         {
           status: 400,
@@ -196,12 +495,16 @@ export async function DELETE(
       );
     }
 
+
+    // ========================================
+    // GET PRODUCT
+    // ========================================
+
     const product =
-      await prisma.product.findUnique({
-        where: {
-          id: productId,
-        },
-      });
+      await getProductById(
+        productId
+      );
+
 
     if (!product) {
       return Response.json(
@@ -216,11 +519,41 @@ export async function DELETE(
       );
     }
 
-    await prisma.product.delete({
-      where: {
-        id: productId,
-      },
-    });
+
+    // ========================================
+    // DELETE DATABASE
+    // ========================================
+
+    await deleteProduct(
+      productId
+    );
+
+
+    // ========================================
+    // DELETE IMAGE
+    // ========================================
+
+    if (product.image) {
+      try {
+        const imagePath =
+          path.join(
+            process.cwd(),
+            "public",
+            product.image
+          );
+
+        await fs.unlink(
+          imagePath
+        );
+
+      } catch (error) {
+        console.warn(
+          "GAMBAR PRODUK GAGAL DIHAPUS:",
+          error.message
+        );
+      }
+    }
+
 
     return Response.json({
       success: true,
@@ -247,3 +580,4 @@ export async function DELETE(
     );
   }
 }
+

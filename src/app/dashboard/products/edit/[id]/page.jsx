@@ -1,22 +1,13 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-} from "react";
-
-import {
-  useParams,
-  useRouter,
-} from "next/navigation";
-
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 
 import styles from "@/frontend/css/ProductForm.module.css";
 
 export default function EditProductPage() {
   const router = useRouter();
-
   const params = useParams();
 
   const id = params.id;
@@ -26,17 +17,15 @@ export default function EditProductPage() {
     price: "",
     stock: 0,
     category: "",
-    image: "",
+    image: null,
   });
 
-  const [loading, setLoading] =
-    useState(true);
+  const [currentImage, setCurrentImage] = useState("");
+  const [preview, setPreview] = useState("");
 
-  const [saving, setSaving] =
-    useState(false);
-
-  const [error, setError] =
-    useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
   // ========================================
   // GET PRODUCT
@@ -46,46 +35,38 @@ export default function EditProductPage() {
     const fetchProduct = async () => {
       try {
         setLoading(true);
+        setError("");
 
-        const response =
-          await fetch(
-            `/api/v1/products/${id}`
-          );
+        const response = await fetch(
+          `/api/v1/products/${id}`
+        );
 
-        const result =
-          await response.json();
+        const result = await response.json();
 
         if (!response.ok) {
           throw new Error(
             result.message ||
-              "Gagal mengambil produk"
+              "Gagal mengambil data produk"
           );
         }
 
-        const product =
-          result.data;
+        const product = result.data;
 
         setForm({
-          name:
-            product.name || "",
-
+          name: product.name || "",
           price:
-            product.price
-              ? String(
-                  product.price
-                )
+            product.price !== null &&
+            product.price !== undefined
+              ? String(product.price)
               : "",
-
-          stock:
-            product.stock ?? 0,
-
-          category:
-            product.category || "",
-
-          image:
-            product.image || "",
+          stock: product.stock ?? 0,
+          category: product.category || "",
+          image: null,
         });
 
+        setCurrentImage(
+          product.image || ""
+        );
       } catch (error) {
         console.error(
           "GET PRODUCT ERROR:",
@@ -94,9 +75,8 @@ export default function EditProductPage() {
 
         setError(
           error.message ||
-            "Gagal mengambil produk"
+            "Gagal mengambil data produk"
         );
-
       } finally {
         setLoading(false);
       }
@@ -108,19 +88,79 @@ export default function EditProductPage() {
   }, [id]);
 
   // ========================================
-  // HANDLE CHANGE
+  // HANDLE INPUT
   // ========================================
 
   const handleChange = (e) => {
-    const {
-      name,
-      value,
-    } = e.target;
+    const { name, value } = e.target;
 
     setForm((prev) => ({
       ...prev,
       [name]: value,
     }));
+  };
+
+  // ========================================
+  // HANDLE IMAGE
+  // ========================================
+
+  const handleImageChange = (e) => {
+    const file = e.target.files?.[0];
+
+    if (!file) {
+      setForm((prev) => ({
+        ...prev,
+        image: null,
+      }));
+
+      setPreview("");
+
+      return;
+    }
+
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+    ];
+
+    // Validasi format
+    if (!allowedTypes.includes(file.type)) {
+      Swal.fire({
+        title: "Format Tidak Valid",
+        text:
+          "Format gambar harus JPG, PNG, atau WEBP.",
+        icon: "warning",
+        confirmButtonText: "OK",
+      });
+
+      e.target.value = "";
+      return;
+    }
+
+    // Validasi ukuran
+    if (file.size > 2 * 1024 * 1024) {
+      Swal.fire({
+        title: "File Terlalu Besar",
+        text:
+          "Ukuran gambar maksimal 2 MB.",
+        icon: "warning",
+        confirmButtonText: "OK",
+      });
+
+      e.target.value = "";
+      return;
+    }
+
+    setForm((prev) => ({
+      ...prev,
+      image: file,
+    }));
+
+    const imageUrl =
+      URL.createObjectURL(file);
+
+    setPreview(imageUrl);
   };
 
   // ========================================
@@ -130,42 +170,73 @@ export default function EditProductPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Validasi nama
+    if (!form.name.trim()) {
+      Swal.fire({
+        title: "Perhatian",
+        text: "Nama produk wajib diisi.",
+        icon: "warning",
+      });
+
+      return;
+    }
+
+    // Validasi harga
+    if (
+      form.price === "" ||
+      form.price === null
+    ) {
+      Swal.fire({
+        title: "Perhatian",
+        text: "Harga produk wajib diisi.",
+        icon: "warning",
+      });
+
+      return;
+    }
+
     setSaving(true);
     setError("");
 
     try {
-      const response =
-        await fetch(
-          `/api/v1/products/${id}`,
-          {
-            method: "PUT",
+      const formData = new FormData();
 
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
+      formData.append(
+        "name",
+        form.name.trim()
+      );
 
-            body: JSON.stringify({
-              name: form.name,
+      formData.append(
+        "price",
+        form.price
+      );
 
-              price:
-                Number(
-                  form.price
-                ),
+      formData.append(
+        "stock",
+        form.stock
+      );
 
-              stock:
-                Number(
-                  form.stock
-                ),
+      formData.append(
+        "category",
+        form.category
+      );
 
-              category:
-                form.category,
-
-              image:
-                form.image,
-            }),
-          }
+      // Hanya kirim file jika
+      // user memilih gambar baru
+      if (form.image) {
+        formData.append(
+          "image",
+          form.image
         );
+      }
+
+      const response = await fetch(
+        `/api/v1/products/${id}`,
+        {
+          method: "PUT",
+          body: formData,
+        }
+      );
 
       const result =
         await response.json();
@@ -179,7 +250,8 @@ export default function EditProductPage() {
 
       await Swal.fire({
         title: "Berhasil!",
-        text: "Produk berhasil diperbarui.",
+        text:
+          "Produk berhasil diperbarui.",
         icon: "success",
         confirmButtonText: "OK",
       });
@@ -189,7 +261,6 @@ export default function EditProductPage() {
       );
 
       router.refresh();
-
     } catch (error) {
       console.error(
         "UPDATE PRODUCT ERROR:",
@@ -205,11 +276,10 @@ export default function EditProductPage() {
         title: "Gagal!",
         text:
           error.message ||
-          "Gagal memperbarui produk.",
+            "Gagal memperbarui produk.",
         icon: "error",
         confirmButtonText: "OK",
       });
-
     } finally {
       setSaving(false);
     }
@@ -221,53 +291,29 @@ export default function EditProductPage() {
 
   if (loading) {
     return (
-      <main
-        className={
-          styles.container
-        }
-      >
-        <div
-          className={
-            styles.card
-          }
-        >
-          <p>
-            Memuat data produk...
-          </p>
+      <main className={styles.container}>
+        <div className={styles.card}>
+          <p>Memuat data produk...</p>
         </div>
       </main>
     );
   }
 
   // ========================================
-  // ERROR
+  // ERROR GET PRODUCT
   // ========================================
 
   if (error && !form.name) {
     return (
-      <main
-        className={
-          styles.container
-        }
-      >
-        <div
-          className={
-            styles.card
-          }
-        >
-          <div
-            className={
-              styles.error
-            }
-          >
+      <main className={styles.container}>
+        <div className={styles.card}>
+          <div className={styles.error}>
             {error}
           </div>
 
           <button
             type="button"
-            className={
-              styles.cancelButton
-            }
+            className={styles.cancelButton}
             onClick={() =>
               router.push(
                 "/dashboard/products"
@@ -286,47 +332,29 @@ export default function EditProductPage() {
   // ========================================
 
   return (
-    <main
-      className={
-        styles.container
-      }
-    >
-      <div
-        className={
-          styles.card
-        }
-      >
+    <main className={styles.container}>
+      <div className={styles.card}>
 
-        <div
-          className={
-            styles.header
-          }
-        >
-          <h1>
-            Edit Produk
-          </h1>
+        {/* HEADER */}
+
+        <div className={styles.header}>
+          <h1>Edit Produk</h1>
 
           <p>
             Perbarui data produk.
           </p>
         </div>
 
+        {/* FORM */}
+
         <form
-          onSubmit={
-            handleSubmit
-          }
-          className={
-            styles.form
-          }
+          onSubmit={handleSubmit}
+          className={styles.form}
         >
 
-          {/* NAME */}
+          {/* NAMA */}
 
-          <div
-            className={
-              styles.formGroup
-            }
-          >
+          <div className={styles.formGroup}>
             <label htmlFor="name">
               Nama Produk
             </label>
@@ -335,23 +363,16 @@ export default function EditProductPage() {
               id="name"
               type="text"
               name="name"
-              value={
-                form.name
-              }
-              onChange={
-                handleChange
-              }
+              value={form.name}
+              onChange={handleChange}
+              placeholder="Contoh: Kopi Susu"
               required
             />
           </div>
 
-          {/* PRICE */}
+          {/* HARGA */}
 
-          <div
-            className={
-              styles.formGroup
-            }
-          >
+          <div className={styles.formGroup}>
             <label htmlFor="price">
               Harga
             </label>
@@ -360,25 +381,18 @@ export default function EditProductPage() {
               id="price"
               type="number"
               name="price"
-              value={
-                form.price
-              }
-              onChange={
-                handleChange
-              }
+              value={form.price}
+              onChange={handleChange}
               min="0"
               step="0.01"
+              placeholder="Contoh: 18000"
               required
             />
           </div>
 
           {/* STOCK */}
 
-          <div
-            className={
-              styles.formGroup
-            }
-          >
+          <div className={styles.formGroup}>
             <label htmlFor="stock">
               Stock
             </label>
@@ -387,12 +401,8 @@ export default function EditProductPage() {
               id="stock"
               type="number"
               name="stock"
-              value={
-                form.stock
-              }
-              onChange={
-                handleChange
-              }
+              value={form.stock}
+              onChange={handleChange}
               min="0"
               step="1"
             />
@@ -400,11 +410,7 @@ export default function EditProductPage() {
 
           {/* CATEGORY */}
 
-          <div
-            className={
-              styles.formGroup
-            }
-          >
+          <div className={styles.formGroup}>
             <label htmlFor="category">
               Kategori
             </label>
@@ -413,64 +419,46 @@ export default function EditProductPage() {
               id="category"
               type="text"
               name="category"
-              value={
-                form.category
-              }
-              onChange={
-                handleChange
-              }
+              value={form.category}
+              onChange={handleChange}
               placeholder="Contoh: Minuman"
             />
           </div>
 
           {/* IMAGE */}
 
-          <div
-            className={
-              styles.formGroup
-            }
-          >
+          <div className={styles.formGroup}>
             <label htmlFor="image">
               Gambar Produk
             </label>
 
             <input
               id="image"
-              type="text"
+              type="file"
               name="image"
-              value={
-                form.image
-              }
-              onChange={
-                handleChange
-              }
-              placeholder="/products/kopi.jpg"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={handleImageChange}
             />
+
+            <small>
+              Format JPG, PNG, atau WEBP.
+              Maksimal 2 MB.
+            </small>
           </div>
 
-          {/* PREVIEW */}
+          {/* GAMBAR LAMA */}
 
-          {form.image && (
-            <div
-              className={
-                styles.preview
-              }
-            >
-              <p>
-                Preview:
-              </p>
+          {currentImage && !preview && (
+            <div className={styles.preview}>
+              <p>Gambar Saat Ini:</p>
 
               <img
-                src={
-                  form.image
-                }
+                src={currentImage}
                 alt={
                   form.name ||
-                  "Preview produk"
+                  "Gambar produk"
                 }
-                onError={(
-                  e
-                ) => {
+                onError={(e) => {
                   e.currentTarget.style.display =
                     "none";
                 }}
@@ -478,25 +466,35 @@ export default function EditProductPage() {
             </div>
           )}
 
+          {/* GAMBAR BARU */}
+
+          {preview && (
+            <div className={styles.preview}>
+              <p>
+                Preview Gambar Baru:
+              </p>
+
+              <img
+                src={preview}
+                alt={
+                  form.name ||
+                  "Preview produk"
+                }
+              />
+            </div>
+          )}
+
           {/* ERROR */}
 
           {error && (
-            <div
-              className={
-                styles.error
-              }
-            >
+            <div className={styles.error}>
               {error}
             </div>
           )}
 
           {/* BUTTON */}
 
-          <div
-            className={
-              styles.actions
-            }
-          >
+          <div className={styles.actions}>
 
             <button
               type="button"
@@ -508,9 +506,7 @@ export default function EditProductPage() {
                   "/dashboard/products"
                 )
               }
-              disabled={
-                saving
-              }
+              disabled={saving}
             >
               Batal
             </button>
@@ -520,9 +516,7 @@ export default function EditProductPage() {
               className={
                 styles.submitButton
               }
-              disabled={
-                saving
-              }
+              disabled={saving}
             >
               {saving
                 ? "Menyimpan..."
@@ -530,7 +524,6 @@ export default function EditProductPage() {
             </button>
 
           </div>
-
         </form>
       </div>
     </main>
