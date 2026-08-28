@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatDate } from "@/shared/utils/formatDate";
 import styles from "@/frontend/css/report.module.css";
 
 import Sidebar from "@/frontend/components/shared/Sidebar";
@@ -12,17 +13,20 @@ export default function ReportsPage() {
 
   const [user, setUser] = useState(null);
 
-  const [loadingProducts, setLoadingProducts] =
-    useState(true);
+  const [printDate, setPrintDate] = useState(null);
+  const [printSection, setPrintSection] = useState(null);
 
-  const [loadingTransactions, setLoadingTransactions] =
-    useState(true);
+  const [loadingProducts, setLoadingProducts] = useState(true);
 
-  const [productError, setProductError] =
-    useState("");
+  const [loadingTransactions, setLoadingTransactions] = useState(true);
 
-  const [transactionError, setTransactionError] =
-    useState("");
+  const [productError, setProductError] = useState("");
+
+  const [transactionError, setTransactionError] = useState("");
+
+  useEffect(() => {
+    setPrintDate(new Date());
+  }, []);
 
   // =========================
   // GET PRODUCTS
@@ -34,30 +38,19 @@ export default function ReportsPage() {
         setLoadingProducts(true);
         setProductError("");
 
-        const response = await fetch(
-          "/api/v1/products"
-        );
+        const response = await fetch("/api/v1/products");
 
         const result = await response.json();
 
         if (!response.ok) {
-          throw new Error(
-            result.message ||
-              "Gagal mengambil data produk"
-          );
+          throw new Error(result.message || "Gagal mengambil data produk");
         }
 
         setProducts(result.data || []);
       } catch (error) {
-        console.error(
-          "PRODUCT REPORT ERROR:",
-          error
-        );
+        console.error("PRODUCT REPORT ERROR:", error);
 
-        setProductError(
-          error.message ||
-            "Gagal mengambil data produk"
-        );
+        setProductError(error.message || "Gagal mengambil data produk");
       } finally {
         setLoadingProducts(false);
       }
@@ -76,35 +69,21 @@ export default function ReportsPage() {
         setLoadingTransactions(true);
         setTransactionError("");
 
-        const response = await fetch(
-          "/api/v1/transactions"
-        );
+        const response = await fetch("/api/v1/transactions");
 
         const result = await response.json();
 
-        console.log(
-          "TRANSACTION REPORT:",
-          result
-        );
+        console.log("TRANSACTION REPORT:", result);
 
         if (!response.ok) {
-          throw new Error(
-            result.message ||
-              "Gagal mengambil data transaksi"
-          );
+          throw new Error(result.message || "Gagal mengambil data transaksi");
         }
 
         setTransactions(result.data || []);
       } catch (error) {
-        console.error(
-          "TRANSACTION REPORT ERROR:",
-          error
-        );
+        console.error("TRANSACTION REPORT ERROR:", error);
 
-        setTransactionError(
-          error.message ||
-            "Gagal mengambil data transaksi"
-        );
+        setTransactionError(error.message || "Gagal mengambil data transaksi");
       } finally {
         setLoadingTransactions(false);
       }
@@ -118,23 +97,18 @@ export default function ReportsPage() {
   // =========================
 
   useEffect(() => {
-    const storedUser =
-      localStorage.getItem("user");
+    const storedUser = localStorage.getItem("user");
 
     if (!storedUser) {
       return;
     }
 
     try {
-      const parsedUser =
-        JSON.parse(storedUser);
+      const parsedUser = JSON.parse(storedUser);
 
       setUser(parsedUser);
     } catch (error) {
-      console.error(
-        "USER DATA ERROR:",
-        error
-      );
+      console.error("USER DATA ERROR:", error);
 
       localStorage.removeItem("user");
     }
@@ -145,54 +119,64 @@ export default function ReportsPage() {
   // =========================
 
   const formatPrice = (price) => {
-    return Number(
-      price || 0
-    ).toLocaleString("id-ID");
+    return Number(price || 0).toLocaleString("id-ID");
   };
 
   // =========================
   // PRODUCT STATISTICS
   // =========================
 
-  const totalProducts =
-    products.length;
+  const totalProducts = products.length;
 
-  const totalStock =
-    products.reduce(
-      (total, product) =>
-        total +
-        Number(product.stock || 0),
-      0
-    );
+  const totalStock = products.reduce(
+    (total, product) => total + Number(product.stock || 0),
+    0,
+  );
 
-  const lowStock =
-    products.filter(
-      (product) =>
-        Number(product.stock || 0) <= 5
-    ).length;
+  const lowStock = products.filter(
+    (product) => Number(product.stock || 0) <= 5,
+  ).length;
 
   // =========================
   // TRANSACTION STATISTICS
   // =========================
 
-  const totalTransactions =
-    transactions.length;
+  const totalTransactions = transactions.length;
 
-  const totalRevenue =
-    transactions.reduce(
-      (total, transaction) =>
-        total +
-        Number(transaction.total || 0),
-      0
-    );
+  const totalRevenue = transactions.reduce(
+    (total, transaction) => total + Number(transaction.total || 0),
+    0,
+  );
 
   // =========================
   // PRINT
   // =========================
 
-  const handlePrint = () => {
+ const handlePrint = (section) => {
+  setPrintSection(section);
+
+  setTimeout(() => {
     window.print();
+  }, 300);
+};
+
+useEffect(() => {
+  const handleAfterPrint = () => {
+    setPrintSection(null);
   };
+
+  window.addEventListener(
+    "afterprint",
+    handleAfterPrint
+  );
+
+  return () => {
+    window.removeEventListener(
+      "afterprint",
+      handleAfterPrint
+    );
+  };
+}, []);
 
   // =========================
   // MENU SIDEBAR
@@ -220,15 +204,12 @@ export default function ReportsPage() {
 
   return (
     <div className="app-shell">
-
       {/* =========================
           SIDEBAR
       ========================= */}
 
-      <div className="no-print">
-        <Sidebar
-          menuItems={MENU_ITEMS}
-        />
+      <div className={styles.noPrint}>
+        <Sidebar menuItems={MENU_ITEMS} />
       </div>
 
       {/* =========================
@@ -236,31 +217,19 @@ export default function ReportsPage() {
       ========================= */}
 
       <div className="app-main">
-
         {/* =========================
             NAVBAR
         ========================= */}
 
-        <div className="no-print">
+        <div className={styles.noPrint}>
           <Navbar
             storeName="Toko Iqbal"
-            userName={
-              user?.username || "User"
-            }
-            userRole={
-              user?.role || "cashier"
-            }
+            userName={user?.username || "User"}
+            userRole={user?.role || "cashier"}
             onLogout={() => {
-              localStorage.removeItem(
-                "token"
-              );
+              localStorage.removeItem("token");
 
-              localStorage.removeItem(
-                "user"
-              );
-
-              window.location.href =
-                "/auth/login";
+              localStorage.removeItem("user");
             }}
           />
         </div>
@@ -269,82 +238,70 @@ export default function ReportsPage() {
             REPORT CONTENT
         ========================= */}
 
-        <main
-          className={
-            styles.container
-          }
-        >
-
+       <main
+  className={`${styles.container} ${
+    printSection === "product"
+      ? styles.printProduct
+      : printSection === "transaction"
+        ? styles.printTransaction
+        : printSection === "all"
+          ? styles.printAll
+          : ""
+  }`}
+>
           {/* =========================
               PRINT HEADER
           ========================= */}
 
-          <div
-            className={
-              styles.printHeader
-            }
-          >
-            <h1>
-              TOKO IQBAL
-            </h1>
+          <div className={styles.printHeader}>
+  <h1>TOKO IQBAL</h1>
 
-            <h2>
-              LAPORAN PRODUK & TRANSAKSI
-            </h2>
+  {printSection === "product" && (
+    <h2>LAPORAN PRODUK</h2>
+  )}
 
-            <p>
-              Dicetak oleh:{" "}
-              {user?.username ||
-                "User"}
-            </p>
+  {printSection === "transaction" && (
+    <h2>LAPORAN TRANSAKSI</h2>
+  )}
 
-            <p>
-              Tanggal:{" "}
-              {new Date().toLocaleString(
-                "id-ID"
-              )}
-            </p>
-          </div>
+  {printSection === "all" && (
+    <h2>LAPORAN PRODUK & TRANSAKSI</h2>
+  )}
+
+  <p>
+    Dicetak oleh: {user?.username || "User"}
+  </p>
+
+  <p>
+    Tanggal:{" "}
+    {printDate
+      ? formatDate(printDate)
+      : "-"}
+  </p>
+</div>
 
           {/* =========================
               PAGE HEADER
           ========================= */}
 
-          <div
-            className={styles.header}
-          >
+          <div className={styles.header}>
             <div>
-              <h1
-                className={
-                  styles.title
-                }
-              >
-                Laporan
-              </h1>
+              <h1 className={styles.title}>Laporan</h1>
 
-              <p
-                className={
-                  styles.subtitle
-                }
-              >
-                Laporan produk dan
-                transaksi Toko Iqbal
+              <p className={styles.subtitle}>
+                Laporan produk dan transaksi Toko Iqbal
               </p>
             </div>
 
             {/* PRINT BUTTON */}
 
             <button
-              type="button"
-              className={
-                styles.printButton
-              }
-              onClick={
-                handlePrint
-              }
-            >
-              🖨️ Print Laporan
-            </button>
+  type="button"
+  className={`${styles.printButton} ${styles.noPrint}`}
+  onClick={() => handlePrint("all")}
+>
+  🖨️ Print Laporan
+</button>
           </div>
 
           {/* =========================
@@ -352,432 +309,217 @@ export default function ReportsPage() {
           ========================= */}
 
           <section
-            className={
-              styles.section
-            }
-          >
-
-            <div
-              className={
-                styles.sectionHeader
-              }
-            >
+  className={`${styles.section} ${
+    printSection === "product"
+      ? styles.printVisible
+      : styles.printHidden
+  }`}
+>
+            <div className={styles.sectionHeader}>
               <div>
-                <h2>
-                  Laporan Produk
-                </h2>
+                <h2>Laporan Produk</h2>
 
-                <p>
-                  Ringkasan produk dan
-                  persediaan
-                </p>
+                <p>Ringkasan produk dan persediaan</p>
               </div>
+
+              <button
+                type="button"
+                className={`${styles.printButton} ${styles.noPrint}`}
+                onClick={() => handlePrint("product")}
+              >
+                🖨️ Print Produk
+              </button>
             </div>
 
             {/* PRODUCT CARDS */}
 
-            <div
-              className={
-                styles.cards
-              }
-            >
+            <div className={styles.cards}>
+              <div className={styles.card}>
+                <span>Total Produk</span>
 
-              <div
-                className={
-                  styles.card
-                }
-              >
-                <span>
-                  Total Produk
-                </span>
-
-                <strong>
-                  {loadingProducts
-                    ? "..."
-                    : totalProducts}
-                </strong>
+                <strong>{loadingProducts ? "..." : totalProducts}</strong>
               </div>
 
-              <div
-                className={
-                  styles.card
-                }
-              >
-                <span>
-                  Total Stock
-                </span>
+              <div className={styles.card}>
+                <span>Total Stock</span>
 
-                <strong>
-                  {loadingProducts
-                    ? "..."
-                    : totalStock}
-                </strong>
+                <strong>{loadingProducts ? "..." : totalStock}</strong>
               </div>
 
-              <div
-                className={
-                  styles.card
-                }
-              >
-                <span>
-                  Stock Menipis
-                </span>
+              <div className={styles.card}>
+                <span>Stock Menipis</span>
 
-                <strong>
-                  {loadingProducts
-                    ? "..."
-                    : lowStock}
-                </strong>
+                <strong>{loadingProducts ? "..." : lowStock}</strong>
               </div>
-
             </div>
 
             {/* PRODUCT ERROR */}
 
-            {productError && (
-              <div
-                className={
-                  styles.error
-                }
-              >
-                {productError}
-              </div>
-            )}
+            {productError && <div className={styles.error}>{productError}</div>}
 
             {/* PRODUCT TABLE */}
 
-            {!loadingProducts &&
-              !productError && (
-                <div
-                  className={
-                    styles.tableWrapper
-                  }
-                >
-                  <table
-                    className={
-                      styles.table
-                    }
-                  >
+            {!loadingProducts && !productError && (
+              <div className={styles.tableWrapper}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Produk</th>
+                      <th>Kategori</th>
+                      <th>Harga</th>
+                      <th>Stock</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
 
-                    <thead>
+                  <tbody>
+                    {products.length === 0 ? (
                       <tr>
-                        <th>ID</th>
-                        <th>Produk</th>
-                        <th>Kategori</th>
-                        <th>Harga</th>
-                        <th>Stock</th>
-                        <th>Status</th>
+                        <td colSpan="6" className={styles.empty}>
+                          Belum ada produk.
+                        </td>
                       </tr>
-                    </thead>
+                    ) : (
+                      products.map((product) => (
+                        <tr key={product.id}>
+                          <td>{product.id}</td>
 
-                    <tbody>
+                          <td>
+                            <strong>{product.name}</strong>
+                          </td>
 
-                      {products.length ===
-                      0 ? (
-                        <tr>
-                          <td
-                            colSpan="6"
-                            className={
-                              styles.empty
-                            }
-                          >
-                            Belum ada
-                            produk.
+                          <td>{product.category || "Tanpa kategori"}</td>
+
+                          <td>Rp {formatPrice(product.price)}</td>
+
+                          <td>{product.stock}</td>
+
+                          <td>
+                            {Number(product.stock) <= 5 ? (
+                              <span className={styles.warning}>
+                                Stock Menipis
+                              </span>
+                            ) : (
+                              <span className={styles.success}>Tersedia</span>
+                            )}
                           </td>
                         </tr>
-                      ) : (
-                        products.map(
-                          (product) => (
-                            <tr
-                              key={
-                                product.id
-                              }
-                            >
-
-                              <td>
-                                {
-                                  product.id
-                                }
-                              </td>
-
-                              <td>
-                                <strong>
-                                  {
-                                    product.name
-                                  }
-                                </strong>
-                              </td>
-
-                              <td>
-                                {
-                                  product.category ||
-                                  "Tanpa kategori"
-                                }
-                              </td>
-
-                              <td>
-                                Rp{" "}
-                                {formatPrice(
-                                  product.price
-                                )}
-                              </td>
-
-                              <td>
-                                {
-                                  product.stock
-                                }
-                              </td>
-
-                              <td>
-                                {Number(
-                                  product.stock
-                                ) <= 5 ? (
-                                  <span
-                                    className={
-                                      styles.warning
-                                    }
-                                  >
-                                    Stock
-                                    Menipis
-                                  </span>
-                                ) : (
-                                  <span
-                                    className={
-                                      styles.success
-                                    }
-                                  >
-                                    Tersedia
-                                  </span>
-                                )}
-                              </td>
-
-                            </tr>
-                          )
-                        )
-                      )}
-
-                    </tbody>
-
-                  </table>
-                </div>
-              )}
-
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </section>
 
           {/* =========================
               TRANSACTION REPORT
           ========================= */}
 
-          <section
-            className={
-              styles.section
-            }
-          >
-
-            <div
-              className={
-                styles.sectionHeader
-              }
-            >
+        <section
+  className={`${styles.section} ${
+    printSection === "transaction"
+      ? styles.printVisible
+      : styles.printHidden
+  }`}
+>
+            <div className={styles.sectionHeader}>
               <div>
-                <h2>
-                  Laporan Transaksi
-                </h2>
+                <h2>Laporan Transaksi</h2>
 
-                <p>
-                  Ringkasan transaksi
-                  penjualan
-                </p>
+                <p>Ringkasan transaksi penjualan</p>
               </div>
+
+              <button
+                type="button"
+                className={`${styles.printButton} ${styles.noPrint}`}
+                onClick={() => handlePrint("transaction")}
+              >
+                🖨️ Print Transaksi
+              </button>
             </div>
 
             {/* TRANSACTION CARDS */}
 
-            <div
-              className={
-                styles.cards
-              }
-            >
-
-              <div
-                className={
-                  styles.card
-                }
-              >
-                <span>
-                  Total Transaksi
-                </span>
+            <div className={styles.cards}>
+              <div className={styles.card}>
+                <span>Total Transaksi</span>
 
                 <strong>
-                  {loadingTransactions
-                    ? "..."
-                    : totalTransactions}
+                  {loadingTransactions ? "..." : totalTransactions}
                 </strong>
               </div>
 
-              <div
-                className={
-                  styles.card
-                }
-              >
-                <span>
-                  Pendapatan
-                </span>
+              <div className={styles.card}>
+                <span>Pendapatan</span>
 
                 <strong>
-                  Rp{" "}
-                  {loadingTransactions
-                    ? "..."
-                    : formatPrice(
-                        totalRevenue
-                      )}
+                  Rp {loadingTransactions ? "..." : formatPrice(totalRevenue)}
                 </strong>
               </div>
-
             </div>
 
             {/* TRANSACTION ERROR */}
 
             {transactionError && (
-              <div
-                className={
-                  styles.error
-                }
-              >
-                {transactionError}
-              </div>
+              <div className={styles.error}>{transactionError}</div>
             )}
 
             {/* TRANSACTION TABLE */}
 
-            {!loadingTransactions &&
-              !transactionError && (
-                <div
-                  className={
-                    styles.tableWrapper
-                  }
-                >
+            {!loadingTransactions && !transactionError && (
+              <div className={styles.tableWrapper}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Tanggal</th>
+                      <th>Kasir</th>
+                      <th>Total</th>
+                      <th>Metode</th>
+                    </tr>
+                  </thead>
 
-                  <table
-                    className={
-                      styles.table
-                    }
-                  >
-
-                    <thead>
+                  <tbody>
+                    {transactions.length === 0 ? (
                       <tr>
-                        <th>ID</th>
-                        <th>Tanggal</th>
-                        <th>Kasir</th>
-                        <th>Total</th>
-                        <th>Metode</th>
+                        <td colSpan="5" className={styles.empty}>
+                          Belum ada transaksi.
+                        </td>
                       </tr>
-                    </thead>
+                    ) : (
+                      transactions.map((transaction) => (
+                        <tr key={transaction.id}>
+                          <td>{transaction.id}</td>
 
-                    <tbody>
+                          <td>{formatDate(transaction.createdAt)}</td>
 
-                      {transactions.length ===
-                      0 ? (
-                        <tr>
-                          <td
-                            colSpan="5"
-                            className={
-                              styles.empty
-                            }
-                          >
-                            Belum ada
-                            transaksi.
+                          <td>{transaction.cashier?.username || "-"}</td>
+
+                          <td>
+                            <strong>Rp {formatPrice(transaction.total)}</strong>
                           </td>
+
+                          <td>{transaction.paymentMethod || "-"}</td>
                         </tr>
-                      ) : (
-                        transactions.map(
-                          (
-                            transaction
-                          ) => (
-                            <tr
-                              key={
-                                transaction.id
-                              }
-                            >
-
-                              <td>
-                                {
-                                  transaction.id
-                                }
-                              </td>
-
-                              <td>
-                                {transaction.createdAt
-                                  ? new Date(
-                                      transaction.createdAt
-                                    ).toLocaleString(
-                                      "id-ID"
-                                    )
-                                  : "-"}
-                              </td>
-
-                              <td>
-                                {
-                                  transaction
-                                    .user
-                                    ?.username ||
-                                  transaction.cashier ||
-                                  "-"
-                                }
-                              </td>
-
-                              <td>
-                                <strong>
-                                  Rp{" "}
-                                  {formatPrice(
-                                    transaction.total
-                                  )}
-                                </strong>
-                              </td>
-
-                              <td>
-                                {
-                                  transaction.method ||
-                                  transaction.paymentMethod ||
-                                  "-"
-                                }
-                              </td>
-
-                            </tr>
-                          )
-                        )
-                      )}
-
-                    </tbody>
-
-                  </table>
-
-                </div>
-              )}
-
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </section>
 
           {/* =========================
               PRINT FOOTER
           ========================= */}
 
-          <div
-            className={
-              styles.printFooter
-            }
-          >
-            <p>
-              Toko Iqbal
-            </p>
+          <div className={styles.printFooter}>
+            <p>Toko Iqbal</p>
 
-            <p>
-              Dicetak pada:{" "}
-              {new Date().toLocaleString(
-                "id-ID"
-              )}
-            </p>
+            <p>Dicetak pada: {printDate ? formatDate(printDate) : "-"}</p>
           </div>
-
         </main>
       </div>
     </div>

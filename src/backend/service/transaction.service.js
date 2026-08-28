@@ -10,6 +10,11 @@ export async function createTransaction({
   cashReceived,
   cashierId,
 }) {
+  console.log(
+    "TRANSACTION ITEMS DARI FRONTEND:",
+    items
+  );
+
   if (
     !items ||
     !Array.isArray(items) ||
@@ -32,21 +37,110 @@ export async function createTransaction({
     );
   }
 
+  // ========================================
+  // DATABASE TRANSACTION
+  // ========================================
+
   return await prisma.$transaction(
     async (tx) => {
-      let total = 0;
-
-      const transactionItems = [];
-
       // ========================================
-      // CEK PRODUK
+      // SIAPKAN ITEM TRANSAKSI
       // ========================================
 
-      for (const item of items) {
+      const transactionItems = items.map(
+        (item) => {
+          const productId = Number(
+            item.productId ?? item.id
+          );
+
+          const quantity = Number(
+            item.quantity ?? item.qty
+          );
+
+          const price = Number(
+            item.price
+          );
+
+          // -------------------------------
+          // VALIDASI PRODUCT ID
+          // -------------------------------
+
+          if (
+            !productId ||
+            Number.isNaN(productId)
+          ) {
+            throw new Error(
+              "Product ID tidak ditemukan dalam item transaksi"
+            );
+          }
+
+          // -------------------------------
+          // VALIDASI QUANTITY
+          // -------------------------------
+
+          if (
+            !quantity ||
+            quantity <= 0 ||
+            Number.isNaN(quantity)
+          ) {
+            throw new Error(
+              `Jumlah produk tidak valid untuk product ID ${productId}`
+            );
+          }
+
+          // -------------------------------
+          // VALIDASI PRICE
+          // -------------------------------
+
+          if (
+            !price ||
+            price <= 0 ||
+            Number.isNaN(price)
+          ) {
+            throw new Error(
+              `Harga produk tidak valid untuk product ID ${productId}`
+            );
+          }
+
+          // -------------------------------
+          // HITUNG SUBTOTAL
+          // -------------------------------
+
+          const subtotal =
+            quantity * price;
+
+          return {
+            productId,
+            quantity,
+            price,
+            subtotal,
+          };
+        },
+
+      );
+
+      // ========================================
+      // HITUNG TOTAL
+      // ========================================
+
+      const total =
+        transactionItems.reduce(
+          (sum, item) =>
+            sum + item.subtotal,
+          0
+        );
+
+      // ========================================
+      // CEK PRODUK & STOCK
+      // ========================================
+
+      for (
+        const item of transactionItems
+      ) {
         const product =
           await tx.product.findUnique({
             where: {
-              id: Number(item.productId),
+              id: item.productId,
             },
           });
 
@@ -56,40 +150,14 @@ export async function createTransaction({
           );
         }
 
-        const quantity =
-          Number(item.quantity);
-
         if (
-          !quantity ||
-          quantity <= 0
-        ) {
-          throw new Error(
-            `Jumlah produk ${product.name} tidak valid`
-          );
-        }
-
-        if (
-          product.stock < quantity
+          product.stock <
+          item.quantity
         ) {
           throw new Error(
             `Stock ${product.name} tidak mencukupi`
           );
         }
-
-        const price =
-          Number(product.price);
-
-        const subtotal =
-          price * quantity;
-
-        total += subtotal;
-
-        transactionItems.push({
-          productId: product.id,
-          quantity,
-          price,
-          subtotal,
-        });
       }
 
       // ========================================
@@ -97,7 +165,7 @@ export async function createTransaction({
       // ========================================
 
       const received =
-        Number(cashReceived || 0);
+        Number(cashReceived) || 0;
 
       if (
         paymentMethod === "cash" &&
@@ -108,10 +176,16 @@ export async function createTransaction({
         );
       }
 
+      // ========================================
+      // KEMBALIAN
+      // ========================================
+
       const change =
         paymentMethod === "cash"
           ? received - total
           : 0;
+
+      
 
       // ========================================
       // SIMPAN TRANSAKSI
@@ -134,11 +208,18 @@ export async function createTransaction({
             cashierId:
               Number(cashierId),
 
-            transactionItems: {
-              create:
-                transactionItems,
+            // ==================================
+            // SIMPAN ITEM TRANSAKSI
+            // ==================================
+
+            items: {
+              create: transactionItems,
             },
           },
+
+          // ==================================
+          // DATA RESPONSE
+          // ==================================
 
           include: {
             cashier: {
@@ -148,7 +229,7 @@ export async function createTransaction({
               },
             },
 
-            transactionItems: {
+            items: {
               include: {
                 product: true,
               },
@@ -177,14 +258,19 @@ export async function createTransaction({
         });
       }
 
+      // ========================================
+      // RETURN TRANSAKSI
+      // ========================================
+
       return transaction;
-    }
+    },
+    
   );
 }
 
 
 // ========================================
-// GET TRANSACTIONS
+// GET ALL TRANSACTIONS
 // ========================================
 
 export async function getTransactions() {
@@ -201,7 +287,7 @@ export async function getTransactions() {
         },
       },
 
-      transactionItems: {
+      items: {
         include: {
           product: true,
         },
@@ -232,7 +318,7 @@ export async function getTransactionById(
           },
         },
 
-        transactionItems: {
+        items: {
           include: {
             product: true,
           },
@@ -254,17 +340,26 @@ export async function getTransactionById(
 // DELETE TRANSACTION
 // ========================================
 
-export async function deleteTransaction(
-  id
-) {
+export async function deleteTransaction(id) {
+  const transactionId = Number(id);
+
+  if (
+    !transactionId ||
+    Number.isNaN(transactionId)
+  ) {
+    throw new Error(
+      "ID transaksi tidak valid"
+    );
+  }
+
   const transaction =
     await prisma.transaction.findUnique({
       where: {
-        id: Number(id),
+        id: transactionId,
       },
 
       include: {
-        transactionItems: true,
+        items: true,
       },
     });
 
@@ -276,9 +371,10 @@ export async function deleteTransaction(
 
   return await prisma.$transaction(
     async (tx) => {
+
       // Kembalikan stock
       for (
-        const item of transaction.transactionItems
+        const item of transaction.items
       ) {
         await tx.product.update({
           where: {
@@ -287,27 +383,30 @@ export async function deleteTransaction(
 
           data: {
             stock: {
-              increment:
-                item.quantity,
+              increment: item.quantity,
             },
           },
         });
       }
 
-      // Hapus item transaksi
+      // Hapus item
       await tx.transactionItem.deleteMany({
         where: {
-          transactionId:
-            Number(id),
+          transactionId,
         },
       });
 
       // Hapus transaksi
       return await tx.transaction.delete({
         where: {
-          id: Number(id),
+          id: transactionId,
         },
       });
+    },
+    {
+      maxWait: 10000,
+      timeout: 20000,
     }
   );
 }
+

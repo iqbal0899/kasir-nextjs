@@ -31,27 +31,55 @@ img {
   display: block;
 }
 
-/* Layout shell: sidebar di kiri, navbar + konten di kanan */
+/* ========================================
+   LAYOUT
+======================================== */
 
 .app-shell {
   display: flex;
   height: 100vh;
+  overflow: hidden;
 }
 
 .app-main {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
+
+  /* PENTING */
   overflow: hidden;
 }
 
+/* ========================================
+   CONTENT
+======================================== */
+
 .app-content {
   flex: 1;
+  min-height: 0;
+
+  /* PENTING */
   overflow-y: auto;
+  overflow-x: hidden;
+
   padding: 24px;
 }
 
-/* Layout kasir: grid produk di kiri, keranjang di kanan */
+/* ========================================
+   REPORT / PAGE CONTENT
+======================================== */
+
+.app-main > main {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* ========================================
+   POS
+======================================== */
 
 .pos-layout {
   display: flex;
@@ -64,10 +92,24 @@ img {
   min-width: 0;
 }
 
+/* ========================================
+   MOBILE
+======================================== */
+
 @media (max-width: 900px) {
   .app-shell {
     flex-direction: column;
     height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+
+  .app-main {
+    overflow: visible;
+  }
+
+  .app-main > main {
+    overflow: visible;
   }
 
   .pos-layout {

@@ -5,6 +5,7 @@ import styles from "../../frontend/css/dashboard.module.css";
 
 export default function DashboardPage() {
   const [products, setProducts] = useState([]);
+  const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -13,30 +14,49 @@ export default function DashboardPage() {
   // =========================
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchDashboardData = async () => {
       try {
         setLoading(true);
         setError("");
 
-        const response = await fetch(
+        const productResponse = await fetch(
           "/api/v1/products"
         );
 
-        const result = await response.json();
+        const productResult = await productResponse.json();
 
         console.log(
           "DASHBOARD PRODUCT API:",
-          result
+          productResult
         );
 
-        if (!response.ok) {
+        if (!productResponse.ok) {
           throw new Error(
-            result.message ||
+            productResult.message ||
               "Gagal mengambil data produk"
           );
         }
 
-        setProducts(result.data || []);
+        const transactionResponse = await fetch(
+          "/api/v1/transactions"
+        );
+
+        const transactionResult = await transactionResponse.json();
+
+        console.log(
+          "DASHBOARD TRANSACTION API:",
+          transactionResult
+        );
+
+        if (!transactionResponse.ok) {
+          throw new Error(
+            transactionResult.message ||
+            "Gagal Mengambil Data Transaksi"
+          );
+        }
+
+        setProducts(productResult.data || []);
+        setTransactions(transactionResult.data || []);
 
       } catch (error) {
         console.error(
@@ -53,7 +73,7 @@ export default function DashboardPage() {
       }
     };
 
-    fetchProducts();
+    fetchDashboardData();
   }, []);
 
   // =========================
@@ -71,6 +91,12 @@ export default function DashboardPage() {
       total + Number(product.stock || 0),
     0
   );
+
+  const totalTransactions = transactions.length;
+
+  const totalRevenue = 
+  transactions.reduce( (total, transaction) => 
+    total + Number(transaction.total || 0), 0 );
 
   // =========================
   // FORMAT HARGA
@@ -154,7 +180,7 @@ export default function DashboardPage() {
             <p>Total Transaksi</p>
 
             <h2>
-              0
+              {totalTransactions}
             </h2>
           </div>
 
@@ -164,7 +190,9 @@ export default function DashboardPage() {
             <p>Pendapatan</p>
 
             <h2>
-              Rp 0
+              Rp{""}
+              {formatPrice(totalRevenue)}
+              
             </h2>
           </div>
 

@@ -3,6 +3,10 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
+import {
+  createTransaction,
+} from "@/frontend/services/transactionApi";
+
 import Navbar from "../frontend/components/shared/Navbar";
 import Sidebar from "../frontend/components/shared/Sidebar";
 import Header from "../frontend/components/shared/Header";
@@ -10,8 +14,6 @@ import ProductGrid from "../frontend/components/pos/ProductGrid";
 import CartSidebar from "../frontend/components/pos/CartSidebar";
 import PaymentModal from "../frontend/components/pos/PaymentModal";
 import ReceiptModal from "../frontend/components/pos/ReceiptModal";
-
-
 
 const MENU_ITEMS = [
   {
@@ -29,50 +31,37 @@ const MENU_ITEMS = [
   },
 ];
 
-
-
-let transactionCounter = 1;
-
-
-
 export default function Home() {
   const router = useRouter();
 
-
-
   const [cart, setCart] = useState([]);
-
-  const [paymentOpen, setPaymentOpen] =
-    useState(false);
-
-  const [receiptOpen, setReceiptOpen] =
-    useState(false);
-
+  const [paymentOpen, setPaymentOpen] = useState(false);
+  const [receiptOpen, setReceiptOpen] = useState(false);
   const [lastTransaction, setLastTransaction] =
     useState(null);
 
   const [user, setUser] = useState(null);
 
-  const [products, setProducts] =
-    useState([]);
-
+  const [products, setProducts] = useState([]);
   const [loadingProducts, setLoadingProducts] =
     useState(true);
+  const [productError, setProductError] = useState("");
 
-  const [productError, setProductError] =
-    useState("");
-
-
+  // =========================
+  // TOTAL
+  // =========================
 
   const total = cart.reduce(
     (sum, item) =>
       sum +
-      Number(item.price) *
-        Number(item.qty),
+      Number(item.price || 0) *
+        Number(item.qty || 0),
     0
   );
 
-
+  // =========================
+  // AMBIL PRODUCTS
+  // =========================
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -88,8 +77,7 @@ export default function Home() {
           }
         );
 
-        const result =
-          await response.json();
+        const result = await response.json();
 
         console.log(
           "PRODUCT API:",
@@ -103,9 +91,7 @@ export default function Home() {
           );
         }
 
-        setProducts(
-          result.data || []
-        );
+        setProducts(result.data || []);
       } catch (error) {
         console.error(
           "FETCH PRODUCTS ERROR:",
@@ -124,12 +110,13 @@ export default function Home() {
     fetchProducts();
   }, []);
 
+  // =========================
+  // AMBIL USER LOGIN
+  // =========================
 
   useEffect(() => {
     const storedUser =
-      localStorage.getItem(
-        "user"
-      );
+      localStorage.getItem("user");
 
     if (storedUser) {
       try {
@@ -142,31 +129,30 @@ export default function Home() {
           error
         );
 
-        localStorage.removeItem(
-          "user"
-        );
+        localStorage.removeItem("user");
       }
     }
   }, []);
 
+  // =========================
+  // ADD TO CART
+  // =========================
+
   function handleAddToCart(product) {
     setCart((prev) => {
-      const existing =
-        prev.find(
-          (item) =>
-            item.id === product.id
-        );
+      const existing = prev.find(
+        (item) =>
+          item.id === product.id
+      );
 
       if (existing) {
-        return prev.map(
-          (item) =>
-            item.id === product.id
-              ? {
-                  ...item,
-                  qty:
-                    item.qty + 1,
-                }
-              : item
+        return prev.map((item) =>
+          item.id === product.id
+            ? {
+                ...item,
+                qty: item.qty + 1,
+              }
+            : item
         );
       }
 
@@ -180,6 +166,9 @@ export default function Home() {
     });
   }
 
+  // =========================
+  // INCREASE
+  // =========================
 
   function handleIncrease(id) {
     setCart((prev) =>
@@ -187,13 +176,16 @@ export default function Home() {
         item.id === id
           ? {
               ...item,
-              qty:
-                item.qty + 1,
+              qty: item.qty + 1,
             }
           : item
       )
     );
   }
+
+  // =========================
+  // DECREASE
+  // =========================
 
   function handleDecrease(id) {
     setCart((prev) =>
@@ -202,28 +194,31 @@ export default function Home() {
           item.id === id
             ? {
                 ...item,
-                qty:
-                  item.qty - 1,
+                qty: item.qty - 1,
               }
             : item
         )
         .filter(
-          (item) =>
-            item.qty > 0
+          (item) => item.qty > 0
         )
     );
   }
 
+  // =========================
+  // REMOVE
+  // =========================
 
   function handleRemove(id) {
     setCart((prev) =>
       prev.filter(
-        (item) =>
-          item.id !== id
+        (item) => item.id !== id
       )
     );
   }
 
+  // =========================
+  // CHECKOUT
+  // =========================
 
   function handleCheckout() {
     if (cart.length === 0) {
@@ -233,17 +228,59 @@ export default function Home() {
     setPaymentOpen(true);
   }
 
+  // =========================
+  // PAYMENT BERHASIL
+  // =========================
 
+async function handleConfirmPayment({
+  method,
+  cashReceived,
+  change,
+}) {
+  try {
+    if (cart.length === 0) {
+      throw new Error(
+        "Keranjang masih kosong"
+      );
+    }
 
-  function handleConfirmPayment({
-    method,
-    cashReceived,
-    change,
-  }) {
-    const transaction = {
-      id: `TRX-${String(
-        transactionCounter++
-      ).padStart(4, "0")}`,
+    console.log(
+      "CART BEFORE PAYMENT:",
+      cart
+    );
+
+    const result =
+      await createTransaction({
+        items: cart,
+
+        paymentMethod: method,
+
+        cashReceived:
+          method === "cash"
+            ? Number(cashReceived)
+            : 0,
+      });
+
+    console.log(
+      "TRANSACTION SUCCESS:",
+      result
+    );
+
+    const transaction =
+      result.data;
+
+    setLastTransaction({
+      ...transaction,
+
+      items: cart,
+
+      method,
+
+      total,
+
+      cashReceived,
+
+      change,
 
       date:
         new Date().toLocaleString(
@@ -253,57 +290,52 @@ export default function Home() {
       cashier:
         user?.username ||
         "Admin",
-
-      items: cart,
-
-      total,
-
-      method,
-
-      cashReceived,
-
-      change,
-    };
-
-    setLastTransaction(
-      transaction
-    );
+    });
 
     setPaymentOpen(false);
 
     setReceiptOpen(true);
 
     setCart([]);
+
+  } catch (error) {
+    console.error(
+      "PAYMENT ERROR:",
+      error
+    );
+
+    alert(
+      error.message ||
+        "Pembayaran gagal"
+    );
   }
+}
 
-
+  // =========================
+  // LOGOUT
+  // =========================
 
   function handleLogout() {
-    localStorage.removeItem(
-      "token"
-    );
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
 
-    localStorage.removeItem(
-      "user"
-    );
-
-    router.push(
-      "/auth/login"
-    );
+    router.push("/auth/login");
   }
-
-
 
   return (
     <div className="app-shell">
 
-      {/* SIDEBAR */}
+      {/* =========================
+          SIDEBAR
+      ========================= */}
 
       <Sidebar
         menuItems={MENU_ITEMS}
       />
 
-      {/* MAIN */}
+      {/* =========================
+          MAIN
+      ========================= */}
 
       <div className="app-main">
 
@@ -311,20 +343,15 @@ export default function Home() {
 
         <Navbar
           storeName="Toko Iqbal"
-
           userName={
             user?.username ||
             "User"
           }
-
           userRole={
             user?.role ||
             "cashier"
           }
-
-          onLogout={
-            handleLogout
-          }
+          onLogout={handleLogout}
         />
 
         {/* CONTENT */}
@@ -336,7 +363,9 @@ export default function Home() {
             subtitle="Pilih produk di bawah untuk mulai transaksi"
           />
 
-          {/* PRODUCT + CART */}
+          {/* =========================
+              PRODUCT + CART
+          ========================= */}
 
           <div className="pos-layout">
 
@@ -362,8 +391,7 @@ export default function Home() {
 
               {!loadingProducts &&
                 !productError &&
-                products.length ===
-                  0 && (
+                products.length === 0 && (
                   <p>
                     Belum ada produk.
                   </p>
@@ -371,12 +399,9 @@ export default function Home() {
 
               {!loadingProducts &&
                 !productError &&
-                products.length >
-                  0 && (
+                products.length > 0 && (
                   <ProductGrid
-                    products={
-                      products
-                    }
+                    products={products}
                     onAddToCart={
                       handleAddToCart
                     }
@@ -389,30 +414,27 @@ export default function Home() {
 
             <CartSidebar
               items={cart}
-
               onIncrease={
                 handleIncrease
               }
-
               onDecrease={
                 handleDecrease
               }
-
               onRemove={
                 handleRemove
               }
-
               onCheckout={
                 handleCheckout
               }
             />
 
           </div>
-
         </div>
       </div>
 
-      {/* PAYMENT MODAL */}
+      {/* =========================
+          PAYMENT MODAL
+      ========================= */}
 
       <PaymentModal
         open={paymentOpen}
@@ -423,12 +445,18 @@ export default function Home() {
 
         total={total}
 
+        // PENTING:
+        // Kirim cart ke PaymentModal
+        items={cart}
+
         onConfirm={
           handleConfirmPayment
         }
       />
 
-      {/* RECEIPT MODAL */}
+      {/* =========================
+          RECEIPT MODAL
+      ========================= */}
 
       <ReceiptModal
         open={receiptOpen}
@@ -449,3 +477,4 @@ export default function Home() {
     </div>
   );
 }
+

@@ -190,13 +190,16 @@
 
 .tableWrapper {
   width: 100%;
-
+  max-width: 100%;
   overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
 
   border: 1px solid #e5e7eb;
   border-radius: 10px;
-
   background: #ffffff;
+
+  box-sizing: border-box;
 }
 
 
@@ -206,12 +209,10 @@
 
 .table {
   width: 100%;
+  min-width: 700px;
 
   border-collapse: collapse;
-
   font-size: 14px;
-
-  min-width: 700px;
 }
 
 .table thead {
@@ -420,206 +421,189 @@
 }
 
 
-/* =====================================================
-   PRINT
-===================================================== */
+.noPrint {
+  display: block;
+}
+
+/* ========================================
+   PRINT HEADER
+======================================== */
+
+.printHeader {
+  display: none;
+}
+
+/* ========================================
+   PRINT FOOTER
+======================================== */
+
+.printFooter {
+  display: none;
+}
 
 /* ========================================
    PRINT
 ======================================== */
 
 @media print {
-  .container {
-    width: 100% !important;
-    min-height: auto !important;
-
-    margin: 0 !important;
-    padding: 15px !important;
-
-    background: white !important;
-    color: #000 !important;
-  }
-
-  /* Navbar dan Sidebar */
+  /* Sembunyikan sidebar, navbar, tombol */
   .noPrint {
     display: none !important;
   }
 
-  /* Tombol print */
+  /* Hilangkan layout aplikasi */
+  :global(.app-shell),
+  :global(.app-main) {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Container laporan */
+  .container {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 20px !important;
+  }
+
+  /* Header print */
+  .printHeader {
+    display: block !important;
+    text-align: center;
+    margin-bottom: 25px;
+  }
+
+  .printHeader h1 {
+    font-size: 24px;
+    margin-bottom: 5px;
+  }
+
+  .printHeader h2 {
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+
+  .printHeader p {
+    margin: 3px 0;
+    font-size: 12px;
+  }
+
+  /* Footer */
+  .printFooter {
+    display: block !important;
+    margin-top: 30px;
+    padding-top: 10px;
+    border-top: 1px solid #000;
+    text-align: center;
+    font-size: 12px;
+  }
+
+  /* ========================================
+     PRINT PRODUK
+  ======================================== */
+
+  .printProduct .section {
+    display: none !important;
+  }
+
+  .printProduct .section:first-of-type {
+    display: block !important;
+  }
+
+  .printProduct .printHeader {
+    display: block !important;
+  }
+
+  .printProduct .printHeader h2 {
+    display: block !important;
+  }
+
+  /* ========================================
+     PRINT TRANSAKSI
+  ======================================== */
+
+  .printTransaction .section {
+    display: none !important;
+  }
+
+  .printTransaction .section:last-of-type {
+    display: block !important;
+  }
+
+  .printTransaction .printHeader {
+    display: block !important;
+  }
+
+  /* ========================================
+     PRINT SEMUA
+  ======================================== */
+
+  .printAll .section {
+    display: block !important;
+  }
+
+  .printAll .printHeader {
+    display: block !important;
+  }
+
+  .printAll .printFooter {
+    display: block !important;
+  }
+
+  /* Sembunyikan header halaman biasa */
+  .header {
+    display: none !important;
+  }
+
+  /* Sembunyikan tombol */
   .printButton {
     display: none !important;
   }
 
-  /* Header */
-  .header {
-    margin-bottom: 20px;
-  }
-
-  .title {
-    color: #000 !important;
-    font-size: 24px;
-  }
-
-  .subtitle {
-    color: #333 !important;
-  }
-
-  /* Section */
-  .section {
-    margin-bottom: 25px;
-    padding: 0 !important;
-
-    border: none !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-
-    background: #fff !important;
-  }
-
-  .sectionHeader {
-    margin-bottom: 12px;
-  }
-
-  .sectionHeader h2 {
-    color: #000 !important;
-  }
-
-  .sectionHeader p {
-    color: #333 !important;
-  }
-
-  /* Cards */
-  .cards {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-
-    margin-bottom: 15px;
-  }
-
-  .card {
-    padding: 12px;
-
-    border: 1px solid #999 !important;
-    border-radius: 0 !important;
-
-    background: #fff !important;
-  }
-
-  .card span {
-    color: #333 !important;
-  }
-
-  .card strong {
-    color: #000 !important;
-  }
-
-  /* Table wrapper */
+  /* Table */
   .tableWrapper {
     width: 100% !important;
     overflow: visible !important;
   }
 
-  /* Table */
   .table {
     width: 100% !important;
-    min-width: 0 !important;
-
     border-collapse: collapse !important;
-    border: 1px solid #000 !important;
-
-    background: #fff !important;
   }
 
-  /* Table Header */
-  .table th {
-    padding: 8px 10px !important;
-
-    border: 1px solid #000 !important;
-
-    background: #eee !important;
-    color: #000 !important;
-
-    font-size: 11px !important;
-    font-weight: 700 !important;
-  }
-
-  /* Table Body */
+  .table th,
   .table td {
-    padding: 8px 10px !important;
-
     border: 1px solid #000 !important;
-
-    background: #fff !important;
-    color: #000 !important;
-
+    padding: 8px !important;
     font-size: 11px !important;
   }
 
-  /* Product name */
-  .table td strong {
-    color: #000 !important;
+  .table th {
+    font-weight: bold;
   }
 
-  /* Status */
-  .warning,
-  .success {
-    padding: 0 !important;
-
-    border: none !important;
-    border-radius: 0 !important;
-
-    background: transparent !important;
-
-    color: #000 !important;
-
-    font-size: 11px !important;
+  /* Cards */
+  .cards {
+    display: flex !important;
+    gap: 10px !important;
+    margin-bottom: 20px;
   }
 
-  /* Error */
-  .error {
+  .card {
     border: 1px solid #000 !important;
-    background: #fff !important;
-    color: #000 !important;
+    padding: 10px !important;
+    flex: 1;
   }
 
-  /* Empty */
-  .empty {
-    color: #000 !important;
-  }
-
-  /* Footer print */
-  .printFooter {
-    display: block !important;
-
-    margin-top: 30px;
-    padding-top: 15px;
-
-    border-top: 1px solid #000;
-
-    text-align: center;
-    color: #000;
-
-    font-size: 11px;
-  }
-
-  .printFooter p {
-    margin: 4px 0;
-  }
-
-  /* Hindari tabel terpotong */
-  .section,
-  .tableWrapper {
+  /* Jangan memotong section */
+  .section {
     break-inside: avoid;
     page-break-inside: avoid;
   }
 }
 
-/* ========================================
-   PRINT PAGE
-======================================== */
-
 @page {
   size: A4;
-  margin: 12mm;
+  margin :12mm;
 }

@@ -2,51 +2,18 @@ import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 
 import {
-  createTransaction,
-  getTransactions,
+  deleteTransaction,
 } from "@/backend/service/transaction.service";
 
 
 // ========================================
-// GET TRANSACTIONS
+// DELETE TRANSACTION
 // ========================================
 
-export async function GET() {
-  try {
-    const transactions =
-      await getTransactions();
-
-    return NextResponse.json({
-      success: true,
-      data: transactions,
-    });
-
-  } catch (error) {
-    console.error(
-      "GET TRANSACTIONS ERROR:",
-      error
-    );
-
-    return NextResponse.json(
-      {
-        success: false,
-        message:
-          error.message ||
-          "Gagal mengambil transaksi",
-      },
-      {
-        status: 500,
-      }
-    );
-  }
-}
-
-
-// ========================================
-// POST TRANSACTION
-// ========================================
-
-export async function POST(request) {
+export async function DELETE(
+  request,
+  { params }
+) {
   try {
     // ========================================
     // CEK TOKEN
@@ -93,29 +60,59 @@ export async function POST(request) {
     }
 
     // ========================================
-    // BODY
+    // CEK ROLE ADMIN
     // ========================================
 
-    const body =
-      await request.json();
-
-    const {
-      items,
-      paymentMethod,
-      cashReceived,
-    } = body;
+    if (user.role !== "admin") {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Anda tidak memiliki izin untuk menghapus transaksi",
+        },
+        {
+          status: 403,
+        }
+      );
+    }
 
     // ========================================
-    // CREATE TRANSACTION
+    // AMBIL ID
+    // ========================================
+
+    const { id } = await params;
+
+    const transactionId =
+      Number(id);
+
+    // ========================================
+    // VALIDASI ID
+    // ========================================
+
+    if (
+      !transactionId ||
+      Number.isNaN(transactionId)
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "ID transaksi tidak valid",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    // ========================================
+    // DELETE TRANSACTION
     // ========================================
 
     const transaction =
-      await createTransaction({
-        items,
-        paymentMethod,
-        cashReceived,
-        cashierId: user.id,
-      });
+      await deleteTransaction(
+        transactionId
+      );
 
     // ========================================
     // RESPONSE
@@ -125,17 +122,17 @@ export async function POST(request) {
       {
         success: true,
         message:
-          "Transaksi berhasil disimpan",
+          "Transaksi berhasil dihapus",
         data: transaction,
       },
       {
-        status: 201,
+        status: 200,
       }
     );
 
   } catch (error) {
     console.error(
-      "CREATE TRANSACTION ERROR:",
+      "DELETE TRANSACTION ERROR:",
       error
     );
 
@@ -144,10 +141,10 @@ export async function POST(request) {
         success: false,
         message:
           error.message ||
-          "Gagal menyimpan transaksi",
+          "Gagal menghapus transaksi",
       },
       {
-        status: 400,
+        status: 500,
       }
     );
   }
