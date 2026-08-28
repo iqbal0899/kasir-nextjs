@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import styles from "../../css/Navbar.module.css";
+import LogoutButton from "./LogoutButton";
 
 export default function Navbar({
   storeName,
@@ -49,13 +50,7 @@ export default function Navbar({
           </span>
         </div>
 
-        <button
-          type="button"
-          className={styles.logoutButton}
-          onClick={handleLogout}
-        >
-          Logout
-        </button>
+        <LogoutButton />
 
       </div>
     </nav>

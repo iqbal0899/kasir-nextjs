@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import Swal from "sweetalert2";
 import styles from "../../../frontend/css/User.module.css";
 
 export default function UsersPageClient() {
@@ -17,10 +18,8 @@ export default function UsersPageClient() {
   const [loadingUsers, setLoadingUsers] = useState(true);
 
   const [editingId, setEditingId] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
-  // =========================
-  // GET USERS
-  // =========================
   const fetchUsers = async () => {
     const response = await fetch("/api/v1/users");
 
@@ -147,9 +146,6 @@ export default function UsersPageClient() {
   }
 };
 
-  // =========================
-  // EDIT
-  // =========================
   const handleEdit = (user) => {
     setEditingId(user.id);
 
@@ -166,9 +162,6 @@ export default function UsersPageClient() {
     });
   };
 
-  // =========================
-  // CANCEL EDIT
-  // =========================
   const handleCancelEdit = () => {
     setEditingId(null);
 
@@ -179,37 +172,58 @@ export default function UsersPageClient() {
     });
   };
 
-  // =========================
-  // DELETE
-  // =========================
-  const handleDelete = async (id) => {
-    const confirmDelete = window.confirm(
-      "Apakah kamu yakin ingin menghapus user ini?",
-    );
 
-    if (!confirmDelete) return;
+const handleDelete = async (id) => {
+  const result = await Swal.fire({
+    title: "Hapus User?",
+    text: "User yang dihapus tidak dapat dikembalikan.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Ya, Hapus",
+    cancelButtonText: "Batal",
+    reverseButtons: true,
+  });
 
-    try {
-      const response = await fetch(`/api/v1/users/${id}`, {
-        method: "DELETE",
-      });
+  if (!result.isConfirmed) {
+    return;
+  }
 
-      const data = await response.json();
+  try {
+    setDeleting(true);
 
-      if (!response.ok) {
-        throw new Error(data.message || "Gagal menghapus user");
-      }
+    const response = await fetch(`/api/v1/users/${id}`, {
+      method: "DELETE",
+    });
 
-      toast.success("User berhasil dihapus!");
+    const data = await response.json();
 
-      const usersData = await fetchUsers();
-      setUsers(usersData);
-    } catch (error) {
-      console.error("DELETE USER ERROR:", error);
-
-      toast.error(error.message);
+    if (!response.ok) {
+      throw new Error(
+        data.message || "Gagal menghapus user"
+      );
     }
-  };
+
+    await Swal.fire({
+      title: "Berhasil!",
+      text: "User berhasil dihapus.",
+      icon: "success",
+      timer: 1200,
+      showConfirmButton: false,
+    });
+
+    window.location.reload();
+
+  } catch (error) {
+    Swal.fire({
+      title: "Gagal!",
+      text: error.message,
+      icon: "error",
+      confirmButtonText: "OK",
+    });
+  } finally {
+    setDeleting(false);
+  }
+};
 
   return (
     <main className={styles.container}>
@@ -286,7 +300,7 @@ export default function UsersPageClient() {
           <div className={styles.formActions}>
             <button type="submit" className={styles.button} disabled={loading}>
               {loading
-                ? "Menyimpan..."
+                ? "Procesing..."
                 : editingId
                   ? "Simpan Perubahan"
                   : "Tambah User"}
@@ -377,12 +391,13 @@ export default function UsersPageClient() {
                         </button>
 
                         <button
-                          type="button"
-                          className={styles.deleteButton}
-                          onClick={() => handleDelete(user.id)}
-                        >
-                          Delete
-                        </button>
+  type="button"
+  className={styles.deleteButton}
+  disabled={deleting}
+  onClick={() => handleDelete(user.id)}
+>
+  {deleting ? "Prosecing..." : "Delete"}
+</button>
                       </div>
                     </td>
                   </tr>

@@ -1,59 +1,96 @@
 "use client";
 
 import { useState } from "react";
-import styles from "@/frontend/css/Login.module.css";
-import Button from "@/frontend/components/ui/Button";
+import { useRouter } from "next/navigation";
 import { loginUser } from "@/frontend/services/authApi";
+import styles from "@/frontend/css/Login.module.css";
 
 export default function LoginPage() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const router = useRouter();
+
+  const [form, setForm] = useState({
+    username: "",
+    password: "",
+  });
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
 
     setError("");
+
+    if (!form.username || !form.password) {
+      setError(
+        "Username dan password wajib diisi"
+      );
+
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const result = await loginUser({
-        username,
-        password,
+      console.log("LOGIN FORM:", {
+        username: form.username,
+        passwordAda: !!form.password,
       });
 
-      console.log("Login berhasil:", result);
+      const result = await loginUser(
+        form.username,
+        form.password
+      );
 
-      localStorage.setItem("token", result.token);
+      console.log(
+        "LOGIN BERHASIL:",
+        result
+      );
 
-      window.location.href = "/dashboard";
+      router.push("/");
+
     } catch (error) {
-      console.error("Login gagal:", error);
+      console.error(
+        "Login gagal:",
+        error
+      );
 
       setError(
-        error.message || "Username atau password salah"
+        error.message ||
+          "Username atau password salah"
       );
+
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className={styles.loginPage}>
-      <div className={styles.loginCard}>
+    <main className={styles.container}>
 
-        <h1>Selamat Datang</h1>
+      <div className={styles.card}>
 
-        <p className={styles.welcome}>
-          di <strong>Toko Iqbal</strong>
-        </p>
+        <div className={styles.header}>
+          <h1>Login</h1>
 
-        <p className={styles.description}>
-          Silakan masuk untuk melanjutkan ke sistem.
-        </p>
+          <p>
+            Masuk ke sistem kasir
+          </p>
+        </div>
 
-        <form onSubmit={handleLogin}>
+        <form
+          onSubmit={handleLogin}
+          className={styles.form}
+        >
 
           <div className={styles.formGroup}>
             <label htmlFor="username">
@@ -63,9 +100,11 @@ export default function LoginPage() {
             <input
               id="username"
               type="text"
+              name="username"
+              value={form.username}
+              onChange={handleChange}
               placeholder="Masukkan username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              autoComplete="username"
               required
             />
           </div>
@@ -78,33 +117,35 @@ export default function LoginPage() {
             <input
               id="password"
               type="password"
+              name="password"
+              value={form.password}
+              onChange={handleChange}
               placeholder="Masukkan password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
               required
             />
           </div>
 
           {error && (
-            <p className={styles.error}>
+            <div className={styles.error}>
               {error}
-            </p>
+            </div>
           )}
 
-          <Button
+          <button
             type="submit"
+            className={styles.button}
             disabled={loading}
           >
-            {loading ? "Memproses..." : "Login"}
-          </Button>
+            {loading
+              ? "Login..."
+              : "Login"}
+          </button>
 
         </form>
 
-        <p className={styles.footer}>
-          © 2026 Toko Iqbal
-        </p>
-
       </div>
-    </div>
+
+    </main>
   );
 }
