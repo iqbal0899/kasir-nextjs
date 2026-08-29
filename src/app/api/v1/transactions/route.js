@@ -5,11 +5,8 @@ import {
   createTransaction,
   getTransactions,
 } from "@/backend/service/transaction.service";
+import { formatDate } from "@/shared/utils/formatDate";
 
-
-// ========================================
-// GET TRANSACTIONS
-// ========================================
 
 export async function GET() {
   try {
@@ -79,6 +76,15 @@ export async function POST(request) {
         token,
         process.env.JWT_SECRET
       );
+
+      console.log("USER YANG TRANSAKSI:",{
+        id: user.id,
+        username: user.username,
+        role: user.role,
+        WaktuTransaksi: formatDate(new Date()),
+      });
+
+
     } catch (error) {
       return NextResponse.json(
         {

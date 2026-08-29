@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import {
   deleteTransaction,
 } from "@/backend/service/transaction.service";
+import { formatDate } from "@/shared/utils/formatDate";
 
 
 // ========================================
@@ -46,6 +47,14 @@ export async function DELETE(
         token,
         process.env.JWT_SECRET
       );
+
+      console.log("USER YANG HAPUS", {
+        id: user.id,
+        username: user.username,
+        role: user.role,
+        WaktuDelete: formatDate(new Date()),
+      });
+      
     } catch (error) {
       return NextResponse.json(
         {

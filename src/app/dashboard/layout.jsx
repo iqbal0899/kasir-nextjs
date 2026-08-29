@@ -16,6 +16,7 @@ export default async function DashboardLayout({ children }) {
         token,
         process.env.JWT_SECRET
       );
+      console.log("USER:", user, "ROLE:", user?.role);
     } catch (error) {
       console.error("JWT ERROR:", error);
     }
@@ -62,7 +63,7 @@ export default async function DashboardLayout({ children }) {
         <Navbar
           storeName="Toko Iqbal"
           userName={user?.username || "User"}
-          userRole={user?.role || "cashier"}
+          userRole={user?.role || "unknown"}
         />
 
         <main className="app-content">

@@ -91,7 +91,10 @@ export default function PaymentModal({
     method === "cash"
       ? receivedAmount
       : 0,
+
 });
+
+console.log()
 
       // Tetap beri tahu parent jika callback digunakan
       await onConfirm?.(
