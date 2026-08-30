@@ -1,0 +1,407 @@
+/* ========================================
+   SIDEBAR DESKTOP
+======================================== */
+
+.sidebar {
+  width: 220px;
+  height: 100vh;
+
+  flex-shrink: 0;
+
+  background: #111827;
+
+  padding: 16px 12px;
+
+  position: relative;
+
+  z-index: 1000;
+}
+
+
+/* ========================================
+   SIDEBAR NAVIGATION
+======================================== */
+
+.sidebarNav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+
+/* ========================================
+   SIDEBAR ITEM
+======================================== */
+
+.sidebarItem {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 10px 12px;
+
+  border-radius: 8px;
+
+  color: #9ca3af;
+
+  text-decoration: none;
+
+  font-size: 14px;
+
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.sidebarItem:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+}
+
+
+/* ========================================
+   SIDEBAR ICON
+======================================== */
+
+.sidebarIcon {
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  width: 18px;
+
+  flex-shrink: 0;
+}
+
+
+/* ========================================
+   SIDEBAR LABEL
+======================================== */
+
+.sidebarLabel {
+  white-space: nowrap;
+}
+
+
+/* ========================================
+   HAMBURGER BUTTON
+======================================== */
+
+.hamburger {
+  display: none;
+
+  align-items: center;
+  justify-content: center;
+
+  width: 42px;
+  height: 42px;
+
+  position: fixed;
+
+  top: 14px;
+  left: 14px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: #111827;
+
+  color: #ffffff;
+
+  cursor: pointer;
+
+  z-index: 1100;
+
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.15);
+
+  transition:
+    background-color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.hamburger:hover {
+  background: #1f2937;
+}
+
+.hamburger:active {
+  transform: scale(0.95);
+}
+
+
+/* ========================================
+   CLOSE BUTTON
+======================================== */
+
+.closeButton {
+  display: none;
+
+  align-items: center;
+  justify-content: center;
+
+  width: 36px;
+  height: 36px;
+
+  position: absolute;
+
+  top: 14px;
+  right: 14px;
+
+  border: none;
+  border-radius: 7px;
+
+  background: rgba(255, 255, 255, 0.08);
+
+  color: #ffffff;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.15s ease;
+}
+
+.closeButton:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+
+/* ========================================
+   OVERLAY
+======================================== */
+
+.overlay {
+  display: none;
+}
+
+
+/* ==================================================
+   TABLET
+   <= 900px
+================================================== */
+
+@media (max-width: 900px) {
+
+  /* ----------------------------------------
+     SIDEBAR DRAWER
+  ---------------------------------------- */
+
+  .sidebar {
+    position: fixed;
+
+    top: 0;
+    left: 0;
+
+    width: 260px;
+    height: 100vh;
+
+    padding: 62px 12px 20px;
+
+    background: #111827;
+
+    z-index: 1000;
+
+    transform: translateX(-100%);
+
+    transition:
+      transform 0.25s ease;
+
+    box-shadow:
+      4px 0 20px rgba(0, 0, 0, 0.2);
+  }
+
+
+  /* ----------------------------------------
+     SIDEBAR OPEN
+  ---------------------------------------- */
+
+  .sidebarOpen {
+    transform: translateX(0);
+  }
+
+
+  /* ----------------------------------------
+     HAMBURGER
+  ---------------------------------------- */
+
+  .hamburger {
+    display: flex;
+  }
+
+
+  /* ----------------------------------------
+     CLOSE BUTTON
+  ---------------------------------------- */
+
+  .closeButton {
+    display: flex;
+  }
+
+
+  /* ----------------------------------------
+     OVERLAY
+  ---------------------------------------- */
+
+  .overlay {
+    display: block;
+
+    position: fixed;
+
+    inset: 0;
+
+    background: rgba(0, 0, 0, 0.45);
+
+    z-index: 999;
+
+    opacity: 0;
+
+    visibility: hidden;
+
+    pointer-events: none;
+
+    transition:
+      opacity 0.25s ease,
+      visibility 0.25s ease;
+  }
+
+
+  .overlayOpen {
+    opacity: 1;
+
+    visibility: visible;
+
+    pointer-events: auto;
+  }
+
+
+  /* ----------------------------------------
+     MENU
+  ---------------------------------------- */
+
+  .sidebarNav {
+    gap: 5px;
+  }
+
+
+  .sidebarItem {
+    padding: 12px;
+
+    font-size: 14px;
+  }
+
+
+  .sidebarIcon {
+    width: 20px;
+  }
+}
+
+
+/* ==================================================
+   SMARTPHONE
+   <= 600px
+================================================== */
+
+@media (max-width: 600px) {
+
+  .sidebar {
+    width: 250px;
+
+    padding: 58px 10px 16px;
+  }
+
+
+  /* ----------------------------------------
+     HAMBURGER
+  ---------------------------------------- */
+
+  .hamburger {
+    width: 40px;
+    height: 40px;
+
+    top: 10px;
+    left: 10px;
+  }
+
+
+  /* ----------------------------------------
+     CLOSE
+  ---------------------------------------- */
+
+  .closeButton {
+    width: 34px;
+    height: 34px;
+
+    top: 10px;
+    right: 10px;
+  }
+
+
+  /* ----------------------------------------
+     NAV
+  ---------------------------------------- */
+
+  .sidebarNav {
+    gap: 5px;
+  }
+
+
+  .sidebarItem {
+    padding: 12px;
+
+    border-radius: 8px;
+
+    font-size: 14px;
+  }
+
+
+  .sidebarIcon {
+    width: 20px;
+  }
+}
+
+
+/* ==================================================
+   SMARTPHONE KECIL
+   <= 360px
+================================================== */
+
+@media (max-width: 360px) {
+
+  .sidebar {
+    width: 235px;
+
+    padding-left: 9px;
+    padding-right: 9px;
+  }
+
+
+  .hamburger {
+    width: 38px;
+    height: 38px;
+
+    top: 9px;
+    left: 9px;
+  }
+
+
+  .closeButton {
+    width: 32px;
+    height: 32px;
+
+    top: 9px;
+    right: 9px;
+  }
+
+
+  .sidebarItem {
+    padding: 11px;
+
+    font-size: 13px;
+  }
+
+
+  .sidebarIcon {
+    width: 19px;
+  }
+}

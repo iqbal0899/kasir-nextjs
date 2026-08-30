@@ -1,36 +1,136 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
-import "../../css/Sidebar.css";
 
-/**
- * Sidebar navigasi utama
- *
- * Props:
- * - menuItems: [{ label, icon, href, active }]
- */
-export default function Sidebar({ menuItems = [] }) {
+import {
+  Menu,
+  X,
+  LayoutDashboard,
+  ShoppingCart,
+  Package,
+  Receipt,
+  Users,
+} from "lucide-react";
+
+import styles from "../../css/Sidebar.module.css";
+
+export default function Sidebar({ role }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const menuItems = [
+    {
+      label: "Kasir",
+      href: "/",
+      icon: ShoppingCart,
+    },
+    {
+      label: "Dashboard",
+      href: "/dashboard",
+      icon: LayoutDashboard,
+    },
+    {
+      label: "Produk",
+      href: "/dashboard/products",
+      icon: Package,
+    },
+  ];
+
+  // ========================================
+  // MENU KHUSUS ADMIN
+  // ========================================
+
+  if (role === "admin") {
+    menuItems.push(
+      {
+        label: "Transaksi",
+        href: "/dashboard/transactions",
+        icon: Receipt,
+      },
+      {
+        label: "Daftar User",
+        href: "/dashboard/users",
+        icon: Users,
+      }
+    );
+  }
+
+  const closeSidebar = () => {
+    setIsOpen(false);
+  };
+
   return (
-    <aside className="sidebar">
-      <nav className="sidebar-nav">
+    <>
+      {/* HAMBURGER */}
 
-        {menuItems.map((item) => (
-          <Link
-            key={item.label}
-            href={item.href}
-            className={`sidebar-item ${
-              item.active ? "sidebar-item--active" : ""
-            }`}
-          >
-            {item.icon && (
-              <span className="sidebar-icon">
-                {item.icon}
-              </span>
-            )}
+      <button
+        type="button"
+        className={styles.hamburger}
+        onClick={() => setIsOpen(true)}
+        aria-label="Buka menu"
+      >
+        <Menu size={24} />
+      </button>
 
-            <span>{item.label}</span>
-          </Link>
-        ))}
 
-      </nav>
-    </aside>
+      {/* OVERLAY */}
+
+      <div
+        className={`${styles.overlay} ${
+          isOpen ? styles.overlayOpen : ""
+        }`}
+        onClick={closeSidebar}
+      />
+
+
+      {/* SIDEBAR */}
+
+      <aside
+        className={`${styles.sidebar} ${
+          isOpen ? styles.sidebarOpen : ""
+        }`}
+      >
+
+        {/* CLOSE */}
+
+        <button
+          type="button"
+          className={styles.closeButton}
+          onClick={closeSidebar}
+          aria-label="Tutup menu"
+        >
+          <X size={22} />
+        </button>
+
+
+        {/* MENU */}
+
+        <nav className={styles.sidebarNav}>
+
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={styles.sidebarItem}
+                onClick={closeSidebar}
+              >
+                <span className={styles.sidebarIcon}>
+                  <Icon size={18} />
+                </span>
+
+                <span className={styles.sidebarLabel}>
+                  {item.label}
+                </span>
+              </Link>
+            );
+          })}
+
+        </nav>
+
+      </aside>
+    </>
   );
 }

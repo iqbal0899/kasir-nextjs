@@ -1,63 +1,52 @@
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 
-import Navbar from "../../frontend/components/shared/Navbar";
-import Sidebar from "../../frontend/components/shared/Sidebar";
+import Sidebar from "@/frontend/components/shared/Sidebar";
+import Navbar from "@/frontend/components/shared/Navbar";
 
 export default async function DashboardLayout({ children }) {
   const cookieStore = await cookies();
+
   const token = cookieStore.get("token")?.value;
 
   let user = null;
 
+  // ========================================
+  // CEK TOKEN
+  // ========================================
+
   if (token) {
     try {
-      user = jwt.verify(
+      const decoded = jwt.verify(
         token,
         process.env.JWT_SECRET
       );
+
+      user = decoded;
+
+      console.log("USER:", user);
+      console.log("ROLE:", user.role);
+
     } catch (error) {
-      console.error("JWT ERROR:", error);
+      console.error("JWT ERROR:", error.message);
     }
   }
-
-  const isAdmin = user?.role === "admin";
-
-  const MENU_ITEMS = [
-    {
-      label: "Kasir",
-      href: "/",
-    },
-    {
-      label: "Dashboard",
-      href: "/dashboard",
-    },
-    {
-      label: "Produk",
-      href: "/dashboard/products",
-    },
-
-    // Hanya admin
-    ...(isAdmin
-      ? [
-          {
-            label: "Daftar User",
-            href: "/dashboard/users",
-          },
-          {
-            label: "Transaksi",
-            href: "/dashboard/transactions",
-          },
-        ]
-      : []),
-  ];
 
   return (
     <div className="app-shell">
 
-      <Sidebar menuItems={MENU_ITEMS} />
+      {/* SIDEBAR */}
 
-      <div className="app-main">
+      <Sidebar
+        role={user?.role}
+      />
+
+
+      {/* MAIN */}
+
+      <main className="app-main">
+
+        {/* NAVBAR */}
 
         <Navbar
           storeName="Toko Iqbal"
@@ -65,11 +54,14 @@ export default async function DashboardLayout({ children }) {
           userRole={user?.role || "cashier"}
         />
 
-        <main className="app-content">
-          {children}
-        </main>
 
-      </div>
+        {/* CONTENT */}
+
+        <div className="app-content">
+          {children}
+        </div>
+
+      </main>
 
     </div>
   );
