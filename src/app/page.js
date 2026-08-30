@@ -260,6 +260,12 @@ async function handleConfirmPayment({
             ? Number(cashReceived)
             : 0,
       });
+      await Swal.fire({
+  icon: "success",
+  title: "Pembayaran Berhasil!",
+  text: "Transaksi berhasil disimpan.",
+  confirmButtonText: "OK",
+});
 
     console.log(
       "TRANSACTION SUCCESS:",
