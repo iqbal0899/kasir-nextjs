@@ -3,6 +3,7 @@
   height: 100%;
   background: #111827;
   padding: 16px 12px;
+  flex-shrink: 0;
 }
 
 .sidebar-nav {
@@ -36,4 +37,65 @@
 .sidebar-icon {
   display: inline-flex;
   width: 18px;
+  flex-shrink: 0;
+}
+
+
+/* ========================================
+   TABLET
+======================================== */
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 180px;
+    padding: 14px 10px;
+  }
+
+  .sidebar-item {
+    padding: 9px 10px;
+    font-size: 13px;
+    gap: 8px;
+  }
+
+  .sidebar-icon {
+    width: 17px;
+  }
+}
+
+
+/* ========================================
+   SMARTPHONE
+======================================== */
+
+@media (max-width: 480px) {
+  .sidebar {
+    width: 64px;
+    padding: 12px 8px;
+  }
+
+  .sidebar-nav {
+    align-items: center;
+  }
+
+  .sidebar-item {
+    width: 46px;
+    height: 46px;
+
+    padding: 0;
+
+    justify-content: center;
+    gap: 0;
+
+    border-radius: 10px;
+  }
+
+  .sidebar-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Sembunyikan tulisan menu */
+  .sidebar-item span {
+    display: none;
+  }
 }

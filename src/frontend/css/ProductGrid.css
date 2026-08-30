@@ -24,7 +24,14 @@
   padding: 6px 14px;
   font-size: 13px;
   cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.category-chip:hover {
+  border-color: #2563eb;
 }
 
 .category-chip--active {
@@ -32,6 +39,11 @@
   border-color: #2563eb;
   color: #fff;
 }
+
+
+/* ========================================
+   PRODUCT GRID
+======================================== */
 
 .product-grid {
   display: grid;
@@ -46,18 +58,31 @@
   padding: 24px 0;
 }
 
+
+/* ========================================
+   PRODUCT CARD
+======================================== */
+
 .product-card {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 4px;
+
   padding: 10px;
+
   border: 1px solid #e5e7eb;
   border-radius: 10px;
+
   background: #fff;
+
   cursor: pointer;
+
   text-align: left;
-  transition: border-color 0.15s ease, transform 0.1s ease;
+
+  transition:
+    border-color 0.15s ease,
+    transform 0.1s ease;
 }
 
 .product-card:hover:not(:disabled) {
@@ -70,20 +95,30 @@
   cursor: not-allowed;
 }
 
+
+/* ========================================
+   PRODUCT IMAGE
+======================================== */
+
 .product-card-image {
   width: 100%;
   aspect-ratio: 1 / 1;
+
   border-radius: 8px;
+
   background: #f3f4f6;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   overflow: hidden;
 }
 
 .product-card-image img {
   width: 100%;
   height: 100%;
+
   object-fit: cover;
 }
 
@@ -93,20 +128,315 @@
   color: #9ca3af;
 }
 
+
+/* ========================================
+   PRODUCT INFO
+======================================== */
+
 .product-card-name {
   font-size: 13px;
   font-weight: 600;
+
   margin: 0;
+
+  width: 100%;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .product-card-price {
   font-size: 13px;
   color: #2563eb;
   font-weight: 700;
+
   margin: 0;
 }
 
 .product-card-stock {
   font-size: 11px;
   color: #6b7280;
+}
+
+
+/* ==================================================
+   TABLET BESAR
+   <= 1100px
+================================================== */
+
+@media (max-width: 1100px) {
+
+  .product-grid-wrap {
+    gap: 14px;
+  }
+
+  .product-grid {
+    grid-template-columns: repeat(
+      auto-fill,
+      minmax(130px, 1fr)
+    );
+
+    gap: 11px;
+  }
+
+  .product-card {
+    padding: 9px;
+  }
+
+  .product-card-name {
+    font-size: 13px;
+  }
+
+  .product-card-price {
+    font-size: 13px;
+  }
+}
+
+
+/* ==================================================
+   TABLET
+   <= 900px
+================================================== */
+
+@media (max-width: 900px) {
+
+  .product-grid-wrap {
+    gap: 14px;
+  }
+
+  .product-grid-toolbar {
+    gap: 10px;
+  }
+
+  .product-grid-categories {
+    gap: 7px;
+
+    overflow-x: auto;
+    flex-wrap: nowrap;
+
+    padding-bottom: 4px;
+
+    scrollbar-width: thin;
+  }
+
+  .category-chip {
+    flex-shrink: 0;
+
+    padding: 7px 13px;
+
+    font-size: 12px;
+  }
+
+  .product-grid {
+    grid-template-columns: repeat(
+      auto-fill,
+      minmax(125px, 1fr)
+    );
+
+    gap: 10px;
+  }
+
+  .product-card {
+    padding: 9px;
+
+    border-radius: 9px;
+  }
+
+  .product-card-image {
+    border-radius: 7px;
+  }
+
+  .product-card-placeholder {
+    font-size: 25px;
+  }
+}
+
+
+/* ==================================================
+   TABLET KECIL
+   <= 600px
+================================================== */
+
+@media (max-width: 600px) {
+
+  .product-grid-wrap {
+    gap: 12px;
+  }
+
+  .product-grid-toolbar {
+    gap: 9px;
+  }
+
+  .product-grid-categories {
+    gap: 6px;
+
+    overflow-x: auto;
+    flex-wrap: nowrap;
+
+    padding-bottom: 5px;
+
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .category-chip {
+    flex-shrink: 0;
+
+    padding: 7px 12px;
+
+    font-size: 12px;
+  }
+
+  .product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    gap: 10px;
+  }
+
+  .product-card {
+    padding: 9px;
+
+    border-radius: 9px;
+  }
+
+  .product-card-image {
+    border-radius: 7px;
+  }
+
+  .product-card-placeholder {
+    font-size: 24px;
+  }
+
+  .product-card-name {
+    font-size: 12px;
+  }
+
+  .product-card-price {
+    font-size: 12px;
+  }
+
+  .product-card-stock {
+    font-size: 10px;
+  }
+}
+
+
+/* ==================================================
+   SMARTPHONE
+   <= 480px
+================================================== */
+
+@media (max-width: 480px) {
+
+  .product-grid-wrap {
+    gap: 10px;
+  }
+
+  .product-grid-toolbar {
+    gap: 8px;
+  }
+
+  .product-grid-categories {
+    gap: 6px;
+
+    margin-right: -4px;
+    padding-right: 4px;
+  }
+
+  .category-chip {
+    padding: 7px 11px;
+
+    font-size: 11px;
+
+    min-height: 34px;
+  }
+
+  .product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    gap: 8px;
+  }
+
+  .product-card {
+    gap: 3px;
+
+    padding: 8px;
+
+    border-radius: 8px;
+  }
+
+  .product-card-image {
+    border-radius: 6px;
+  }
+
+  .product-card-placeholder {
+    font-size: 22px;
+  }
+
+  .product-card-name {
+    font-size: 12px;
+
+    line-height: 1.4;
+  }
+
+  .product-card-price {
+    font-size: 12px;
+  }
+
+  .product-card-stock {
+    font-size: 10px;
+  }
+
+  .product-grid-empty {
+    padding: 20px 0;
+
+    font-size: 12px;
+  }
+}
+
+
+/* ==================================================
+   SMARTPHONE KECIL
+   <= 360px
+================================================== */
+
+@media (max-width: 360px) {
+
+  .product-grid {
+    gap: 7px;
+  }
+
+  .product-card {
+    padding: 7px;
+
+    border-radius: 7px;
+  }
+
+  .product-card-image {
+    border-radius: 5px;
+  }
+
+  .product-card-placeholder {
+    font-size: 20px;
+  }
+
+  .product-card-name {
+    font-size: 11px;
+  }
+
+  .product-card-price {
+    font-size: 11px;
+  }
+
+  .product-card-stock {
+    font-size: 9px;
+  }
+
+  .category-chip {
+    padding: 6px 10px;
+
+    font-size: 11px;
+
+    min-height: 32px;
+  }
 }

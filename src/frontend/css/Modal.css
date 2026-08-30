@@ -1,56 +1,316 @@
 .modal-overlay {
   position: fixed;
   inset: 0;
+
   background: rgba(0, 0, 0, 0.5);
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   z-index: 1000;
+
   padding: 16px;
+
+  overflow-y: auto;
 }
 
+
+/* ========================================
+   MODAL CARD
+======================================== */
+
 .modal-card {
-  background: #fff;
-  border-radius: 12px;
   width: 100%;
+
+  background: #fff;
+
+  border-radius: 12px;
+
   max-height: 90vh;
+
   overflow-y: auto;
+
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+
+  position: relative;
 }
+
+
+/* ========================================
+   MODAL SIZE
+======================================== */
 
 .modal-card--sm {
   max-width: 360px;
 }
+
 .modal-card--md {
   max-width: 480px;
 }
+
 .modal-card--lg {
   max-width: 720px;
 }
 
+
+/* ========================================
+   MODAL HEADER
+======================================== */
+
 .modal-header {
   display: flex;
+
   align-items: center;
   justify-content: space-between;
+
+  gap: 15px;
+
   padding: 18px 20px;
+
   border-bottom: 1px solid #e5e7eb;
+
+  position: sticky;
+  top: 0;
+
+  background: #fff;
+
+  z-index: 2;
 }
 
 .modal-title {
   font-size: 16px;
+
   font-weight: 700;
+
   margin: 0;
+
+  color: #111827;
 }
 
+
+/* ========================================
+   CLOSE BUTTON
+======================================== */
+
 .modal-close {
+  width: 32px;
+  height: 32px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
   border: none;
+
   background: none;
+
   font-size: 22px;
   line-height: 1;
+
   cursor: pointer;
+
   color: #6b7280;
+
+  border-radius: 6px;
+
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 }
+
+.modal-close:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+
+/* ========================================
+   MODAL BODY
+======================================== */
 
 .modal-body {
   padding: 20px;
 }
+
+
+/* ==================================================
+   TABLET
+   601px - 900px
+================================================== */
+
+@media (max-width: 900px) {
+
+  .modal-overlay {
+    padding: 20px;
+  }
+
+  .modal-card {
+    max-height: 88vh;
+  }
+
+  .modal-card--sm {
+    max-width: 360px;
+  }
+
+  .modal-card--md {
+    max-width: 460px;
+  }
+
+  .modal-card--lg {
+    max-width: 680px;
+  }
+
+  .modal-header {
+    padding: 16px 18px;
+  }
+
+  .modal-title {
+    font-size: 16px;
+  }
+
+  .modal-body {
+    padding: 18px;
+  }
+}
+
+
+/* ==================================================
+   TABLET KECIL
+   481px - 600px
+================================================== */
+
+@media (max-width: 600px) {
+
+  .modal-overlay {
+    align-items: center;
+
+    padding: 14px;
+  }
+
+  .modal-card {
+    width: 100%;
+
+    max-height: 90vh;
+
+    border-radius: 10px;
+  }
+
+  .modal-card--sm,
+  .modal-card--md,
+  .modal-card--lg {
+    max-width: 100%;
+  }
+
+  .modal-header {
+    padding: 15px 16px;
+
+    gap: 10px;
+  }
+
+  .modal-title {
+    font-size: 15px;
+  }
+
+  .modal-close {
+    width: 34px;
+    height: 34px;
+
+    font-size: 21px;
+  }
+
+  .modal-body {
+    padding: 16px;
+  }
+}
+
+
+/* ==================================================
+   SMARTPHONE
+   <= 480px
+================================================== */
+
+@media (max-width: 480px) {
+
+  .modal-overlay {
+    padding: 10px;
+  }
+
+  .modal-card {
+    width: 100%;
+
+    max-height: 92vh;
+
+    border-radius: 10px;
+  }
+
+  .modal-card--sm,
+  .modal-card--md,
+  .modal-card--lg {
+    max-width: 100%;
+  }
+
+  .modal-header {
+    padding: 14px;
+
+    gap: 8px;
+  }
+
+  .modal-title {
+    font-size: 15px;
+
+    line-height: 1.4;
+  }
+
+  .modal-close {
+    width: 34px;
+    height: 34px;
+
+    font-size: 20px;
+  }
+
+  .modal-body {
+    padding: 14px;
+  }
+}
+
+
+/* ==================================================
+   SMARTPHONE KECIL
+   <= 360px
+================================================== */
+
+@media (max-width: 360px) {
+
+  .modal-overlay {
+    padding: 8px;
+  }
+
+  .modal-card {
+    max-height: 94vh;
+
+    border-radius: 9px;
+  }
+
+  .modal-header {
+    padding: 12px;
+  }
+
+  .modal-title {
+    font-size: 14px;
+  }
+
+  .modal-close {
+    width: 32px;
+    height: 32px;
+
+    font-size: 19px;
+  }
+
+  .modal-body {
+    padding: 12px;
+  }
+}
+

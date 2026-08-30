@@ -22,6 +22,7 @@
 
 .payment-method {
   flex: 1;
+  min-height: 42px;
   padding: 10px;
   border: 1px solid #d1d5db;
   border-radius: 8px;
@@ -29,6 +30,14 @@
   cursor: pointer;
   font-size: 13px;
   font-weight: 600;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.payment-method:hover {
+  border-color: #2563eb;
 }
 
 .payment-method--active {
@@ -47,6 +56,8 @@
 .payment-change-row {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  gap: 10px;
   font-size: 13px;
 }
 
@@ -72,4 +83,195 @@
 .payment-qris p {
   font-size: 12px;
   color: #6b7280;
+  line-height: 1.5;
+  margin: 0;
+}
+
+
+/* ================================
+   TABLET
+================================ */
+
+@media (max-width: 900px) {
+  .payment-total {
+    padding: 11px 13px;
+    font-size: 13px;
+  }
+
+  .payment-total strong {
+    font-size: 17px;
+  }
+
+  .payment-methods {
+    gap: 7px;
+  }
+
+  .payment-method {
+    min-height: 42px;
+    padding: 9px;
+    font-size: 13px;
+  }
+
+  .payment-cash {
+    gap: 11px;
+  }
+
+  .payment-change-row {
+    font-size: 13px;
+  }
+
+  .payment-qris-box {
+    width: 150px;
+    height: 150px;
+  }
+}
+
+
+/* ================================
+   TABLET KECIL
+================================ */
+
+@media (max-width: 600px) {
+  .payment-total {
+    padding: 12px;
+    margin-bottom: 14px;
+    font-size: 13px;
+  }
+
+  .payment-total strong {
+    font-size: 17px;
+  }
+
+  .payment-methods {
+    width: 100%;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .payment-method {
+    min-height: 44px;
+    padding: 10px 8px;
+    font-size: 13px;
+  }
+
+  .payment-cash {
+    gap: 11px;
+    margin-bottom: 14px;
+  }
+
+  .payment-change-row {
+    font-size: 13px;
+  }
+
+  .payment-qris {
+    margin-bottom: 14px;
+  }
+
+  .payment-qris-box {
+    width: 160px;
+    height: 160px;
+  }
+
+  .payment-qris p {
+    font-size: 12px;
+    padding: 0 10px;
+  }
+}
+
+
+/* ================================
+   SMARTPHONE
+================================ */
+
+@media (max-width: 480px) {
+  .payment-total {
+    padding: 11px 12px;
+    margin-bottom: 13px;
+    font-size: 13px;
+  }
+
+  .payment-total strong {
+    font-size: 16px;
+  }
+
+  .payment-methods {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .payment-method {
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 8px;
+    font-size: 12px;
+  }
+
+  .payment-cash {
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .payment-change-row {
+    font-size: 12px;
+  }
+
+  .payment-qris {
+    margin-bottom: 14px;
+  }
+
+  .payment-qris-box {
+    width: 150px;
+    height: 150px;
+  }
+
+  .payment-qris p {
+    font-size: 11px;
+    line-height: 1.5;
+    padding: 0 5px;
+  }
+}
+
+
+/* ================================
+   SMARTPHONE KECIL
+================================ */
+
+@media (max-width: 360px) {
+  .payment-total {
+    padding: 10px;
+    font-size: 12px;
+  }
+
+  .payment-total strong {
+    font-size: 15px;
+  }
+
+  .payment-methods {
+    gap: 6px;
+  }
+
+  .payment-method {
+    min-height: 42px;
+    padding: 9px 6px;
+    font-size: 11px;
+  }
+
+  .payment-cash {
+    gap: 9px;
+  }
+
+  .payment-change-row {
+    font-size: 12px;
+  }
+
+  .payment-qris-box {
+    width: 135px;
+    height: 135px;
+  }
+
+  .payment-qris p {
+    font-size: 11px;
+  }
 }
