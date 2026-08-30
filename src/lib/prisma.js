@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "../generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 
 const globalForPrisma = globalThis;
@@ -11,7 +11,6 @@ export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
     adapter,
-
     transactionOptions: {
       maxWait: 10000,
       timeout: 15000,
