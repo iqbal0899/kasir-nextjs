@@ -30,8 +30,8 @@ export default function Sidebar({ role }) {
       icon: LayoutDashboard,
     },
     {
-      label: "Produk",
-      href: "/dashboard/products",
+      label: "Laporan",
+      href: "/reports",
       icon: Package,
     },
   ];
