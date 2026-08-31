@@ -14,9 +14,6 @@ export default function ReportsPage() {
 
   const [user, setUser] = useState(null);
 
-  const [printDate, setPrintDate] = useState(null);
-  const [printSection, setPrintSection] = useState(null);
-
   const [loadingProducts, setLoadingProducts] =
     useState(true);
 
@@ -28,14 +25,6 @@ export default function ReportsPage() {
 
   const [transactionError, setTransactionError] =
     useState("");
-
-  // ========================================
-  // PRINT DATE
-  // ========================================
-
-  useEffect(() => {
-    setPrintDate(new Date());
-  }, []);
 
   // ========================================
   // GET PRODUCTS
@@ -221,40 +210,19 @@ export default function ReportsPage() {
     );
 
   // ========================================
-  // PRINT
+  // PRINT PDF
   // ========================================
 
-  const handlePrint = (
-    section
-  ) => {
-    setPrintSection(section);
+  const handlePrint = (type) => {
+    const url =
+      `/api/v1/reports/pdf?type=${type}`;
 
-    setTimeout(() => {
-      window.print();
-    }, 300);
-  };
-
-  // ========================================
-  // AFTER PRINT
-  // ========================================
-
-  useEffect(() => {
-    const handleAfterPrint = () => {
-      setPrintSection(null);
-    };
-
-    window.addEventListener(
-      "afterprint",
-      handleAfterPrint
+    window.open(
+      url,
+      "_blank",
+      "noopener,noreferrer"
     );
-
-    return () => {
-      window.removeEventListener(
-        "afterprint",
-        handleAfterPrint
-      );
-    };
-  }, []);
+  };
 
   // ========================================
   // LOGOUT
@@ -321,70 +289,10 @@ export default function ReportsPage() {
         ======================================== */}
 
         <main
-          className={`
-            ${styles.container}
-            ${
-              printSection ===
-              "product"
-                ? styles.printProduct
-                : printSection ===
-                    "transaction"
-                  ? styles.printTransaction
-                  : printSection ===
-                      "all"
-                    ? styles.printAll
-                    : ""
-            }
-          `}
+          className={
+            styles.container
+          }
         >
-
-          {/* ========================================
-              PRINT HEADER
-          ======================================== */}
-
-          <div
-            className={
-              styles.printHeader
-            }
-          >
-            <h1>TOKO IQBAL</h1>
-
-            {printSection ===
-              "product" && (
-              <h2>
-                LAPORAN PRODUK
-              </h2>
-            )}
-
-            {printSection ===
-              "transaction" && (
-              <h2>
-                LAPORAN TRANSAKSI
-              </h2>
-            )}
-
-            {printSection ===
-              "all" && (
-              <h2>
-                LAPORAN PRODUK & TRANSAKSI
-              </h2>
-            )}
-
-            <p>
-              Dicetak oleh:{" "}
-              {user?.username ||
-                "User"}
-            </p>
-
-            <p>
-              Tanggal:{" "}
-              {printDate
-                ? formatDate(
-                    printDate
-                  )
-                : "-"}
-            </p>
-          </div>
 
           {/* ========================================
               PAGE HEADER
@@ -414,18 +322,17 @@ export default function ReportsPage() {
               </p>
             </div>
 
+            {/* PRINT ALL */}
+
             <button
-              type="button"
-              className={`
-                ${styles.printButton}
-                ${styles.noPrint}
-              `}
-              onClick={() =>
-                handlePrint("all")
-              }
-            >
-              🖨️ Print Laporan
-            </button>
+  type="button"
+  className={styles.printButton}
+  onClick={() =>
+    handlePrint("all")
+  }
+>
+  🖨️ Print Laporan
+</button>
           </div>
 
           {/* ========================================
@@ -433,16 +340,13 @@ export default function ReportsPage() {
           ======================================== */}
 
           <section
-            className={`
-              ${styles.section}
-              ${
-                printSection ===
-                "product"
-                  ? styles.printVisible
-                  : styles.printHidden
-              }
-            `}
+            className={
+              styles.section
+            }
           >
+
+            {/* SECTION HEADER */}
+
             <div
               className={
                 styles.sectionHeader
@@ -458,29 +362,29 @@ export default function ReportsPage() {
                 </p>
               </div>
 
+              {/* PRINT PRODUCT */}
+
               <button
-                type="button"
-                className={`
-                  ${styles.printButton}
-                  ${styles.noPrint}
-                `}
-                onClick={() =>
-                  handlePrint(
-                    "product"
-                  )
-                }
-              >
-                🖨️ Print Produk
-              </button>
+  type="button"
+  className={styles.printButton}
+  onClick={() =>
+    handlePrint("product")
+  }
+>
+  🖨️ Print Produk
+</button>
             </div>
 
-            {/* PRODUCT CARDS */}
+            {/* ========================================
+                PRODUCT CARDS
+            ======================================== */}
 
             <div
               className={
                 styles.cards
               }
             >
+
               <div
                 className={
                   styles.card
@@ -528,9 +432,12 @@ export default function ReportsPage() {
                     : lowStock}
                 </strong>
               </div>
+
             </div>
 
-            {/* PRODUCT ERROR */}
+            {/* ========================================
+                PRODUCT ERROR
+            ======================================== */}
 
             {productError && (
               <div
@@ -542,7 +449,9 @@ export default function ReportsPage() {
               </div>
             )}
 
-            {/* PRODUCT TABLE */}
+            {/* ========================================
+                PRODUCT TABLE
+            ======================================== */}
 
             {!loadingProducts &&
               !productError && (
@@ -559,18 +468,23 @@ export default function ReportsPage() {
                     <thead>
                       <tr>
                         <th>ID</th>
+
                         <th>
                           Produk
                         </th>
+
                         <th>
                           Kategori
                         </th>
+
                         <th>
                           Harga
                         </th>
+
                         <th>
                           Stock
                         </th>
+
                         <th>
                           Status
                         </th>
@@ -592,9 +506,7 @@ export default function ReportsPage() {
                         </tr>
                       ) : (
                         products.map(
-                          (
-                            product
-                          ) => (
+                          (product) => (
                             <tr
                               key={
                                 product.id
@@ -615,8 +527,10 @@ export default function ReportsPage() {
                               </td>
 
                               <td>
-                                {product.category ||
-                                  "Tanpa kategori"}
+                                {
+                                  product.category ||
+                                  "Tanpa kategori"
+                                }
                               </td>
 
                               <td>
@@ -661,6 +575,7 @@ export default function ReportsPage() {
                   </table>
                 </div>
               )}
+
           </section>
 
           {/* ========================================
@@ -668,16 +583,13 @@ export default function ReportsPage() {
           ======================================== */}
 
           <section
-            className={`
-              ${styles.section}
-              ${
-                printSection ===
-                "transaction"
-                  ? styles.printVisible
-                  : styles.printHidden
-              }
-            `}
+            className={
+              styles.section
+            }
           >
+
+            {/* SECTION HEADER */}
+
             <div
               className={
                 styles.sectionHeader
@@ -693,29 +605,29 @@ export default function ReportsPage() {
                 </p>
               </div>
 
+              {/* PRINT TRANSACTION */}
+
               <button
-                type="button"
-                className={`
-                  ${styles.printButton}
-                  ${styles.noPrint}
-                `}
-                onClick={() =>
-                  handlePrint(
-                    "transaction"
-                  )
-                }
-              >
-                🖨️ Print Transaksi
-              </button>
+  type="button"
+  className={styles.printButton}
+  onClick={() =>
+    handlePrint("product")
+  }
+>
+  🖨️ Print Produk
+</button>
             </div>
 
-            {/* TRANSACTION CARDS */}
+            {/* ========================================
+                TRANSACTION CARDS
+            ======================================== */}
 
             <div
               className={
                 styles.cards
               }
             >
+
               <div
                 className={
                   styles.card
@@ -750,9 +662,12 @@ export default function ReportsPage() {
                       )}
                 </strong>
               </div>
+
             </div>
 
-            {/* TRANSACTION ERROR */}
+            {/* ========================================
+                TRANSACTION ERROR
+            ======================================== */}
 
             {transactionError && (
               <div
@@ -764,7 +679,9 @@ export default function ReportsPage() {
               </div>
             )}
 
-            {/* TRANSACTION TABLE */}
+            {/* ========================================
+                TRANSACTION TABLE
+            ======================================== */}
 
             {!loadingTransactions &&
               !transactionError && (
@@ -780,16 +697,22 @@ export default function ReportsPage() {
                   >
                     <thead>
                       <tr>
-                        <th>ID</th>
+                        <th>
+                          ID
+                        </th>
+
                         <th>
                           Tanggal
                         </th>
+
                         <th>
                           Kasir
                         </th>
+
                         <th>
                           Total
                         </th>
+
                         <th>
                           Metode
                         </th>
@@ -811,9 +734,7 @@ export default function ReportsPage() {
                         </tr>
                       ) : (
                         transactions.map(
-                          (
-                            transaction
-                          ) => (
+                          (transaction) => (
                             <tr
                               key={
                                 transaction.id
@@ -832,10 +753,12 @@ export default function ReportsPage() {
                               </td>
 
                               <td>
-                                {transaction
-                                  .cashier
-                                  ?.username ||
-                                  "-"}
+                                {
+                                  transaction
+                                    .cashier
+                                    ?.username ||
+                                  "-"
+                                }
                               </td>
 
                               <td>
@@ -861,30 +784,8 @@ export default function ReportsPage() {
                   </table>
                 </div>
               )}
+
           </section>
-
-          {/* ========================================
-              PRINT FOOTER
-          ======================================== */}
-
-          <div
-            className={
-              styles.printFooter
-            }
-          >
-            <p>
-              Toko Iqbal
-            </p>
-
-            <p>
-              Dicetak pada:{" "}
-              {printDate
-                ? formatDate(
-                    printDate
-                  )
-                : "-"}
-            </p>
-          </div>
 
         </main>
       </div>

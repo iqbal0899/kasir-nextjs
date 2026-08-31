@@ -37,3 +37,36 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 Product
 route.js fokus pada request/response, sedangkan product.action.js menangani Prisma dan logic produk.
+
+/**
+ * =========================================================
+ * FORMAT CURRENCY
+ * =========================================================
+ *
+ * Format angka menjadi mata uang Rupiah.
+ *
+ * Contoh:
+ *
+ * formatCurrency(10000)
+ * => "Rp 10.000"
+ *
+ * formatCurrency(1500000)
+ * => "Rp 1.500.000"
+ *
+ * Bisa menerima:
+ * - number
+ * - string
+ * - Prisma Decimal
+ * - null / undefined
+ * =========================================================
+ */
+
+ Frontend
+   ↓
+/api/v1/products/route.js
+   ↓
+product.service.js
+   ↓
+Prisma
+   ↓
+PostgreSQL / Neon
