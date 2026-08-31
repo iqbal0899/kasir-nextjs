@@ -16,41 +16,34 @@ import CartSidebar from "../frontend/components/pos/CartSidebar";
 import PaymentModal from "../frontend/components/pos/PaymentModal";
 import ReceiptModal from "../frontend/components/pos/ReceiptModal";
 
-const MENU_ITEMS = [
-  {
-    label: "Kasir",
-    href: "/",
-    active: true,
-  },
-  {
-    label: "Produk",
-    href: "/dashboard/products",
-  },
-  {
-    label: "Laporan",
-    href: "/reports",
-  },
-];
-
 export default function Home() {
   const router = useRouter();
 
   const [cart, setCart] = useState([]);
-  const [paymentOpen, setPaymentOpen] = useState(false);
-  const [receiptOpen, setReceiptOpen] = useState(false);
+
+  const [paymentOpen, setPaymentOpen] =
+    useState(false);
+
+  const [receiptOpen, setReceiptOpen] =
+    useState(false);
+
   const [lastTransaction, setLastTransaction] =
     useState(null);
 
   const [user, setUser] = useState(null);
 
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] =
+    useState([]);
+
   const [loadingProducts, setLoadingProducts] =
     useState(true);
-  const [productError, setProductError] = useState("");
 
-  // =========================
+  const [productError, setProductError] =
+    useState("");
+
+  // ========================================
   // TOTAL
-  // =========================
+  // ========================================
 
   const total = cart.reduce(
     (sum, item) =>
@@ -60,9 +53,9 @@ export default function Home() {
     0
   );
 
-  // =========================
+  // ========================================
   // AMBIL PRODUCTS
-  // =========================
+  // ========================================
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -78,7 +71,8 @@ export default function Home() {
           }
         );
 
-        const result = await response.json();
+        const result =
+          await response.json();
 
         console.log(
           "PRODUCT API:",
@@ -92,7 +86,9 @@ export default function Home() {
           );
         }
 
-        setProducts(result.data || []);
+        setProducts(
+          result.data || []
+        );
       } catch (error) {
         console.error(
           "FETCH PRODUCTS ERROR:",
@@ -111,9 +107,9 @@ export default function Home() {
     fetchProducts();
   }, []);
 
-  // =========================
+  // ========================================
   // AMBIL USER LOGIN
-  // =========================
+  // ========================================
 
   useEffect(() => {
     const storedUser =
@@ -121,9 +117,15 @@ export default function Home() {
 
     if (storedUser) {
       try {
-        setUser(
-          JSON.parse(storedUser)
+        const parsedUser =
+          JSON.parse(storedUser);
+
+        console.log(
+          "USER LOGIN:",
+          parsedUser
         );
+
+        setUser(parsedUser);
       } catch (error) {
         console.error(
           "USER DATA ERROR:",
@@ -135,25 +137,28 @@ export default function Home() {
     }
   }, []);
 
-  // =========================
+  // ========================================
   // ADD TO CART
-  // =========================
+  // ========================================
 
   function handleAddToCart(product) {
     setCart((prev) => {
-      const existing = prev.find(
-        (item) =>
-          item.id === product.id
-      );
+      const existing =
+        prev.find(
+          (item) =>
+            item.id === product.id
+        );
 
       if (existing) {
-        return prev.map((item) =>
-          item.id === product.id
-            ? {
-                ...item,
-                qty: item.qty + 1,
-              }
-            : item
+        return prev.map(
+          (item) =>
+            item.id === product.id
+              ? {
+                  ...item,
+                  qty:
+                    item.qty + 1,
+                }
+              : item
         );
       }
 
@@ -167,9 +172,9 @@ export default function Home() {
     });
   }
 
-  // =========================
+  // ========================================
   // INCREASE
-  // =========================
+  // ========================================
 
   function handleIncrease(id) {
     setCart((prev) =>
@@ -177,16 +182,17 @@ export default function Home() {
         item.id === id
           ? {
               ...item,
-              qty: item.qty + 1,
+              qty:
+                item.qty + 1,
             }
           : item
       )
     );
   }
 
-  // =========================
+  // ========================================
   // DECREASE
-  // =========================
+  // ========================================
 
   function handleDecrease(id) {
     setCart((prev) =>
@@ -195,31 +201,34 @@ export default function Home() {
           item.id === id
             ? {
                 ...item,
-                qty: item.qty - 1,
+                qty:
+                  item.qty - 1,
               }
             : item
         )
         .filter(
-          (item) => item.qty > 0
+          (item) =>
+            item.qty > 0
         )
     );
   }
 
-  // =========================
+  // ========================================
   // REMOVE
-  // =========================
+  // ========================================
 
   function handleRemove(id) {
     setCart((prev) =>
       prev.filter(
-        (item) => item.id !== id
+        (item) =>
+          item.id !== id
       )
     );
   }
 
-  // =========================
+  // ========================================
   // CHECKOUT
-  // =========================
+  // ========================================
 
   function handleCheckout() {
     if (cart.length === 0) {
@@ -229,124 +238,142 @@ export default function Home() {
     setPaymentOpen(true);
   }
 
-  // =========================
+  // ========================================
   // PAYMENT BERHASIL
-  // =========================
+  // ========================================
 
-async function handleConfirmPayment({
-  method,
-  cashReceived,
-  change,
-}) {
-  try {
-    if (cart.length === 0) {
-      throw new Error(
-        "Keranjang masih kosong"
+  async function handleConfirmPayment({
+    method,
+    cashReceived,
+    change,
+  }) {
+    try {
+      if (cart.length === 0) {
+        throw new Error(
+          "Keranjang masih kosong"
+        );
+      }
+
+      console.log(
+        "CART BEFORE PAYMENT:",
+        cart
       );
-    }
 
-    console.log(
-      "CART BEFORE PAYMENT:",
-      cart
-    );
+      const result =
+        await createTransaction({
+          items: cart,
 
-    const result =
-      await createTransaction({
+          paymentMethod:
+            method,
+
+          cashReceived:
+            method === "cash"
+              ? Number(
+                  cashReceived
+                )
+              : 0,
+        });
+
+      console.log(
+        "TRANSACTION SUCCESS:",
+        result
+      );
+
+      await Swal.fire({
+        icon: "success",
+        title:
+          "Pembayaran Berhasil!",
+        text:
+          "Transaksi berhasil disimpan.",
+        confirmButtonText:
+          "OK",
+      });
+
+      const transaction =
+        result.data;
+
+      setLastTransaction({
+        ...transaction,
+
         items: cart,
 
-        paymentMethod: method,
+        method,
 
-        cashReceived:
-          method === "cash"
-            ? Number(cashReceived)
-            : 0,
+        total,
+
+        cashReceived,
+
+        change,
+
+        date:
+          new Date().toLocaleString(
+            "id-ID"
+          ),
+
+        cashier:
+          user?.username ||
+          "Admin",
       });
-      await Swal.fire({
-  icon: "success",
-  title: "Pembayaran Berhasil!",
-  text: "Transaksi berhasil disimpan.",
-  confirmButtonText: "OK",
-});
 
-    console.log(
-      "TRANSACTION SUCCESS:",
-      result
-    );
+      setPaymentOpen(false);
 
-    const transaction =
-      result.data;
+      setReceiptOpen(true);
 
-    setLastTransaction({
-      ...transaction,
+      setCart([]);
+    } catch (error) {
+      console.error(
+        "PAYMENT ERROR:",
+        error
+      );
 
-      items: cart,
-
-      method,
-
-      total,
-
-      cashReceived,
-
-      change,
-
-      date:
-        new Date().toLocaleString(
-          "id-ID"
-        ),
-
-      cashier:
-        user?.username ||
-        "Admin",
-    });
-
-    setPaymentOpen(false);
-
-    setReceiptOpen(true);
-
-    setCart([]);
-
-  } catch (error) {
-    console.error(
-      "PAYMENT ERROR:",
-      error
-    );
-
-    alert(
-      error.message ||
-        "Pembayaran gagal"
-    );
+      alert(
+        error.message ||
+          "Pembayaran gagal"
+      );
+    }
   }
-}
 
-  // =========================
+  // ========================================
   // LOGOUT
-  // =========================
+  // ========================================
 
   function handleLogout() {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    localStorage.removeItem(
+      "token"
+    );
 
-    router.push("/auth/login");
+    localStorage.removeItem(
+      "user"
+    );
+
+    router.push(
+      "/auth/login"
+    );
   }
 
   return (
     <div className="app-shell">
 
-      {/* =========================
+      {/* ========================================
           SIDEBAR
-      ========================= */}
+      ======================================== */}
 
       <Sidebar
-        menuItems={MENU_ITEMS}
+        role={
+          user?.role ||
+          "cashier"
+        }
       />
 
-      {/* =========================
+      {/* ========================================
           MAIN
-      ========================= */}
+      ======================================== */}
 
       <div className="app-main">
 
-        {/* NAVBAR */}
+        {/* ========================================
+            NAVBAR
+        ======================================== */}
 
         <Navbar
           storeName="Toko Iqbal"
@@ -358,10 +385,14 @@ async function handleConfirmPayment({
             user?.role ||
             "cashier"
           }
-          onLogout={handleLogout}
+          onLogout={
+            handleLogout
+          }
         />
 
-        {/* CONTENT */}
+        {/* ========================================
+            CONTENT
+        ======================================== */}
 
         <div className="app-content">
 
@@ -370,13 +401,15 @@ async function handleConfirmPayment({
             subtitle="Pilih produk di bawah untuk mulai transaksi"
           />
 
-          {/* =========================
+          {/* ========================================
               PRODUCT + CART
-          ========================= */}
+          ======================================== */}
 
           <div className="pos-layout">
 
-            {/* PRODUCT GRID */}
+            {/* ========================================
+                PRODUCT GRID
+            ======================================== */}
 
             <div>
 
@@ -398,7 +431,8 @@ async function handleConfirmPayment({
 
               {!loadingProducts &&
                 !productError &&
-                products.length === 0 && (
+                products.length ===
+                  0 && (
                   <p>
                     Belum ada produk.
                   </p>
@@ -406,9 +440,12 @@ async function handleConfirmPayment({
 
               {!loadingProducts &&
                 !productError &&
-                products.length > 0 && (
+                products.length >
+                  0 && (
                   <ProductGrid
-                    products={products}
+                    products={
+                      products
+                    }
                     onAddToCart={
                       handleAddToCart
                     }
@@ -417,7 +454,9 @@ async function handleConfirmPayment({
 
             </div>
 
-            {/* CART */}
+            {/* ========================================
+                CART
+            ======================================== */}
 
             <CartSidebar
               items={cart}
@@ -439,21 +478,21 @@ async function handleConfirmPayment({
         </div>
       </div>
 
-      {/* =========================
+      {/* ========================================
           PAYMENT MODAL
-      ========================= */}
+      ======================================== */}
 
       <PaymentModal
         open={paymentOpen}
 
         onClose={() =>
-          setPaymentOpen(false)
+          setPaymentOpen(
+            false
+          )
         }
 
         total={total}
 
-        // PENTING:
-        // Kirim cart ke PaymentModal
         items={cart}
 
         onConfirm={
@@ -461,15 +500,17 @@ async function handleConfirmPayment({
         }
       />
 
-      {/* =========================
+      {/* ========================================
           RECEIPT MODAL
-      ========================= */}
+      ======================================== */}
 
       <ReceiptModal
         open={receiptOpen}
 
         onClose={() =>
-          setReceiptOpen(false)
+          setReceiptOpen(
+            false
+          )
         }
 
         transaction={

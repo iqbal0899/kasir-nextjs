@@ -1,0 +1,466 @@
+.page {
+  min-height: 100vh;
+  padding: 30px;
+  background: #f3f4f6;
+  color: #111827;
+}
+
+/* ========================================
+   ACTION BUTTON
+======================================== */
+
+.actions {
+  width: 420px;
+  max-width: 100%;
+  margin: 0 auto 20px;
+
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.backButton,
+.printButton {
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+
+  font-size: 14px;
+  font-weight: 500;
+
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    transform 0.15s ease;
+}
+
+.backButton {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.backButton:hover {
+  background: #d1d5db;
+}
+
+.printButton {
+  background: #111827;
+  color: #ffffff;
+}
+
+.printButton:hover {
+  background: #1f2937;
+}
+
+.backButton:active,
+.printButton:active {
+  transform: scale(0.97);
+}
+
+/* ========================================
+   RECEIPT
+======================================== */
+
+.receipt {
+  width: 420px;
+  max-width: 100%;
+  margin: 0 auto;
+
+  background: #ffffff;
+
+  padding: 28px 24px;
+
+  border-radius: 10px;
+
+  box-shadow:
+    0 4px 15px rgba(0, 0, 0, 0.08);
+
+  font-size: 13px;
+}
+
+/* ========================================
+   RECEIPT HEADER
+======================================== */
+
+.receiptHeader {
+  text-align: center;
+}
+
+.receiptHeader h1 {
+  margin: 0;
+
+  font-size: 22px;
+  font-weight: 700;
+
+  letter-spacing: 1px;
+
+  color: #111827;
+}
+
+.receiptHeader p {
+  margin: 5px 0 0;
+
+  color: #6b7280;
+  font-size: 13px;
+}
+
+/* ========================================
+   DIVIDER
+======================================== */
+
+.divider {
+  width: 100%;
+
+  margin: 18px 0;
+
+  border-top: 1px dashed #d1d5db;
+}
+
+/* ========================================
+   TRANSACTION INFO
+======================================== */
+
+.transactionInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.transactionInfo > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  gap: 20px;
+}
+
+.transactionInfo span {
+  color: #6b7280;
+}
+
+.transactionInfo strong {
+  color: #111827;
+  text-align: right;
+}
+
+/* ========================================
+   ITEMS
+======================================== */
+
+.items {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 15px;
+}
+
+.itemName {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  min-width: 0;
+}
+
+.itemName strong {
+  color: #111827;
+  font-size: 13px;
+}
+
+.itemName span {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.item > strong {
+  flex-shrink: 0;
+
+  color: #111827;
+
+  font-size: 13px;
+
+  text-align: right;
+}
+
+/* ========================================
+   SUMMARY
+======================================== */
+
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.summary > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  gap: 20px;
+}
+
+.summary span {
+  color: #6b7280;
+}
+
+.summary strong {
+  color: #111827;
+  text-align: right;
+}
+
+.summary > div:first-child {
+  margin-bottom: 5px;
+
+  padding-bottom: 10px;
+
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.summary > div:first-child span,
+.summary > div:first-child strong {
+  font-size: 16px;
+  font-weight: 700;
+
+  color: #111827;
+}
+
+/* ========================================
+   FOOTER
+======================================== */
+
+.receiptFooter {
+  text-align: center;
+}
+
+.receiptFooter p {
+  margin: 0 0 5px;
+
+  font-size: 13px;
+  font-weight: 500;
+
+  color: #374151;
+}
+
+.receiptFooter small {
+  color: #9ca3af;
+  font-size: 11px;
+}
+
+/* ========================================
+   LOADING
+======================================== */
+
+.loading {
+  width: 420px;
+  max-width: 100%;
+
+  margin: 100px auto;
+
+  padding: 30px;
+
+  background: #ffffff;
+
+  border-radius: 10px;
+
+  text-align: center;
+
+  color: #6b7280;
+
+  box-shadow:
+    0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+/* ========================================
+   ERROR
+======================================== */
+
+.error {
+  width: 420px;
+  max-width: 100%;
+
+  margin: 100px auto 20px;
+
+  padding: 20px;
+
+  background: #fef2f2;
+
+  border: 1px solid #fecaca;
+
+  border-radius: 8px;
+
+  color: #b91c1c;
+
+  text-align: center;
+}
+
+/* ========================================
+   MOBILE
+======================================== */
+
+@media (max-width: 600px) {
+  .page {
+    padding: 20px 12px;
+  }
+
+  .actions {
+    width: 100%;
+  }
+
+  .receipt {
+    width: 100%;
+
+    padding: 24px 18px;
+
+    border-radius: 8px;
+  }
+
+  .receiptHeader h1 {
+    font-size: 20px;
+  }
+
+  .transactionInfo > div {
+    gap: 10px;
+  }
+
+  .item {
+    gap: 10px;
+  }
+
+  .summary > div {
+    gap: 10px;
+  }
+}
+
+/* ========================================
+   SMALL SMARTPHONE
+======================================== */
+
+@media (max-width: 360px) {
+  .page {
+    padding: 15px 8px;
+  }
+
+  .actions {
+    gap: 6px;
+  }
+
+  .backButton,
+  .printButton {
+    padding: 9px 11px;
+    font-size: 12px;
+  }
+
+  .receipt {
+    padding: 20px 14px;
+  }
+
+  .receiptHeader h1 {
+    font-size: 18px;
+  }
+
+  .transactionInfo,
+  .item,
+  .summary {
+    font-size: 12px;
+  }
+}
+
+/* ========================================
+   PRINT
+======================================== */
+
+@media print {
+  @page {
+    size: 80mm auto;
+    margin: 0;
+  }
+
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    background: #ffffff;
+  }
+
+  .page {
+    min-height: auto;
+
+    padding: 0;
+
+    background: #ffffff;
+  }
+
+  .noPrint {
+    display: none !important;
+  }
+
+  .receipt {
+    width: 80mm;
+    max-width: none;
+
+    margin: 0;
+
+    padding: 8mm 5mm;
+
+    border-radius: 0;
+
+    box-shadow: none;
+
+    font-size: 11px;
+  }
+
+  .receiptHeader h1 {
+    font-size: 18px;
+  }
+
+  .receiptHeader p {
+    font-size: 11px;
+  }
+
+  .divider {
+    margin: 12px 0;
+  }
+
+  .transactionInfo {
+    gap: 5px;
+  }
+
+  .items {
+    gap: 8px;
+  }
+
+  .itemName strong,
+  .item > strong {
+    font-size: 11px;
+  }
+
+  .itemName span {
+    font-size: 10px;
+  }
+
+  .summary {
+    gap: 6px;
+  }
+
+  .summary > div:first-child span,
+  .summary > div:first-child strong {
+    font-size: 13px;
+  }
+
+  .receiptFooter p {
+    font-size: 11px;
+  }
+
+  .receiptFooter small {
+    font-size: 9px;
+  }
+}
+

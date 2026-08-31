@@ -25,6 +25,7 @@
 .sidebarNav {
   display: flex;
   flex-direction: column;
+
   gap: 4px;
 }
 
@@ -37,17 +38,27 @@
   display: flex;
   align-items: center;
 
+  width: 100%;
+
   gap: 10px;
 
   padding: 10px 12px;
 
+  border: none;
   border-radius: 8px;
+
+  background: transparent;
 
   color: #9ca3af;
 
   text-decoration: none;
 
+  font-family: inherit;
   font-size: 14px;
+
+  text-align: left;
+
+  cursor: pointer;
 
   transition:
     background-color 0.15s ease,
@@ -56,6 +67,7 @@
 
 .sidebarItem:hover {
   background: rgba(255, 255, 255, 0.06);
+
   color: #ffffff;
 }
 
@@ -66,7 +78,6 @@
 
 .sidebarIcon {
   display: inline-flex;
-
   align-items: center;
   justify-content: center;
 
@@ -82,6 +93,142 @@
 
 .sidebarLabel {
   white-space: nowrap;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+}
+
+
+/* ========================================
+   DASHBOARD WRAPPER
+======================================== */
+
+.dashboardWrapper {
+  width: 100%;
+}
+
+
+/* ========================================
+   DASHBOARD MENU
+======================================== */
+
+.dashboardMenu {
+  display: flex;
+  align-items: center;
+
+  width: 100%;
+}
+
+
+/*
+   Dashboard menjadi satu tombol penuh
+*/
+
+.dashboardMenu .sidebarItem {
+  flex: 1;
+
+  min-width: 0;
+}
+
+
+/* ========================================
+   CHEVRON DASHBOARD
+======================================== */
+
+.dashboardMenu .sidebarItem svg:last-child {
+  margin-left: auto;
+}
+
+
+/* ========================================
+   CHEVRON
+======================================== */
+
+.chevron {
+  margin-left: auto;
+
+  color: #ffffff;
+
+  flex-shrink: 0;
+
+  transition: transform 0.2s ease;
+}
+
+.chevronOpen {
+  margin-left: auto;
+
+  color: #ffffff;
+
+  flex-shrink: 0;
+
+  transform: rotate(180deg);
+
+  transition: transform 0.2s ease;
+}
+
+
+/* ========================================
+   SUBMENU
+======================================== */
+
+.subMenu {
+  margin-top: 3px;
+
+  margin-left: 20px;
+
+  padding-left: 14px;
+
+  border-left: 1px solid rgba(255, 255, 255, 0.15);
+
+  margin-bottom: 6px;
+}
+
+
+/* ========================================
+   SUBMENU ITEM
+======================================== */
+
+.subMenuItem {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  width: 100%;
+
+  padding: 9px 12px;
+
+  margin: 4px 0;
+
+  border-radius: 7px;
+
+  color: #cbd5e1;
+
+  background: transparent;
+
+  text-decoration: none;
+
+  font-size: 14px;
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.subMenuItem:hover {
+  background: rgba(255, 255, 255, 0.08);
+
+  color: #ffffff;
+}
+
+
+/* ========================================
+   SUBMENU ICON
+======================================== */
+
+.subMenuItem svg {
+  flex-shrink: 0;
 }
 
 
@@ -104,6 +251,7 @@
   left: 14px;
 
   border: none;
+
   border-radius: 8px;
 
   background: #111827;
@@ -150,6 +298,7 @@
   right: 14px;
 
   border: none;
+
   border-radius: 7px;
 
   background: rgba(255, 255, 255, 0.08);
@@ -265,7 +414,6 @@
       visibility 0.25s ease;
   }
 
-
   .overlayOpen {
     opacity: 1;
 
@@ -284,6 +432,10 @@
   }
 
 
+  /* ----------------------------------------
+     SIDEBAR ITEM
+  ---------------------------------------- */
+
   .sidebarItem {
     padding: 12px;
 
@@ -291,8 +443,34 @@
   }
 
 
+  /* ----------------------------------------
+     SIDEBAR ICON
+  ---------------------------------------- */
+
   .sidebarIcon {
     width: 20px;
+  }
+
+
+  /* ----------------------------------------
+     SUBMENU
+  ---------------------------------------- */
+
+  .subMenu {
+    margin-left: 20px;
+
+    padding-left: 14px;
+  }
+
+
+  /* ----------------------------------------
+     SUBMENU ITEM
+  ---------------------------------------- */
+
+  .subMenuItem {
+    padding: 10px 12px;
+
+    font-size: 14px;
   }
 }
 
@@ -303,6 +481,10 @@
 ================================================== */
 
 @media (max-width: 600px) {
+
+  /* ----------------------------------------
+     SIDEBAR
+  ---------------------------------------- */
 
   .sidebar {
     width: 250px;
@@ -346,6 +528,10 @@
   }
 
 
+  /* ----------------------------------------
+     SIDEBAR ITEM
+  ---------------------------------------- */
+
   .sidebarItem {
     padding: 12px;
 
@@ -355,8 +541,47 @@
   }
 
 
+  /* ----------------------------------------
+     SIDEBAR ICON
+  ---------------------------------------- */
+
   .sidebarIcon {
     width: 20px;
+  }
+
+
+  /* ----------------------------------------
+     CHEVRON
+  ---------------------------------------- */
+
+  .chevron,
+  .chevronOpen {
+    width: 18px;
+    height: 18px;
+
+    color: #ffffff;
+  }
+
+
+  /* ----------------------------------------
+     SUBMENU
+  ---------------------------------------- */
+
+  .subMenu {
+    margin-left: 18px;
+
+    padding-left: 12px;
+  }
+
+
+  /* ----------------------------------------
+     SUBMENU ITEM
+  ---------------------------------------- */
+
+  .subMenuItem {
+    padding: 10px 11px;
+
+    font-size: 14px;
   }
 }
 
@@ -368,6 +593,10 @@
 
 @media (max-width: 360px) {
 
+  /* ----------------------------------------
+     SIDEBAR
+  ---------------------------------------- */
+
   .sidebar {
     width: 235px;
 
@@ -375,6 +604,10 @@
     padding-right: 9px;
   }
 
+
+  /* ----------------------------------------
+     HAMBURGER
+  ---------------------------------------- */
 
   .hamburger {
     width: 38px;
@@ -385,6 +618,10 @@
   }
 
 
+  /* ----------------------------------------
+     CLOSE
+  ---------------------------------------- */
+
   .closeButton {
     width: 32px;
     height: 32px;
@@ -394,6 +631,10 @@
   }
 
 
+  /* ----------------------------------------
+     SIDEBAR ITEM
+  ---------------------------------------- */
+
   .sidebarItem {
     padding: 11px;
 
@@ -401,7 +642,47 @@
   }
 
 
+  /* ----------------------------------------
+     SIDEBAR ICON
+  ---------------------------------------- */
+
   .sidebarIcon {
     width: 19px;
   }
+
+
+  /* ----------------------------------------
+     SUBMENU
+  ---------------------------------------- */
+
+  .subMenu {
+    margin-left: 16px;
+
+    padding-left: 11px;
+  }
+
+
+  /* ----------------------------------------
+     SUBMENU ITEM
+  ---------------------------------------- */
+
+  .subMenuItem {
+    padding: 9px 10px;
+
+    font-size: 13px;
+  }
+
+
+  /* ----------------------------------------
+     CHEVRON
+  ---------------------------------------- */
+
+  .chevron,
+  .chevronOpen {
+    width: 17px;
+    height: 17px;
+
+    color: #ffffff;
+  }
 }
+
