@@ -22,8 +22,6 @@ export async function loginUser(username, password) {
 
   const result = await response.json();
 
-  console.log("LOGIN API RESPONSE:", result);
-
   if (!response.ok) {
     throw new Error(
       result.message || "Login gagal"

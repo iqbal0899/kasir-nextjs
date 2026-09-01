@@ -20,15 +20,13 @@ export async function GET() {
     });
 
   } catch (error) {
-    console.error(
-      "GET USERS ERROR:",
-      error
-    );
+    console.error("GET USERS ERROR:", error);
 
     return Response.json(
       {
         success: false,
         message: "Gagal mengambil data user",
+        error: error.message,
       },
       { status: 500 }
     );

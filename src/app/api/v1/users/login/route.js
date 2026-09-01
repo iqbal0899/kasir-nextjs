@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
+import { formatDate } from "@/shared/utils/formatDate";
 
 export async function POST(request) {
   try {
@@ -9,9 +10,9 @@ export async function POST(request) {
 
     const { username, password } = body;
 
-    console.log("LOGIN REQUEST:", {
+    console.log("LOGIN:", {
       username,
-      passwordAda: !!password,
+      LoginAt: formatDate(new Date()),
     });
 
     if (!username || !password) {

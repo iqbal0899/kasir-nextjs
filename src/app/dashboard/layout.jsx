@@ -24,9 +24,6 @@ export default async function DashboardLayout({ children }) {
 
       user = decoded;
 
-      console.log("USER:", user);
-      console.log("ROLE:", user.role);
-
     } catch (error) {
       console.error("JWT ERROR:", error.message);
     }

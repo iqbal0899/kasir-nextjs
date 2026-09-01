@@ -41,19 +41,10 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      console.log("LOGIN FORM:", {
-        username: form.username,
-        passwordAda: !!form.password,
-      });
 
       const result = await loginUser(
         form.username,
         form.password
-      );
-
-      console.log(
-        "LOGIN BERHASIL:",
-        result
       );
 
       router.push("/");

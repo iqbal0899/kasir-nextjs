@@ -25,11 +25,6 @@ export default function DashboardPage() {
 
         const productResult = await productResponse.json();
 
-        console.log(
-          "DASHBOARD PRODUCT API:",
-          productResult
-        );
-
         if (!productResponse.ok) {
           throw new Error(
             productResult.message ||
@@ -42,11 +37,6 @@ export default function DashboardPage() {
         );
 
         const transactionResult = await transactionResponse.json();
-
-        console.log(
-          "DASHBOARD TRANSACTION API:",
-          transactionResult
-        );
 
         if (!transactionResponse.ok) {
           throw new Error(

@@ -247,6 +247,20 @@ export async function DELETE(
         transactionId
       );
 
+      console.log(
+        "DELETE TRANSACTION:",
+        transaction,
+      );
+
+      console.log(
+        "USER YANG MENGHAPUS:",
+        {
+          id: user.id,
+          username: user.username,
+          role: user.role,
+        }
+      );
+
     // ========================================
     // RESPONSE
     // ========================================

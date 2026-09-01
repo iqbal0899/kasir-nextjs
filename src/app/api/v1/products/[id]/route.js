@@ -5,6 +5,9 @@ import {
   deleteProduct,
 } from "@/backend/actions/product.action";
 
+import { cookies } from "next/headers";
+import jwt from "jsonwebtoken";
+
 import fs from "fs/promises";
 import path from "path";
 
@@ -93,6 +96,25 @@ export async function PUT(
   { params }
 ) {
   try {
+     const cookieStore = await cookies();
+    const token = cookieStore.get("token")?.value;
+
+    if (!token) {
+      return Response.json(
+        {
+          success: false,
+          message: "Unauthorized",
+        },
+        { status: 401 }
+      );
+    }
+
+    const user = jwt.verify(
+      token,
+      process.env.JWT_SECRET
+    );
+
+
     const { id } = await params;
 
     const productId = Number(id);
@@ -396,6 +418,16 @@ export async function PUT(
         }
       );
 
+      console.log(
+        "PRODUK YANG DIPERBARUI:",
+        product,
+      );
+
+      console.log("USER YANG MEMPERBARUI:", {
+        username: data.username,
+        role: data.role,
+      });
+
 
     // ========================================
     // HAPUS GAMBAR LAMA
@@ -475,6 +507,27 @@ export async function DELETE(
   { params }
 ) {
   try {
+    const cookieStore = await cookies();
+
+    const token =
+      cookieStore.get("token")?.value;
+
+    if (!token) {
+      return Response.json(
+        {
+          success: false,
+          message: "Unauthorized",
+        },
+        {
+          status: 401,
+        }
+      );
+    }
+
+    const user = jwt.verify(
+      token,
+      process.env.JWT_SECRET
+    );
     const { id } = await params;
 
     const productId =
@@ -505,6 +558,11 @@ export async function DELETE(
         productId
       );
 
+      console.log(
+        "PRODUK YANG DIHAPUS:",
+        product,
+      );
+
 
     if (!product) {
       return Response.json(
@@ -518,6 +576,15 @@ export async function DELETE(
         }
       );
     }
+
+    console.log(
+  "USER YANG MENGHAPUS:",
+  {
+    id: user.id,
+    username: user.username,
+    role: user.role,
+  }
+);
 
 
     // ========================================

@@ -3,6 +3,9 @@ import {
   createProduct,
 } from "@/backend/service/product.service";
 
+import { cookies } from "next/headers";
+import jwt from "jsonwebtoken";
+
 import fs from "fs/promises";
 import path from "path";
 
@@ -25,6 +28,7 @@ export async function GET() {
       {
         success: false,
         message: "Gagal mengambil data produk",
+        error: error.message,
       },
       {
         status: 500,
@@ -39,6 +43,32 @@ export async function GET() {
 
 export async function POST(request) {
   try {
+     const cookieStore = await cookies();
+    const token = cookieStore.get("token")?.value;
+
+    if (!token) {
+      return Response.json(
+        {
+          success: false,
+          message: "Unauthorized",
+        },
+        {
+          status: 401,
+        }
+      );
+    }
+
+    const user = jwt.verify(
+      token,
+      process.env.JWT_SECRET
+    );
+
+    console.log("USER YANG MEMBUAT:", {
+      id: user.id,
+      username: user.username,
+      role: user.role,
+    });
+
     const formData = await request.formData();
 
     const name = formData.get("name");
@@ -214,6 +244,11 @@ export async function POST(request) {
       image: imagePath,
     });
 
+    console.log(
+      "PRODUK YANG DIBUAT:",
+      product,
+    );
+
     return Response.json(
       {
         success: true,
@@ -230,6 +265,8 @@ export async function POST(request) {
       "CREATE PRODUCT ERROR:",
       error
     );
+
+    
 
     return Response.json(
       {

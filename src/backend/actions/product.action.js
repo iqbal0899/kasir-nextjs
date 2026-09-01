@@ -1,13 +1,16 @@
-import { prisma } from "@/lib/prisma";
-import fs from "fs/promises";
-import path from "path";
+  import { prisma } from "@/lib/prisma";
+  import fs from "fs/promises";
+  import path from "path";
 
-// ========================================
-// GET ALL PRODUCTS
-// ========================================
+  // ========================================
+  // GET ALL PRODUCTS
+  // ========================================
 
-export async function getProducts() {
+  export async function getProducts() {
   return await prisma.product.findMany({
+    where: {
+      isActive: true,
+    },
     orderBy: {
       id: "asc",
     },
@@ -15,147 +18,148 @@ export async function getProducts() {
 }
 
 
-// ========================================
-// CREATE PRODUCT
-// ========================================
-
-export async function createProduct({
-  name,
-  price,
-  stock,
-  category,
-  image,
-}) {
-  let imagePath = null;
-
   // ========================================
-  // UPLOAD IMAGE
+  // CREATE PRODUCT
   // ========================================
 
-  if (
-    image &&
-    typeof image !== "string" &&
-    image.size > 0
-  ) {
-    const allowedTypes = [
-      "image/jpeg",
-      "image/png",
-      "image/webp",
-    ];
+  export async function createProduct({
+    name,
+    price,
+    stock,
+    category,
+    image,
+  }) {
+    let imagePath = null;
 
-    if (!allowedTypes.includes(image.type)) {
-      throw new Error(
-        "Format gambar harus JPG, PNG, atau WEBP"
-      );
-    }
+    // ========================================
+    // UPLOAD IMAGE
+    // ========================================
 
-    if (image.size > 2 * 1024 * 1024) {
-      throw new Error(
-        "Ukuran gambar maksimal 2 MB"
-      );
-    }
+    if (
+      image &&
+      typeof image !== "string" &&
+      image.size > 0
+    ) {
+      const allowedTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+      ];
 
-    const bytes =
-      await image.arrayBuffer();
-
-    const buffer =
-      Buffer.from(bytes);
-
-    const extension =
-      image.name
-        .split(".")
-        .pop()
-        .toLowerCase();
-
-    const fileName =
-      `${Date.now()}-${Math.random()
-        .toString(36)
-        .substring(2)}.${extension}`;
-
-    const uploadDir =
-      path.join(
-        process.cwd(),
-        "public",
-        "products"
-      );
-
-    await fs.mkdir(
-      uploadDir,
-      {
-        recursive: true,
+      if (!allowedTypes.includes(image.type)) {
+        throw new Error(
+          "Format gambar harus JPG, PNG, atau WEBP"
+        );
       }
-    );
 
-    const filePath =
-      path.join(
+      if (image.size > 2 * 1024 * 1024) {
+        throw new Error(
+          "Ukuran gambar maksimal 2 MB"
+        );
+      }
+
+      const bytes =
+        await image.arrayBuffer();
+
+      const buffer =
+        Buffer.from(bytes);
+
+      const extension =
+        image.name
+          .split(".")
+          .pop()
+          .toLowerCase();
+
+      const fileName =
+        `${Date.now()}-${Math.random()
+          .toString(36)
+          .substring(2)}.${extension}`;
+
+      const uploadDir =
+        path.join(
+          process.cwd(),
+          "public",
+          "products"
+        );
+
+      await fs.mkdir(
         uploadDir,
-        fileName
+        {
+          recursive: true,
+        }
       );
 
-    await fs.writeFile(
-      filePath,
-      buffer
-    );
+      const filePath =
+        path.join(
+          uploadDir,
+          fileName
+        );
 
-    imagePath =
-      `/products/${fileName}`;
+      await fs.writeFile(
+        filePath,
+        buffer
+      );
+
+      imagePath =
+        `/products/${fileName}`;
+    }
+
+    // ========================================
+    // DATABASE
+    // ========================================
+
+    return await prisma.product.create({
+      data: {
+        name: name.trim(),
+
+        price,
+
+        stock,
+
+        category:
+          category?.trim() || null,
+
+        image: imagePath,
+      },
+    });
   }
 
-  // ========================================
-  // DATABASE
-  // ========================================
+  export async function getProductById(id) {
+    return await prisma.product.findUnique({
+      where: {
+        id: Number(id),
+      },
+    });
+  }
 
-  return await prisma.product.create({
-    data: {
-      name: name.trim(),
+  export async function updateProduct(
+    id,
+    data
+  ) {
+    return await prisma.product.update({
+      where: {
+        id: Number(id),
+      },
 
-      price,
+      data: {
+        name: data.name,
+        price: Number(data.price),
+        stock: Number(data.stock || 0),
+        category:
+          data.category || null,
+        image:
+          data.image ?? undefined,
+      },
+    });
+  }
 
-      stock,
-
-      category:
-        category?.trim() || null,
-
-      image: imagePath,
-    },
-  });
-}
-
-export async function getProductById(id) {
-  return await prisma.product.findUnique({
-    where: {
-      id: Number(id),
-    },
-  });
-}
-
-export async function updateProduct(
-  id,
-  data
-) {
+  export async function deleteProduct(id) {
   return await prisma.product.update({
     where: {
       id: Number(id),
     },
-
     data: {
-      name: data.name,
-      price: Number(data.price),
-      stock: Number(data.stock || 0),
-      category:
-        data.category || null,
-      image:
-        data.image ?? undefined,
-    },
-  });
-}
-
-export async function deleteProduct(
-  id
-) {
-  return await prisma.product.delete({
-    where: {
-      id: Number(id),
+      isActive: false,
     },
   });
 }

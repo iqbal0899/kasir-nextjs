@@ -117,6 +117,17 @@ export async function POST(request) {
         cashierId: user.id,
       });
 
+      console.log(
+        "TRANSAKSI BERHASIL DIBUAT:",
+        {paymentMethod, cashReceived, cashierId: user.id, items}
+      );
+
+      console.log("USER YANG MEMBUAT TRANSAKSI:",{ 
+        id: user.id, 
+        username: user.username, 
+        role: user.role 
+      });
+
     // ========================================
     // RESPONSE
     // ========================================
