@@ -9,9 +9,6 @@ import jwt from "jsonwebtoken";
 import fs from "fs/promises";
 import path from "path";
 
-// ========================================
-// GET PRODUCTS
-// ========================================
 
 export async function GET() {
   try {
@@ -36,10 +33,6 @@ export async function GET() {
     );
   }
 }
-
-// ========================================
-// CREATE PRODUCT
-// ========================================
 
 export async function POST(request) {
   try {
@@ -77,9 +70,6 @@ export async function POST(request) {
     const category = formData.get("category");
     const image = formData.get("image");
 
-    // ========================================
-    // VALIDASI NAMA
-    // ========================================
 
     if (!name || !name.trim()) {
       return Response.json(
@@ -230,10 +220,6 @@ export async function POST(request) {
       imagePath =
         `/products/${fileName}`;
     }
-
-    // ========================================
-    // CREATE DATABASE
-    // ========================================
 
     const product = await createProduct({
       name: name.trim(),

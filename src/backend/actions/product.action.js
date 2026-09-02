@@ -2,10 +2,6 @@
   import fs from "fs/promises";
   import path from "path";
 
-  // ========================================
-  // GET ALL PRODUCTS
-  // ========================================
-
   export async function getProducts() {
   return await prisma.product.findMany({
     where: {
@@ -18,10 +14,6 @@
 }
 
 
-  // ========================================
-  // CREATE PRODUCT
-  // ========================================
-
   export async function createProduct({
     name,
     price,
@@ -30,10 +22,6 @@
     image,
   }) {
     let imagePath = null;
-
-    // ========================================
-    // UPLOAD IMAGE
-    // ========================================
 
     if (
       image &&
@@ -103,10 +91,6 @@
       imagePath =
         `/products/${fileName}`;
     }
-
-    // ========================================
-    // DATABASE
-    // ========================================
 
     return await prisma.product.create({
       data: {

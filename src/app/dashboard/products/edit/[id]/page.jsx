@@ -27,10 +27,6 @@ export default function EditProductPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  // ========================================
-  // GET PRODUCT
-  // ========================================
-
   useEffect(() => {
     const fetchProduct = async () => {
       try {
@@ -87,10 +83,6 @@ export default function EditProductPage() {
     }
   }, [id]);
 
-  // ========================================
-  // HANDLE INPUT
-  // ========================================
-
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -99,10 +91,6 @@ export default function EditProductPage() {
       [name]: value,
     }));
   };
-
-  // ========================================
-  // HANDLE IMAGE
-  // ========================================
 
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
@@ -163,9 +151,6 @@ export default function EditProductPage() {
     setPreview(imageUrl);
   };
 
-  // ========================================
-  // SUBMIT
-  // ========================================
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -285,10 +270,6 @@ export default function EditProductPage() {
     }
   };
 
-  // ========================================
-  // LOADING
-  // ========================================
-
   if (loading) {
     return (
       <main className={styles.container}>
@@ -298,10 +279,6 @@ export default function EditProductPage() {
       </main>
     );
   }
-
-  // ========================================
-  // ERROR GET PRODUCT
-  // ========================================
 
   if (error && !form.name) {
     return (
@@ -326,10 +303,6 @@ export default function EditProductPage() {
       </main>
     );
   }
-
-  // ========================================
-  // FORM
-  // ========================================
 
   return (
     <main className={styles.container}>

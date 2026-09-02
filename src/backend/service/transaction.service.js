@@ -1,9 +1,5 @@
 import { prisma } from "@/lib/prisma";
 
-// ========================================
-// CREATE TRANSACTION
-// ========================================
-
 export async function createTransaction({
   items,
   paymentMethod,
@@ -37,15 +33,8 @@ export async function createTransaction({
     );
   }
 
-  // ========================================
-  // DATABASE TRANSACTION
-  // ========================================
-
   return await prisma.$transaction(
     async (tx) => {
-      // ========================================
-      // SIAPKAN ITEM TRANSAKSI
-      // ========================================
 
       const transactionItems = items.map(
         (item) => {
@@ -61,10 +50,6 @@ export async function createTransaction({
             item.price
           );
 
-          // -------------------------------
-          // VALIDASI PRODUCT ID
-          // -------------------------------
-
           if (
             !productId ||
             Number.isNaN(productId)
@@ -73,10 +58,6 @@ export async function createTransaction({
               "Product ID tidak ditemukan dalam item transaksi"
             );
           }
-
-          // -------------------------------
-          // VALIDASI QUANTITY
-          // -------------------------------
 
           if (
             !quantity ||
@@ -88,10 +69,6 @@ export async function createTransaction({
             );
           }
 
-          // -------------------------------
-          // VALIDASI PRICE
-          // -------------------------------
-
           if (
             !price ||
             price <= 0 ||
@@ -102,9 +79,6 @@ export async function createTransaction({
             );
           }
 
-          // -------------------------------
-          // HITUNG SUBTOTAL
-          // -------------------------------
 
           const subtotal =
             quantity * price;
@@ -119,9 +93,6 @@ export async function createTransaction({
 
       );
 
-      // ========================================
-      // HITUNG TOTAL
-      // ========================================
 
       const total =
         transactionItems.reduce(
@@ -130,9 +101,6 @@ export async function createTransaction({
           0
         );
 
-      // ========================================
-      // CEK PRODUK & STOCK
-      // ========================================
 
       for (
         const item of transactionItems
@@ -160,10 +128,6 @@ export async function createTransaction({
         }
       }
 
-      // ========================================
-      // PEMBAYARAN
-      // ========================================
-
       const received =
         Number(cashReceived) || 0;
 
@@ -176,20 +140,11 @@ export async function createTransaction({
         );
       }
 
-      // ========================================
-      // KEMBALIAN
-      // ========================================
-
       const change =
         paymentMethod === "cash"
           ? received - total
           : 0;
 
-      
-
-      // ========================================
-      // SIMPAN TRANSAKSI
-      // ========================================
 
       const transaction =
         await tx.transaction.create({
@@ -208,18 +163,12 @@ export async function createTransaction({
             cashierId:
               Number(cashierId),
 
-            // ==================================
-            // SIMPAN ITEM TRANSAKSI
-            // ==================================
 
             items: {
               create: transactionItems,
             },
           },
 
-          // ==================================
-          // DATA RESPONSE
-          // ==================================
 
           include: {
             cashier: {
@@ -237,9 +186,6 @@ export async function createTransaction({
           },
         });
 
-      // ========================================
-      // KURANGI STOCK
-      // ========================================
 
       for (
         const item of transactionItems
@@ -258,9 +204,6 @@ export async function createTransaction({
         });
       }
 
-      // ========================================
-      // RETURN TRANSAKSI
-      // ========================================
 
       return transaction;
     },
@@ -268,10 +211,6 @@ export async function createTransaction({
   );
 }
 
-
-// ========================================
-// GET ALL TRANSACTIONS
-// ========================================
 
 export async function getTransactions() {
   return await prisma.transaction.findMany({
@@ -296,10 +235,6 @@ export async function getTransactions() {
   });
 }
 
-
-// ========================================
-// GET TRANSACTION BY ID
-// ========================================
 
 export async function getTransactionById(
   id
@@ -336,10 +271,6 @@ export async function getTransactionById(
 }
 
 
-// ========================================
-// DELETE TRANSACTION
-// ========================================
-
 export async function deleteTransaction(id) {
   const transactionId = Number(id);
 
@@ -372,7 +303,7 @@ export async function deleteTransaction(id) {
   return await prisma.$transaction(
     async (tx) => {
 
-      // Kembalikan stock
+
       for (
         const item of transaction.items
       ) {
@@ -389,14 +320,14 @@ export async function deleteTransaction(id) {
         });
       }
 
-      // Hapus item
+
       await tx.transactionItem.deleteMany({
         where: {
           transactionId,
         },
       });
 
-      // Hapus transaksi
+
       return await tx.transaction.delete({
         where: {
           id: transactionId,

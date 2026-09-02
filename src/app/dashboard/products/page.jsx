@@ -60,10 +60,6 @@ export default function ProductPage() {
     fetchProducts();
   }, []);
 
-  // =========================
-  // FORMAT PRICE
-  // =========================
-
   const formatPrice = (price) => {
     return Number(price).toLocaleString(
       "id-ID"
@@ -103,7 +99,6 @@ export default function ProductPage() {
       );
     }
 
-    // Hapus langsung dari state
     setProducts((prev) =>
       prev.filter(
         (product) =>

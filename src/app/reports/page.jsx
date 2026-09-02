@@ -26,10 +26,6 @@ export default function ReportsPage() {
   const [transactionError, setTransactionError] =
     useState("");
 
-  // ========================================
-  // GET PRODUCTS
-  // ========================================
-
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -72,9 +68,6 @@ export default function ReportsPage() {
     fetchProducts();
   }, []);
 
-  // ========================================
-  // GET TRANSACTIONS
-  // ========================================
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -125,9 +118,6 @@ export default function ReportsPage() {
     fetchTransactions();
   }, []);
 
-  // ========================================
-  // GET USER LOGIN
-  // ========================================
 
   useEffect(() => {
     const storedUser =
@@ -157,9 +147,6 @@ export default function ReportsPage() {
     }
   }, []);
 
-  // ========================================
-  // FORMAT PRICE
-  // ========================================
 
   const formatPrice = (price) => {
     return Number(
@@ -167,9 +154,6 @@ export default function ReportsPage() {
     ).toLocaleString("id-ID");
   };
 
-  // ========================================
-  // PRODUCT STATISTICS
-  // ========================================
 
   const totalProducts =
     products.length;
@@ -192,9 +176,6 @@ export default function ReportsPage() {
         ) <= 5
     ).length;
 
-  // ========================================
-  // TRANSACTION STATISTICS
-  // ========================================
 
   const totalTransactions =
     transactions.length;
@@ -209,9 +190,6 @@ export default function ReportsPage() {
       0
     );
 
-  // ========================================
-  // PRINT PDF
-  // ========================================
 
   const handlePrint = (type) => {
     const url =
@@ -224,9 +202,6 @@ export default function ReportsPage() {
     );
   };
 
-  // ========================================
-  // LOGOUT
-  // ========================================
 
   const handleLogout = () => {
     localStorage.removeItem(
@@ -244,9 +219,6 @@ export default function ReportsPage() {
   return (
     <div className="app-shell">
 
-      {/* ========================================
-          SIDEBAR
-      ======================================== */}
 
       <div className={styles.noPrint}>
         <Sidebar
@@ -257,15 +229,10 @@ export default function ReportsPage() {
         />
       </div>
 
-      {/* ========================================
-          MAIN
-      ======================================== */}
 
       <div className="app-main">
 
-        {/* ========================================
-            NAVBAR
-        ======================================== */}
+
 
         <div className={styles.noPrint}>
           <Navbar
@@ -284,9 +251,6 @@ export default function ReportsPage() {
           />
         </div>
 
-        {/* ========================================
-            REPORT CONTENT
-        ======================================== */}
 
         <main
           className={
@@ -294,9 +258,6 @@ export default function ReportsPage() {
           }
         >
 
-          {/* ========================================
-              PAGE HEADER
-          ======================================== */}
 
           <div
             className={
@@ -335,9 +296,7 @@ export default function ReportsPage() {
 </button>
           </div>
 
-          {/* ========================================
-              PRODUCT REPORT
-          ======================================== */}
+
 
           <section
             className={
@@ -374,10 +333,6 @@ export default function ReportsPage() {
   🖨️ Print Produk
 </button>
             </div>
-
-            {/* ========================================
-                PRODUCT CARDS
-            ======================================== */}
 
             <div
               className={
@@ -435,9 +390,6 @@ export default function ReportsPage() {
 
             </div>
 
-            {/* ========================================
-                PRODUCT ERROR
-            ======================================== */}
 
             {productError && (
               <div
@@ -449,9 +401,6 @@ export default function ReportsPage() {
               </div>
             )}
 
-            {/* ========================================
-                PRODUCT TABLE
-            ======================================== */}
 
             {!loadingProducts &&
               !productError && (
@@ -578,9 +527,6 @@ export default function ReportsPage() {
 
           </section>
 
-          {/* ========================================
-              TRANSACTION REPORT
-          ======================================== */}
 
           <section
             className={
@@ -604,6 +550,7 @@ export default function ReportsPage() {
                   Ringkasan transaksi penjualan
                 </p>
               </div>
+              </div>
 
               {/* PRINT TRANSACTION */}
 
@@ -616,11 +563,6 @@ export default function ReportsPage() {
 >
   🖨️ Print Produk
 </button>
-            </div>
-
-            {/* ========================================
-                TRANSACTION CARDS
-            ======================================== */}
 
             <div
               className={
@@ -665,10 +607,6 @@ export default function ReportsPage() {
 
             </div>
 
-            {/* ========================================
-                TRANSACTION ERROR
-            ======================================== */}
-
             {transactionError && (
               <div
                 className={
@@ -678,10 +616,6 @@ export default function ReportsPage() {
                 {transactionError}
               </div>
             )}
-
-            {/* ========================================
-                TRANSACTION TABLE
-            ======================================== */}
 
             {!loadingTransactions &&
               !transactionError && (

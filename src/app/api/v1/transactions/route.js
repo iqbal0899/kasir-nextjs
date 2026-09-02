@@ -7,10 +7,6 @@ import {
 } from "@/backend/service/transaction.service";
 
 
-// ========================================
-// GET TRANSACTIONS
-// ========================================
-
 export async function GET() {
   try {
     const transactions =
@@ -41,16 +37,8 @@ export async function GET() {
   }
 }
 
-
-// ========================================
-// POST TRANSACTION
-// ========================================
-
 export async function POST(request) {
   try {
-    // ========================================
-    // CEK TOKEN
-    // ========================================
 
     const token =
       request.cookies.get("token")?.value;
@@ -67,10 +55,6 @@ export async function POST(request) {
         }
       );
     }
-
-    // ========================================
-    // VERIFY JWT
-    // ========================================
 
     let user;
 
@@ -92,10 +76,6 @@ export async function POST(request) {
       );
     }
 
-    // ========================================
-    // BODY
-    // ========================================
-
     const body =
       await request.json();
 
@@ -104,10 +84,6 @@ export async function POST(request) {
       paymentMethod,
       cashReceived,
     } = body;
-
-    // ========================================
-    // CREATE TRANSACTION
-    // ========================================
 
     const transaction =
       await createTransaction({
@@ -127,11 +103,6 @@ export async function POST(request) {
         username: user.username, 
         role: user.role 
       });
-
-    // ========================================
-    // RESPONSE
-    // ========================================
-
     return NextResponse.json(
       {
         success: true,

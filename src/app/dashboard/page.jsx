@@ -9,10 +9,6 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // =========================
-  // AMBIL DATA PRODUCT
-  // =========================
-
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
@@ -66,15 +62,8 @@ export default function DashboardPage() {
     fetchDashboardData();
   }, []);
 
-  // =========================
-  // TOTAL PRODUCT
-  // =========================
-
   const totalProducts = products.length;
 
-  // =========================
-  // TOTAL STOCK
-  // =========================
 
   const totalStock = products.reduce(
     (total, product) =>
@@ -88,10 +77,6 @@ export default function DashboardPage() {
   transactions.reduce( (total, transaction) => 
     total + Number(transaction.total || 0), 0 );
 
-  // =========================
-  // FORMAT HARGA
-  // =========================
-
   const formatPrice = (price) => {
     return Number(price || 0).toLocaleString(
       "id-ID"
@@ -100,10 +85,6 @@ export default function DashboardPage() {
 
   return (
     <main className={styles.container}>
-
-      {/* =========================
-          HEADER
-      ========================= */}
 
       <div className={styles.header}>
         <div>
@@ -117,9 +98,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* =========================
-          LOADING
-      ========================= */}
 
       {loading && (
         <div className={styles.message}>
@@ -127,19 +105,12 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* =========================
-          ERROR
-      ========================= */}
-
       {!loading && error && (
         <div className={styles.error}>
           {error}
         </div>
       )}
 
-      {/* =========================
-          CARDS
-      ========================= */}
 
       {!loading && !error && (
         <div className={styles.cards}>
@@ -188,10 +159,6 @@ export default function DashboardPage() {
 
         </div>
       )}
-
-      {/* =========================
-          PRODUCT SECTION
-      ========================= */}
 
       {!loading && !error && (
         <section

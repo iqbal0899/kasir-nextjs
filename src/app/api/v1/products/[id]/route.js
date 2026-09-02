@@ -11,13 +11,6 @@ import jwt from "jsonwebtoken";
 import fs from "fs/promises";
 import path from "path";
 
-/**
- * ========================================
- * GET PRODUCT
- * ========================================
- *
- * GET /api/v1/products/:id
- */
 export async function GET(
   request,
   { params }
@@ -84,13 +77,6 @@ export async function GET(
 }
 
 
-/**
- * ========================================
- * UPDATE PRODUCT
- * ========================================
- *
- * PUT /api/v1/products/:id
- */
 export async function PUT(
   request,
   { params }
@@ -331,11 +317,6 @@ export async function PUT(
         );
       }
 
-
-      // ========================================
-      // UPLOAD
-      // ========================================
-
       const bytes =
         await image.arrayBuffer();
 
@@ -390,11 +371,6 @@ export async function PUT(
       newImageUploaded =
         true;
     }
-
-
-    // ========================================
-    // UPDATE DATABASE
-    // ========================================
 
     const product =
       await updateProduct(
@@ -458,10 +434,6 @@ export async function PUT(
     }
 
 
-    // ========================================
-    // RESPONSE
-    // ========================================
-
     return Response.json(
       {
         success: true,
@@ -494,14 +466,6 @@ export async function PUT(
   }
 }
 
-
-/**
- * ========================================
- * DELETE PRODUCT
- * ========================================
- *
- * DELETE /api/v1/products/:id
- */
 export async function DELETE(
   request,
   { params }
@@ -548,11 +512,6 @@ export async function DELETE(
       );
     }
 
-
-    // ========================================
-    // GET PRODUCT
-    // ========================================
-
     const product =
       await getProductById(
         productId
@@ -586,19 +545,11 @@ export async function DELETE(
   }
 );
 
-
-    // ========================================
-    // DELETE DATABASE
-    // ========================================
-
     await deleteProduct(
       productId
     );
 
 
-    // ========================================
-    // DELETE IMAGE
-    // ========================================
 
     if (product.image) {
       try {

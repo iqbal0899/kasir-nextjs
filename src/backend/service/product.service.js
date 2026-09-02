@@ -1,9 +1,5 @@
 import { prisma } from "@/lib/prisma";
 
-// ========================================
-// GET ALL PRODUCTS
-// ========================================
-
 export async function getProducts() {
   return await prisma.product.findMany({
     where: {
@@ -15,9 +11,6 @@ export async function getProducts() {
   });
 }
 
-// ========================================
-// GET PRODUCT BY ID
-// ========================================
 
 export async function getProductById(id) {
   return await prisma.product.findUnique({
@@ -27,9 +20,6 @@ export async function getProductById(id) {
   });
 }
 
-// ========================================
-// CREATE PRODUCT
-// ========================================
 
 export async function createProduct(data) {
   return await prisma.product.create({
@@ -43,9 +33,6 @@ export async function createProduct(data) {
   });
 }
 
-// ========================================
-// UPDATE PRODUCT
-// ========================================
 
 export async function updateProduct(id, data) {
   return await prisma.product.update({
@@ -56,9 +43,6 @@ export async function updateProduct(id, data) {
   });
 }
 
-// ========================================
-// DELETE PRODUCT
-// ========================================
 
 export async function deleteProduct(id) {
   return await prisma.product.delete({

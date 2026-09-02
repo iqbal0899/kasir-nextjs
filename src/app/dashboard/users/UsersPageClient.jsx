@@ -319,9 +319,6 @@ const handleDelete = async (id) => {
         </form>
       </div>
 
-      {/* =========================
-          DAFTAR USER
-      ========================= */}
       <div className={styles.userTableCard}>
         <div className={styles.tableHeader}>
           <div>

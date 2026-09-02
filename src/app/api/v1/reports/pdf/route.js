@@ -24,9 +24,6 @@ import { getTransactions } from "@/backend/service/transaction.service";
 
 export async function GET(request) {
   try {
-    // =====================================================
-    // CEK TOKEN
-    // =====================================================
 
     const token = request.cookies.get("token")?.value;
 
@@ -41,10 +38,6 @@ export async function GET(request) {
         }
       );
     }
-
-    // =====================================================
-    // VERIFY JWT
-    // =====================================================
 
     let user;
 
@@ -65,17 +58,9 @@ export async function GET(request) {
       );
     }
 
-    // =====================================================
-    // AMBIL TYPE REPORT
-    // =====================================================
-
     const { searchParams } = new URL(request.url);
 
     const type = searchParams.get("type");
-
-    // =====================================================
-    // VALIDASI TYPE
-    // =====================================================
 
     const allowedTypes = [
       "product",
@@ -96,16 +81,10 @@ export async function GET(request) {
       );
     }
 
-    // =====================================================
-    // USERNAME
-    // =====================================================
 
     const userName =
       user?.username || "User";
 
-    // =====================================================
-    // GENERATE PRODUCT REPORT
-    // =====================================================
 
     if (type === "product") {
       const products = await getProducts();
@@ -127,10 +106,6 @@ export async function GET(request) {
         },
       });
     }
-
-    // =====================================================
-    // GENERATE TRANSACTION REPORT
-    // =====================================================
 
     if (type === "transaction") {
       const transactions =
@@ -155,9 +130,6 @@ export async function GET(request) {
       });
     }
 
-    // =====================================================
-    // GENERATE ALL REPORT
-    // =====================================================
 
     if (type === "all") {
       const [

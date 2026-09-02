@@ -6,18 +6,11 @@ import {
   getTransactionById,
 } from "@/backend/service/transaction.service";
 
-// ========================================
-// GET TRANSACTION DETAIL
-// ========================================
-
 export async function GET(
   request,
   { params }
 ) {
   try {
-    // ========================================
-    // CEK TOKEN
-    // ========================================
 
     const token =
       request.cookies.get("token")?.value;
@@ -33,10 +26,6 @@ export async function GET(
         }
       );
     }
-
-    // ========================================
-    // VERIFY JWT
-    // ========================================
 
     try {
       jwt.verify(
@@ -55,17 +44,9 @@ export async function GET(
       );
     }
 
-    // ========================================
-    // AMBIL ID
-    // ========================================
-
     const { id } = await params;
 
     const transactionId = Number(id);
-
-    // ========================================
-    // VALIDASI ID
-    // ========================================
 
     if (
       !Number.isInteger(transactionId) ||
@@ -82,18 +63,10 @@ export async function GET(
       );
     }
 
-    // ========================================
-    // GET TRANSACTION
-    // ========================================
-
     const transaction =
       await getTransactionById(
         transactionId
       );
-
-    // ========================================
-    // TRANSAKSI TIDAK DITEMUKAN
-    // ========================================
 
     if (!transaction) {
       return NextResponse.json(
@@ -106,10 +79,6 @@ export async function GET(
         }
       );
     }
-
-    // ========================================
-    // RESPONSE
-    // ========================================
 
     return NextResponse.json(
       {
@@ -143,18 +112,12 @@ export async function GET(
   }
 }
 
-// ========================================
-// DELETE TRANSACTION
-// ========================================
 
 export async function DELETE(
   request,
   { params }
 ) {
   try {
-    // ========================================
-    // CEK TOKEN
-    // ========================================
 
     const token =
       request.cookies.get("token")?.value;
@@ -170,10 +133,6 @@ export async function DELETE(
         }
       );
     }
-
-    // ========================================
-    // VERIFY JWT
-    // ========================================
 
     let user;
 
@@ -194,10 +153,6 @@ export async function DELETE(
       );
     }
 
-    // ========================================
-    // CEK ROLE ADMIN
-    // ========================================
-
     if (user.role !== "admin") {
       return NextResponse.json(
         {
@@ -211,17 +166,11 @@ export async function DELETE(
       );
     }
 
-    // ========================================
-    // AMBIL ID
-    // ========================================
 
     const { id } = await params;
 
     const transactionId = Number(id);
 
-    // ========================================
-    // VALIDASI ID
-    // ========================================
 
     if (
       !Number.isInteger(transactionId) ||
@@ -238,9 +187,6 @@ export async function DELETE(
       );
     }
 
-    // ========================================
-    // DELETE TRANSACTION
-    // ========================================
 
     const transaction =
       await deleteTransaction(
@@ -261,9 +207,6 @@ export async function DELETE(
         }
       );
 
-    // ========================================
-    // RESPONSE
-    // ========================================
 
     return NextResponse.json(
       {

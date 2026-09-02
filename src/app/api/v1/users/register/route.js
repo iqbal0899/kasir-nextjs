@@ -71,15 +71,7 @@ export async function POST(request) {
       );
     }
 
-    // =========================
-    // HASH PASSWORD
-    // =========================
-
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    // =========================
-    // CREATE USER
-    // =========================
 
     const user = await prisma.user.create({
       data: {

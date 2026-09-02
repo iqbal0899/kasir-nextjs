@@ -69,29 +69,16 @@ export default function TransactionPage() {
   };
 
 
-  // ========================================
-  // LOAD DATA
-  // ========================================
-
   useEffect(() => {
     fetchTransactions();
   }, []);
 
-
-  // ========================================
-  // FORMAT RUPIAH
-  // ========================================
 
   const formatCurrency = (value) => {
     return Number(
       value || 0
     ).toLocaleString("id-ID");
   };
-
-
-  // ========================================
-  // FORMAT DATE
-  // ========================================
 
   const formatDate = (value) => {
     if (!value) {
@@ -105,11 +92,6 @@ export default function TransactionPage() {
       timeStyle: "short",
     });
   };
-
-
-  // ========================================
-  // SEARCH
-  // ========================================
 
   const filteredTransactions =
     transactions.filter(
@@ -148,11 +130,6 @@ export default function TransactionPage() {
         );
       }
     );
-
-
-  // ========================================
-  // DELETE
-  // ========================================
 
   const handleDelete = async (id) => {
 
@@ -242,10 +219,6 @@ export default function TransactionPage() {
   };
 
 
-  // ========================================
-  // SUMMARY
-  // ========================================
-
   const totalTransaction =
     transactions.length;
 
@@ -261,10 +234,6 @@ export default function TransactionPage() {
     );
 
 
-  // ========================================
-  // LOADING
-  // ========================================
-
   if (loading) {
     return (
       <main className={styles.container}>
@@ -276,11 +245,6 @@ export default function TransactionPage() {
       </main>
     );
   }
-
-
-  // ========================================
-  // PAGE
-  // ========================================
 
   return (
     <main className={styles.container}>

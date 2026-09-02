@@ -15,9 +15,6 @@ export default function TransactionDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // ========================================
-  // AMBIL TRANSAKSI BERDASARKAN ID
-  // ========================================
 
   useEffect(() => {
     if (!params?.id) return;
@@ -35,8 +32,6 @@ export default function TransactionDetailPage() {
           }
         );
 
-        // Jangan langsung response.json()
-        // supaya tidak error Unexpected end of JSON input
         const text = await response.text();
 
         let result;
@@ -65,9 +60,6 @@ export default function TransactionDetailPage() {
 
         const data = result.data;
 
-        // ========================================
-        // FORMAT DATA UNTUK RECEIPT MODAL
-        // ========================================
 
         setTransaction({
           id: data.id,
@@ -138,9 +130,6 @@ export default function TransactionDetailPage() {
     fetchTransaction();
   }, [params?.id]);
 
-  // ========================================
-  // LOADING
-  // ========================================
 
   if (loading) {
     return (
@@ -152,9 +141,6 @@ export default function TransactionDetailPage() {
     );
   }
 
-  // ========================================
-  // ERROR
-  // ========================================
 
   if (error) {
     return (
@@ -179,10 +165,6 @@ export default function TransactionDetailPage() {
       </div>
     );
   }
-
-  // ========================================
-  // RECEIPT
-  // ========================================
 
   return (
     <div className={styles.container}>

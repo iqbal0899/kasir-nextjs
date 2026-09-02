@@ -22,10 +22,6 @@ export default function POSPage() {
     0
   );
 
-  // =========================
-  // CHECKOUT
-  // =========================
-
   const handleCheckout = () => {
     if (cart.length === 0) {
       Swal.fire({
@@ -40,10 +36,6 @@ export default function POSPage() {
     setPaymentModalOpen(true);
   };
 
-  // =========================
-  // PAYMENT
-  // =========================
-
   const handlePayment = async ({
     method,
     cashReceived,
@@ -57,20 +49,12 @@ export default function POSPage() {
         );
       }
 
-      // =========================
-      // ITEMS
-      // =========================
-
       const items = cart.map((item) => ({
         productId: Number(item.id),
         quantity: Number(item.qty),
       }));
 
       console.log("TRANSACTION ITEMS:", items);
-
-      // =========================
-      // POST TRANSACTION
-      // =========================
 
       const response = await fetch(
         "/api/v1/transactions",
@@ -110,10 +94,6 @@ export default function POSPage() {
         );
       }
 
-      // =========================
-      // BERHASIL
-      // =========================
-
       await Swal.fire({
         title: "Pembayaran Berhasil!",
         text:
@@ -122,27 +102,10 @@ export default function POSPage() {
         confirmButtonText: "OK",
       });
 
-      // =========================
-      // KOSONGKAN CART
-      // =========================
 
       setCart([]);
 
-      // =========================
-      // TUTUP MODAL
-      // =========================
-
       setPaymentModalOpen(false);
-
-      // =========================
-      // REFRESH PRODUK
-      // STOCK BERKURANG
-      // =========================
-
-      // Jika Anda mempunyai fetchProducts()
-      // panggil di sini:
-      //
-      // await fetchProducts();
 
     } catch (error) {
       console.error(
@@ -169,7 +132,6 @@ export default function POSPage() {
       <section>
         <h1>Kasir</h1>
 
-        {/* ProductGrid Anda di sini */}
       </section>
 
       <CartSidebar

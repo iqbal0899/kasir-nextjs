@@ -22,10 +22,6 @@ export default function ProductsPage() {
 
   const [loading, setLoading] = useState(false);
 
-  // =========================
-  // HANDLE INPUT
-  // =========================
-
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -34,10 +30,6 @@ export default function ProductsPage() {
       [name]: value,
     }));
   };
-
-  // =========================
-  // HANDLE IMAGE
-  // =========================
 
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
@@ -92,9 +84,6 @@ export default function ProductsPage() {
     setPreview(imageUrl);
   };
 
-  // =========================
-  // SUBMIT
-  // =========================
 
   const handleSubmit = async (e) => {
   e.preventDefault();
