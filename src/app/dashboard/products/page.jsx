@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import {formatCurrency} from "@/shared/utils/formatCurrency";
 import styles from "../../../frontend/css/product.module.css";
 import Swal from "sweetalert2";
 
@@ -59,12 +60,6 @@ export default function ProductPage() {
 
     fetchProducts();
   }, []);
-
-  const formatPrice = (price) => {
-    return Number(price).toLocaleString(
-      "id-ID"
-    );
-  };
 
   const handleDelete = async (id) => {
   const result = await Swal.fire({
@@ -127,6 +122,51 @@ export default function ProductPage() {
       icon: "error",
       confirmButtonText: "OK",
     });
+  }
+};
+
+const handleToggleStatus = async (
+  id,
+  isActive
+) => {
+  try {
+    const response = await fetch(
+      `/api/v1/products/${id}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          isActive,
+        }),
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        result.message ||
+          "Gagal mengubah status produk"
+      );
+    }
+
+    setProducts((prev) =>
+      prev.map((product) =>
+        product.id === id
+          ? {
+              ...product,
+              isActive,
+            }
+          : product
+      )
+    );
+  } catch (error) {
+    console.error(
+      "TOGGLE STATUS ERROR:",
+      error
+    );
   }
 };
 
@@ -221,7 +261,29 @@ export default function ProductPage() {
                       Tidak ada gambar
                     </div>
                   )}
+                  
                 </div>
+
+                <div className={styles.productStatus}>
+  <label>
+    <input
+      type="checkbox"
+      checked={product.isActive}
+      onChange={(e) =>
+        handleToggleStatus(
+          product.id,
+          e.target.checked
+        )
+      }
+    />
+
+    <span>
+      {product.isActive
+        ? "Aktif"
+        : "Nonaktif"}
+    </span>
+  </label>
+</div>
 
                 {/* CONTENT */}
 
@@ -248,16 +310,9 @@ export default function ProductPage() {
                       "Tanpa kategori"}
                   </p>
 
-                  <p
-                    className={
-                      styles.price
-                    }
-                  >
-                    Rp{" "}
-                    {formatPrice(
-                      product.price
-                    )}
-                  </p>
+                  <p className={styles.price}>
+  {formatCurrency(product.price)}
+</p>
 
                   <p
                     className={

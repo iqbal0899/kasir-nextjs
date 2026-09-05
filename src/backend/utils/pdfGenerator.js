@@ -322,36 +322,41 @@ function drawTableHeader(doc, columns, y) {
 
 const productColumns = [
   {
-    label: "ID",
+    label: "No.",
     x: 40,
     width: 35,
   },
   {
-    label: "Produk",
+    label: "ID",
     x: 75,
-    width: 130,
+    width: 35,
+  },
+  {
+    label: "Produk",
+    x: 110,
+    width: 125,
   },
   {
     label: "Kategori",
-    x: 205,
+    x: 245,
     width: 100,
   },
   {
     label: "Harga",
-    x: 235,
+    x: 275,
     width: 90,
     align: "right",
   },
   {
     label: "Stock",
-    x: 340,
-    width: 60,
+    x: 375,
+    width: 50,
     align: "right",
   },
   {
     label: "Status",
-    x: 455,
-    width: 100,
+    x: 450,
+    width: 75,
   },
 ];
 
@@ -363,30 +368,35 @@ const productColumns = [
 
 const transactionColumns = [
   {
-    label: "ID",
+    label: "No.",
     x: 40,
+    width: 35,
+  },
+  {
+    label: "ID",
+    x: 75,
     width: 45,
   },
   {
     label: "Tanggal",
-    x: 85,
+    x: 120,
     width: 115,
   },
   {
     label: "Kasir",
-    x: 200,
+    x: 235,
     width: 100,
   },
   {
     label: "Total",
-    x: 235,
-    width: 100,
+    x: 240,
+    width: 110,
     align: "right",
   },
   {
     label: "Metode",
-    x: 400,
-    width: 90,
+    x: 450,
+    width: 105,
   },
 ];
 
@@ -396,11 +406,13 @@ const transactionColumns = [
  * =========================================================
  */
 
-function writeProductRow(doc, product, y) {
+function writeProductRow(doc, product, y, index) {
   const stock = Number(product.stock || 0);
 
   const status =
-    stock <= 5
+    stock === 0
+      ? "Habis"
+      : stock < 30
       ? "Menipis"
       : "Tersedia";
 
@@ -408,8 +420,9 @@ function writeProductRow(doc, product, y) {
     .font("Helvetica")
     .fontSize(8);
 
+  // NO.
   doc.text(
-    String(product.id ?? "-"),
+    String(index + 1),
     40,
     y,
     {
@@ -417,29 +430,40 @@ function writeProductRow(doc, product, y) {
     }
   );
 
+  // ID
   doc.text(
-    product.name || "-",
+    String(product.id ?? "-"),
     75,
     y,
     {
-      width: 130,
+      width: 35,
     }
   );
 
+  // PRODUK
+  doc.text(
+    product.name || "-",
+    110,
+    y,
+    {
+      width: 125,
+    }
+  );
+
+  // KATEGORI
   doc.text(
     product.category || "Tanpa kategori",
-    205,
+    245,
     y,
     {
       width: 100,
     }
   );
 
-  // formatPrice() sudah otomatis menyertakan "Rp", jadi tidak perlu
-  // ditambahkan lagi di sini (dulu ada bug "Rp Rp xxx").
+  // HARGA
   doc.text(
     formatPrice(product.price),
-    245,
+    285,
     y,
     {
       width: 90,
@@ -447,22 +471,24 @@ function writeProductRow(doc, product, y) {
     }
   );
 
+  // STOCK
   doc.text(
     String(stock),
-    332,
+    365,
     y,
     {
-      width: 60,
+      width: 50,
       align: "right",
     }
   );
 
+  // STATUS
   doc.text(
     status,
-    455,
+    450,
     y,
     {
-      width: 100,
+      width: 75,
     }
   );
 }
@@ -476,57 +502,53 @@ function writeProductRow(doc, product, y) {
 function writeTransactionRow(
   doc,
   transaction,
-  y
+  y,
+  index
 ) {
   doc
     .font("Helvetica")
     .fontSize(8);
 
-  // ID
   doc.text(
-    String(transaction.id ?? "-"),
+    String(index + 1),
     40,
     y,
-    {
-      width: 45,
-    }
+    { width: 35 }
   );
 
-  // TANGGAL
+  doc.text(
+    String(transaction.id ?? "-"),
+    75,
+    y,
+    { width: 45 }
+  );
+
   doc.text(
     formatDate(transaction.createdAt),
-    85,
+    120,
     y,
-    {
-      width: 115,
-    }
+    { width: 115 }
   );
 
-  // KASIR
   doc.text(
     transaction.cashier?.username ||
       transaction.cashierName ||
       "-",
-    200,
+    235,
     y,
-    {
-      width: 100,
-    }
+    { width: 100 }
   );
 
-  // TOTAL
-  // formatPrice() sudah otomatis menyertakan "Rp".
   doc.text(
     formatPrice(transaction.total),
-    255,
+    258,
     y,
     {
-      width: 100,
+      width: 110,
       align: "right",
     }
   );
 
-  // METODE
   const method =
     transaction.paymentMethod === "cash"
       ? "Tunai"
@@ -536,11 +558,9 @@ function writeTransactionRow(
 
   doc.text(
     method,
-    405,
+    450,
     y,
-    {
-      width: 90,
-    }
+    { width: 105 }
   );
 }
 
@@ -586,19 +606,29 @@ export async function generateProductReport(
   doc
     .font("Helvetica-Bold")
     .fontSize(10)
-    .text("Ringkasan Produk");
+    .text("Ringkasan Produk", 40, doc.y);
 
   doc.moveDown(0.5);
 
-  // Digabung jadi satu baris (dulu 3 baris terpisah)
   doc
     .font("Helvetica")
     .fontSize(9)
-    .text(
-      `Total Produk : ${totalProducts}    Total Stock : ${totalStock}    Stock Menipis : ${lowStock}`
-    );
+    .text(`Total Produk : ${totalProducts}`, 40, doc.y);
 
-  doc.moveDown(1);
+  doc.text(`Total Stok : ${totalStock}`, 40, doc.y);
+
+  doc.text(`Stok Menipis : ${lowStock}`, 40, doc.y);
+
+  doc.moveDown(0.6);
+
+  // Garis panjang di bawah Ringkasan Produk
+  doc
+    .moveTo(40, doc.y)
+    .lineTo(555, doc.y)
+    .lineWidth(0.5)
+    .stroke();
+
+  doc.moveDown(1.4);
 
   let y = drawTableHeader(
     doc,
@@ -617,7 +647,7 @@ export async function generateProductReport(
       );
   }
 
-  for (const product of products) {
+  for (const [index, product] of products.entries()) {
     /**
      * Area aman sebelum footer
      */
@@ -640,7 +670,8 @@ export async function generateProductReport(
     writeProductRow(
       doc,
       product,
-      y
+      y,
+      index
     );
 
     y += 28;
@@ -685,7 +716,7 @@ export async function generateTransactionReport(
   doc
     .font("Helvetica-Bold")
     .fontSize(10)
-    .text("Ringkasan Transaksi");
+    .text("Ringkasan Transaksi", 40, doc.y);
 
   doc.moveDown(0.5);
 
@@ -693,17 +724,30 @@ export async function generateTransactionReport(
     .font("Helvetica")
     .fontSize(9)
     .text(
-      `Total Transaksi : ${totalTransactions}`
+      `Total Transaksi : ${totalTransactions}`,
+      40,
+      doc.y
     );
 
   // formatPrice() sudah otomatis menyertakan "Rp".
   doc.text(
     `Total Pendapatan: ${formatPrice(
       totalRevenue
-    )}`
+    )}`,
+    40,
+    doc.y
   );
 
-  doc.moveDown(1);
+  doc.moveDown(0.6);
+
+  // Garis panjang di bawah Ringkasan Transaksi
+  doc
+    .moveTo(40, doc.y)
+    .lineTo(555, doc.y)
+    .lineWidth(0.5)
+    .stroke();
+
+  doc.moveDown(1.4);
 
   let y = drawTableHeader(
     doc,
@@ -722,7 +766,7 @@ export async function generateTransactionReport(
       );
   }
 
-  for (const transaction of transactions) {
+  for (const [index, transaction] of transactions.entries()) {
     if (y > 720) {
       doc.addPage();
 
@@ -742,7 +786,8 @@ export async function generateTransactionReport(
     writeTransactionRow(
       doc,
       transaction,
-      y
+      y,
+      index
     );
 
     y += 28;
@@ -825,70 +870,151 @@ export async function generateAllReport(
     );
 
   /**
-   * RINGKASAN — ditempatkan di pojok kanan atas
+   * =====================================================
+   * RINGKASAN
+   * POSISI POJOK KIRI
+   * =====================================================
    */
 
   const summaryX = 40;
-  const summaryWidth = 165;
+  const summaryWidth = 250;
   let summaryY = doc.y;
 
+  /**
+   * ============================
+   * RINGKASAN PRODUK
+   * ============================
+   */
+
   doc
     .font("Helvetica-Bold")
     .fontSize(11)
-    .text("Ringkasan Produk", summaryX, summaryY, {
-      width: summaryWidth,
-    });
+    .text(
+      "Ringkasan Produk",
+      summaryX,
+      summaryY,
+      {
+        width: summaryWidth,
+        align: "left",
+      }
+    );
 
   summaryY = doc.y + 4;
 
   doc
     .font("Helvetica")
     .fontSize(9)
-    .text(`Total Produk  : ${totalProducts}`, summaryX, summaryY, {
+    .text(
+      `Total Produk : ${totalProducts}`,
+      summaryX,
+      summaryY,
+      {
+        width: summaryWidth,
+        align: "left",
+      }
+    );
+
+  summaryY = doc.y;
+
+  doc.text(
+    `Total Stok : ${totalStock}`,
+    summaryX,
+    summaryY,
+    {
       width: summaryWidth,
-    });
+      align: "left",
+    }
+  );
 
   summaryY = doc.y;
 
-  doc.text(`Total Stock   : ${totalStock}`, summaryX, summaryY, {
-    width: summaryWidth,
-  });
+  doc.text(
+    `Stok Menipis : ${lowStock}`,
+    summaryX,
+    summaryY,
+    {
+      width: summaryWidth,
+      align: "left",
+    }
+  );
 
-  summaryY = doc.y;
+  /**
+   * ============================
+   * GARIS PANJANG DI BAWAH
+   * RINGKASAN PRODUK
+   * ============================
+   */
 
-  doc.text(`Stock Menipis : ${lowStock}`, summaryX, summaryY, {
-    width: summaryWidth,
-  });
+  summaryY = doc.y + 8;
 
-  summaryY = doc.y + 14;
+  doc
+    .moveTo(40, summaryY)
+    .lineTo(555, summaryY)
+    .lineWidth(0.5)
+    .stroke();
+
+  summaryY += 12;
+
+  /**
+   * ============================
+   * RINGKASAN TRANSAKSI
+   * ============================
+   */
 
   doc
     .font("Helvetica-Bold")
     .fontSize(11)
-    .text("Ringkasan Transaksi", summaryX, summaryY, {
-      width: summaryWidth,
-    });
+    .text(
+      "Ringkasan Transaksi",
+      summaryX,
+      summaryY,
+      {
+        width: summaryWidth,
+        align: "left",
+      }
+    );
 
   summaryY = doc.y + 4;
 
   doc
     .font("Helvetica")
     .fontSize(9)
-    .text(`Total Transaksi : ${totalTransactions}`, summaryX, summaryY, {
-      width: summaryWidth,
-    });
+    .text(
+      `Total Transaksi : ${totalTransactions}`,
+      summaryX,
+      summaryY,
+      {
+        width: summaryWidth,
+        align: "left",
+      }
+    );
 
   summaryY = doc.y;
 
-  // formatPrice() sudah otomatis menyertakan "Rp".
   doc.text(
     `Total Pendapatan: ${formatPrice(totalRevenue)}`,
     summaryX,
     summaryY,
     {
       width: summaryWidth,
+      align: "left",
     }
   );
+
+  /**
+   * ============================
+   * GARIS PANJANG DI BAWAH
+   * RINGKASAN TRANSAKSI
+   * ============================
+   */
+
+  summaryY = doc.y + 8;
+
+  doc
+    .moveTo(40, summaryY)
+    .lineTo(555, summaryY)
+    .lineWidth(0.5)
+    .stroke();
 
   /**
    * =====================================================
@@ -896,95 +1022,102 @@ export async function generateAllReport(
    * =====================================================
    */
 
-  if (products.length > 0) {
-    doc.addPage();
-
-    addHeader(
-      doc,
-      "LAPORAN PRODUK",
-      userName
-    );
-
-    let y = drawTableHeader(
-      doc,
-      productColumns,
-      doc.y
-    );
-
-    for (const product of products) {
-      if (y > 720) {
-        doc.addPage();
-
-        addHeader(
-          doc,
-          "LAPORAN PRODUK",
-          userName
-        );
-
-        y = drawTableHeader(
-          doc,
-          productColumns,
-          doc.y
-        );
-      }
-
-      writeProductRow(
-        doc,
-        product,
-        y
-      );
-
-      y += 28;
-    }
-  }
-
   /**
-   * =====================================================
-   * HALAMAN TRANSAKSI
-   * =====================================================
-   */
+ * =====================================================
+ * HALAMAN PRODUK
+ * =====================================================
+ */
 
-  if (transactions.length > 0) {
-    doc.addPage();
+if (products.length > 0) {
+  doc.addPage();
 
-    addHeader(
-      doc,
-      "LAPORAN TRANSAKSI",
-      userName
-    );
+  addHeader(
+    doc,
+    "LAPORAN PRODUK",
+    userName
+  );
 
-    let y = drawTableHeader(
-      doc,
-      transactionColumns,
-      doc.y
-    );
+  let y = drawTableHeader(
+    doc,
+    productColumns,
+    doc.y
+  );
 
-    for (const transaction of transactions) {
-      if (y > 720) {
-        doc.addPage();
+  for (const [index, product] of products.entries()) {
+    if (y > 720) {
+      doc.addPage();
 
-        addHeader(
-          doc,
-          "LAPORAN TRANSAKSI",
-          userName
-        );
-
-        y = drawTableHeader(
-          doc,
-          transactionColumns,
-          doc.y
-        );
-      }
-
-      writeTransactionRow(
+      addHeader(
         doc,
-        transaction,
-        y
+        "LAPORAN PRODUK",
+        userName
       );
 
-      y += 28;
+      y = drawTableHeader(
+        doc,
+        productColumns,
+        doc.y
+      );
     }
-  }
 
-  return documentToBuffer(doc);
+    writeProductRow(
+      doc,
+      product,
+      y,
+      index
+    );
+
+    y += 28;
+  }
+}
+
+/**
+ * =====================================================
+ * HALAMAN TRANSAKSI
+ * =====================================================
+ */
+
+if (transactions.length > 0) {
+  doc.addPage();
+
+  addHeader(
+    doc,
+    "LAPORAN TRANSAKSI",
+    userName
+  );
+
+  let y = drawTableHeader(
+    doc,
+    transactionColumns,
+    doc.y
+  );
+
+  for (const [index, transaction] of transactions.entries()) {
+    if (y > 720) {
+      doc.addPage();
+
+      addHeader(
+        doc,
+        "LAPORAN TRANSAKSI",
+        userName
+      );
+
+      y = drawTableHeader(
+        doc,
+        transactionColumns,
+        doc.y
+      );
+    }
+
+    writeTransactionRow(
+      doc,
+      transaction,
+      y,
+      index
+    );
+
+    y += 28;
+  }
+}
+return documentToBuffer(doc);
 }

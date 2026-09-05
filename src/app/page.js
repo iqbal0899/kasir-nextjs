@@ -57,55 +57,65 @@ export default function Home() {
   // AMBIL PRODUCTS
   // ========================================
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setLoadingProducts(true);
-        setProductError("");
+// ========================================
+// AMBIL PRODUCTS AKTIF UNTUK KASIR
+// ========================================
 
-        const response = await fetch(
-          "/api/v1/products",
-          {
-            method: "GET",
-            cache: "no-store",
-          }
-        );
+useEffect(() => {
+  const fetchProducts = async () => {
+    try {
+      setLoadingProducts(true);
+      setProductError("");
 
-        const result =
-          await response.json();
-
-        console.log(
-          "PRODUCT API:",
-          result
-        );
-
-        if (!response.ok) {
-          throw new Error(
-            result.message ||
-              "Gagal mengambil produk"
-          );
+      const response = await fetch(
+        "/api/v1/products",
+        {
+          method: "GET",
+          cache: "no-store",
         }
+      );
 
-        setProducts(
-          result.data || []
-        );
-      } catch (error) {
-        console.error(
-          "FETCH PRODUCTS ERROR:",
-          error
-        );
+      const result = await response.json();
 
-        setProductError(
-          error.message ||
-            "Gagal mengambil data produk"
+      console.log(
+        "PRODUCT API:",
+        result
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          result.message ||
+            "Gagal mengambil produk"
         );
-      } finally {
-        setLoadingProducts(false);
       }
-    };
 
-    fetchProducts();
-  }, []);
+      // Hanya tampilkan produk yang aktif
+      const activeProducts = (
+        result.data || []
+      ).filter(
+        (product) =>
+          product.isActive === true
+      );
+
+      setProducts(activeProducts);
+
+    } catch (error) {
+      console.error(
+        "FETCH PRODUCTS ERROR:",
+        error
+      );
+
+      setProductError(
+        error.message ||
+          "Gagal mengambil data produk"
+      );
+    } finally {
+      setLoadingProducts(false);
+    }
+  };
+
+  fetchProducts();
+}, []);
 
   // ========================================
   // AMBIL USER LOGIN

@@ -4,8 +4,16 @@
 
   export async function getProducts() {
   return await prisma.product.findMany({
+    orderBy: {
+      id: "asc",
+    },
+  });
+}
+
+export async function getInactiveProducts() {
+  return await prisma.product.findMany({
     where: {
-      isActive: true,
+      isActive: false,
     },
     orderBy: {
       id: "asc",
@@ -13,100 +21,103 @@
   });
 }
 
+export async function restoreProduct(id) {
+  return await prisma.product.update({
+    where: {
+      id: Number(id),
+    },
+    data: {
+      isActive: true,
+    },
+  });
+}
+
+export async function toggleProductStatus(id, isActive) {
+  return await prisma.product.update({
+    where: {
+      id: Number(id),
+    },
+    data: {
+      isActive: Boolean(isActive),
+    },
+  });
+}
+
 
   export async function createProduct({
-    name,
-    price,
-    stock,
-    category,
-    image,
-  }) {
-    let imagePath = null;
+  name,
+  price,
+  stock,
+  category,
+  image,
+}) {
+  const productName = name.trim();
 
-    if (
-      image &&
-      typeof image !== "string" &&
-      image.size > 0
-    ) {
-      const allowedTypes = [
-        "image/jpeg",
-        "image/png",
-        "image/webp",
-      ];
 
-      if (!allowedTypes.includes(image.type)) {
-        throw new Error(
-          "Format gambar harus JPG, PNG, atau WEBP"
-        );
-      }
+  const existingProduct = await prisma.product.findUnique({
+    where: {
+      name: productName,
+    },
+  });
 
-      if (image.size > 2 * 1024 * 1024) {
-        throw new Error(
-          "Ukuran gambar maksimal 2 MB"
-        );
-      }
-
-      const bytes =
-        await image.arrayBuffer();
-
-      const buffer =
-        Buffer.from(bytes);
-
-      const extension =
-        image.name
-          .split(".")
-          .pop()
-          .toLowerCase();
-
-      const fileName =
-        `${Date.now()}-${Math.random()
-          .toString(36)
-          .substring(2)}.${extension}`;
-
-      const uploadDir =
-        path.join(
-          process.cwd(),
-          "public",
-          "products"
-        );
-
-      await fs.mkdir(
-        uploadDir,
-        {
-          recursive: true,
-        }
-      );
-
-      const filePath =
-        path.join(
-          uploadDir,
-          fileName
-        );
-
-      await fs.writeFile(
-        filePath,
-        buffer
-      );
-
-      imagePath =
-        `/products/${fileName}`;
-    }
-
-    return await prisma.product.create({
+  if (existingProduct && !existingProduct.isActive) {
+    return await prisma.product.update({
+      where: {
+        id: existingProduct.id,
+      },
       data: {
-        name: name.trim(),
-
-        price,
-
-        stock,
-
-        category:
-          category?.trim() || null,
-
-        image: imagePath,
+        isActive: true,
+        price: Number(price),
+        stock: Number(stock || 0),
+        category: category?.trim() || null,
+        // image akan kita tangani setelah solusi storage
       },
     });
   }
+
+  if (existingProduct && existingProduct.isActive) {
+    throw new Error(
+      "Product dengan nama tersebut sudah tersedia"
+    );
+  }
+
+  let imagePath = null;
+
+  if (
+    image &&
+    typeof image !== "string" &&
+    image.size > 0
+  ) {
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+    ];
+
+    if (!allowedTypes.includes(image.type)) {
+      throw new Error(
+        "Format gambar harus JPG, PNG, atau WEBP"
+      );
+    }
+
+    if (image.size > 2 * 1024 * 1024) {
+      throw new Error(
+        "Ukuran gambar maksimal 2 MB"
+      );
+    }
+  }
+
+  return await prisma.product.create({
+    data: {
+      name: productName,
+      price: Number(price),
+      stock: Number(stock || 0),
+      category: category?.trim() || null,
+      image: imagePath,
+      isActive: true,
+    },
+  });
+}
 
   export async function getProductById(id) {
     return await prisma.product.findUnique({
@@ -144,6 +155,17 @@
     },
     data: {
       isActive: false,
+    },
+  });
+}
+
+export async function getActiveProducts() {
+  return await prisma.product.findMany({
+    where: {
+      isActive: true,
+    },
+    orderBy: {
+      id: "asc",
     },
   });
 }

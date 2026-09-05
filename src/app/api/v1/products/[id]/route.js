@@ -1,8 +1,10 @@
+import { NextResponse } from "next/server";
 
 import {
   getProductById,
   updateProduct,
   deleteProduct,
+  toggleProductStatus,
 } from "@/backend/actions/product.action";
 
 import { cookies } from "next/headers";
@@ -400,9 +402,10 @@ export async function PUT(
       );
 
       console.log("USER YANG MEMPERBARUI:", {
-        username: data.username,
-        role: data.role,
-      });
+  id: user.id,
+  username: user.username,
+  role: user.role,
+});
 
 
     // ========================================
@@ -590,6 +593,117 @@ export async function DELETE(
         success: false,
         message:
           "Gagal menghapus produk",
+        error: error.message,
+      },
+      {
+        status: 500,
+      }
+    );
+  }
+}
+
+export async function PATCH(
+  request,
+  { params }
+) {
+  try {
+    const cookieStore = await cookies();
+
+    const token =
+      cookieStore.get("token")?.value;
+
+    if (!token) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Unauthorized",
+        },
+        {
+          status: 401,
+        }
+      );
+    }
+
+    const user = jwt.verify(
+      token,
+      process.env.JWT_SECRET
+    );
+
+    const { id } = await params;
+
+    const productId = Number(id);
+
+    if (Number.isNaN(productId)) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "ID produk tidak valid",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    const { isActive } =
+      await request.json();
+
+    if (
+      typeof isActive !== "boolean"
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Status produk tidak valid",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    const product =
+      await toggleProductStatus(
+        productId,
+        isActive
+      );
+
+    console.log(
+      "STATUS PRODUK DIUBAH:",
+      {
+        id: product.id,
+        name: product.name,
+        isActive: product.isActive,
+      }
+    );
+    console.log(
+      "USER YANG MENGUBAH STATUS:", {
+        id: user.id,
+        username: user.username,
+        role: user.role,
+      }
+    );
+
+    return NextResponse.json({
+      success: true,
+      message: isActive
+        ? "Produk berhasil diaktifkan"
+        : "Produk berhasil dinonaktifkan",
+      data: product,
+    });
+
+  } catch (error) {
+    console.error(
+      "TOGGLE PRODUCT STATUS ERROR:",
+      error
+    );
+
+    return NextResponse.json(
+      {
+        success: false,
+        message:
+          "Gagal mengubah status produk",
         error: error.message,
       },
       {
