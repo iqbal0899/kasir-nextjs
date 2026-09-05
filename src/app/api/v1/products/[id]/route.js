@@ -7,6 +7,8 @@ import {
   toggleProductStatus,
 } from "@/backend/actions/product.action";
 
+import { formatDate } from "@/shared/utils/formatDate";
+
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 
@@ -675,6 +677,7 @@ export async function PATCH(
         id: product.id,
         name: product.name,
         isActive: product.isActive,
+        Waktu: formatDate(new Date()),
       }
     );
     console.log(
@@ -682,6 +685,7 @@ export async function PATCH(
         id: user.id,
         username: user.username,
         role: user.role,
+        Waktu: formatDate(new Date()),
       }
     );
 
