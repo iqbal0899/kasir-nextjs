@@ -8,6 +8,7 @@ import { formatCurrency } from "@/shared/utils/formatCurrency";
 import { formatDate } from "@/shared/utils/formatDate";
 
 import styles from "@/frontend/css/transactions.module.css";
+import { Theater } from "lucide-react";
 
 export default function TransactionPage() {
   const router = useRouter();
@@ -24,54 +25,72 @@ export default function TransactionPage() {
   const [search, setSearch] =
     useState("");
 
+  const [page, setPage] = useState(1);
 
-  const fetchTransactions = async () => {
-    try {
-      setLoading(true);
-      setError("");
+  const [limit, setLimit] = useState(10);
 
-      const response = await fetch(
-        "/api/v1/transactions",
-        {
-          method: "GET",
-          cache: "no-store",
-        }
-      );
+  const [pagination, setPagination] =
+    useState({
+      total: 0,
+      totalPages: 0,
+    });
 
-      const result =
-        await response.json();
+const fetchTransactions = async () => {
+  try {
+    setLoading(true);
+    setError("");
 
-      if (!response.ok) {
-        throw new Error(
-          result.message ||
-            "Gagal mengambil data transaksi"
-        );
+    const response = await fetch(
+      `/api/v1/transactions?page=${page}&limit=${limit}`,
+      {
+        method: "GET",
+        cache: "no-store",
       }
+    );
 
-      setTransactions(
-        result.data || []
-      );
+    const result = await response.json();
 
-    } catch (error) {
-      console.error(
-        "FETCH TRANSACTIONS ERROR:",
-        error
-      );
-
-      setError(
-        error.message ||
+    if (!response.ok) {
+      throw new Error(
+        result.message ||
           "Gagal mengambil data transaksi"
       );
-
-    } finally {
-      setLoading(false);
     }
-  };
+
+    setTransactions(result.data || []);
+
+    // Simpan informasi pagination dari API
+    setPagination(
+      result.pagination || {
+        page: 1,
+        limit: 10,
+        total: 0,
+        totalPages: 0,
+      }
+    );
+
+  } catch (error) {
+    console.error(
+      "FETCH TRANSACTIONS ERROR:",
+      error
+    );
+
+    setError(
+      error.message ||
+        "Gagal mengambil data transaksi"
+    );
+
+  } finally {
+    setLoading(false);
+  }
+};
+
+
 
 
   useEffect(() => {
     fetchTransactions();
-  }, []);
+  }, [page]);
 
 
   const formatCurrency = (value) => {
@@ -368,6 +387,10 @@ export default function TransactionPage() {
                 <tr>
 
                   <th>
+                    No.
+                  </th>
+
+                  <th>
                     ID
                   </th>
 
@@ -414,6 +437,12 @@ export default function TransactionPage() {
                         transaction.id
                       }
                     >
+
+                      <td>
+                        {
+                          filteredTransactions.indexOf(transaction) + 1
+                        }
+                      </td>
 
                       <td>
                         #
@@ -537,6 +566,26 @@ export default function TransactionPage() {
           </div>
 
         )}
+
+        <div className={styles.pagination}>
+  <button
+    onClick={() => setPage((prev) => prev - 1)}
+    disabled={page === 1}
+  >
+    Previous
+  </button>
+
+  <span>
+    Halaman {page} dari {pagination.totalPages}
+  </span>
+
+  <button
+    onClick={() => setPage((prev) => prev + 1)}
+    disabled={page === pagination.totalPages}
+  >
+    Next
+  </button>
+</div>
 
     </main>
   );

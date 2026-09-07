@@ -7,16 +7,53 @@ import {
 } from "@/backend/service/transaction.service";
 
 
-export async function GET() {
+export async function GET(request) {
   try {
-    const transactions =
-      await getTransactions();
+    const {searchParams} = new URL(request.url);
+
+    const page = Math.max(
+      Number(searchParams.get("page")) || 1,
+      1
+    );
+
+    const limit = Math.min(
+      Math.max(Number(searchParams.get("limit")) || 10, 1),
+      100
+    );
+
+    const skip = (page - 1) * limit;
+
+    const [transactions, total] = await Promise.all([
+      prisma.transaction.findMany({
+        skip,
+        take: limit,
+        orderBy: {
+          createdAt: "desc",
+        },
+        include: {
+          cashier: true,
+          items: {
+            include: {
+              product: true,
+            },
+          },
+        },
+      }),
+      prisma.transaction.count(),
+    ]);
+
+    const totalPages = Math.ceil(total / limit);
 
     return NextResponse.json({
       success: true,
       data: transactions,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+      },
     });
-
   } catch (error) {
     console.error(
       "GET TRANSACTIONS ERROR:",
