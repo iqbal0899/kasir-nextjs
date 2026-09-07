@@ -212,27 +212,61 @@ export async function createTransaction({
 }
 
 
-export async function getTransactions() {
-  return await prisma.transaction.findMany({
-    orderBy: {
-      createdAt: "desc",
-    },
+export async function GET(request) {
+  try {
+    const { searchParams } =
+      new URL(request.url);
 
-    include: {
-      cashier: {
-        select: {
-          id: true,
-          username: true,
-        },
-      },
+    const page = Math.max(
+      Number(searchParams.get("page")) || 1,
+      1
+    );
 
-      items: {
-        include: {
-          product: true,
-        },
+    const limit = Math.min(
+      Math.max(
+        Number(searchParams.get("limit")) || 10,
+        1
+      ),
+      100
+    );
+
+    const { transactions, total } =
+      await getTransactions({
+        page,
+        limit,
+      });
+
+    const totalPages =
+      Math.ceil(total / limit);
+
+    return NextResponse.json({
+      success: true,
+      data: transactions,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
       },
-    },
-  });
+    });
+  } catch (error) {
+    console.error(
+      "GET TRANSACTIONS ERROR:",
+      error
+    );
+
+    return NextResponse.json(
+      {
+        success: false,
+        message:
+          error.message ||
+          "Gagal mengambil transaksi",
+      },
+      {
+        status: 500,
+      }
+    );
+  }
 }
 
 
