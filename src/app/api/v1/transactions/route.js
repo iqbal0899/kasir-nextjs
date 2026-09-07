@@ -9,50 +9,25 @@ import {
 
 export async function GET(request) {
   try {
-    const {searchParams} = new URL(request.url);
+    const { searchParams } =
+      new URL(request.url);
 
-    const page = Math.max(
-      Number(searchParams.get("page")) || 1,
-      1
-    );
+    const page =
+      searchParams.get("page");
 
-    const limit = Math.min(
-      Math.max(Number(searchParams.get("limit")) || 10, 1),
-      100
-    );
+    const limit =
+      searchParams.get("limit");
 
-    const skip = (page - 1) * limit;
-
-    const [transactions, total] = await Promise.all([
-      prisma.transaction.findMany({
-        skip,
-        take: limit,
-        orderBy: {
-          createdAt: "desc",
-        },
-        include: {
-          cashier: true,
-          items: {
-            include: {
-              product: true,
-            },
-          },
-        },
-      }),
-      prisma.transaction.count(),
-    ]);
-
-    const totalPages = Math.ceil(total / limit);
+    const result =
+      await getTransactions({
+        page,
+        limit,
+      });
 
     return NextResponse.json({
       success: true,
-      data: transactions,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages,
-      },
+      data: result.transactions,
+      pagination: result.pagination,
     });
   } catch (error) {
     console.error(
