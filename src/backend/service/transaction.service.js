@@ -212,61 +212,65 @@ export async function createTransaction({
 }
 
 
-export async function GET(request) {
-  try {
-    const { searchParams } =
-      new URL(request.url);
+export async function getTransactions({
+  page = 1,
+  limit = 10,
+} = {}) {
+  const currentPage = Math.max(
+    Number(page) || 1,
+    1
+  );
 
-    const page = Math.max(
-      Number(searchParams.get("page")) || 1,
-      1
-    );
+  const currentLimit = Math.min(
+    Math.max(Number(limit) || 10, 1),
+    100
+  );
 
-    const limit = Math.min(
-      Math.max(
-        Number(searchParams.get("limit")) || 10,
-        1
-      ),
-      100
-    );
+  const skip =
+    (currentPage - 1) * currentLimit;
 
-    const { transactions, total } =
-      await getTransactions({
-        page,
-        limit,
-      });
+  const [transactions, total] =
+    await Promise.all([
+      prisma.transaction.findMany({
+        skip,
+        take: currentLimit,
 
-    const totalPages =
-      Math.ceil(total / limit);
+        orderBy: {
+          createdAt: "desc",
+        },
 
-    return NextResponse.json({
-      success: true,
-      data: transactions,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages,
-      },
-    });
-  } catch (error) {
-    console.error(
-      "GET TRANSACTIONS ERROR:",
-      error
-    );
+        include: {
+          cashier: {
+            select: {
+              id: true,
+              username: true,
+            },
+          },
 
-    return NextResponse.json(
-      {
-        success: false,
-        message:
-          error.message ||
-          "Gagal mengambil transaksi",
-      },
-      {
-        status: 500,
-      }
-    );
-  }
+          items: {
+            include: {
+              product: true,
+            },
+          },
+        },
+      }),
+
+      prisma.transaction.count(),
+    ]);
+
+  const totalPages = Math.ceil(
+    total / currentLimit
+  );
+
+  return {
+    transactions,
+    pagination: {
+      page: currentPage,
+      limit: currentLimit,
+      total,
+      totalPages,
+    },
+  };
 }
 
 
