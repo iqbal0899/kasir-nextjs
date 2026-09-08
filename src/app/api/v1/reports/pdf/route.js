@@ -11,19 +11,11 @@ import { getProducts } from "@/backend/service/product.service";
 import { getTransactions } from "@/backend/service/transaction.service";
 
 
-// =========================================================
-// GET REPORT PDF
-// =========================================================
-//
-// Query:
-// ?type=product
-// ?type=transaction
-// ?type=all
-//
-// =========================================================
-
 export async function GET(request) {
   try {
+    // =====================================================
+    // AUTHENTICATION
+    // =====================================================
 
     const token = request.cookies.get("token")?.value;
 
@@ -58,9 +50,29 @@ export async function GET(request) {
       );
     }
 
+    // =====================================================
+    // QUERY PARAMETER
+    // =====================================================
+
     const { searchParams } = new URL(request.url);
 
     const type = searchParams.get("type");
+
+    const page =
+      Number(searchParams.get("page")) || 1;
+
+    const limit =
+      Number(searchParams.get("limit")) || 1000;
+
+    const startDate =
+      searchParams.get("startDate");
+
+    const endDate =
+      searchParams.get("endDate");
+
+    // =====================================================
+    // VALIDATE TYPE
+    // =====================================================
 
     const allowedTypes = [
       "product",
@@ -81,13 +93,20 @@ export async function GET(request) {
       );
     }
 
+    // =====================================================
+    // USERNAME
+    // =====================================================
 
     const userName =
       user?.username || "User";
 
+    // =====================================================
+    // PRODUCT REPORT
+    // =====================================================
 
     if (type === "product") {
-      const products = await getProducts();
+      const products =
+        await getProducts();
 
       const pdfBuffer =
         await generateProductReport({
@@ -98,62 +117,95 @@ export async function GET(request) {
       return new NextResponse(pdfBuffer, {
         status: 200,
         headers: {
-          "Content-Type": "application/pdf",
+          "Content-Type":
+            "application/pdf",
+
           "Content-Disposition":
             'inline; filename="laporan-produk.pdf"',
+
           "Cache-Control":
             "no-store, no-cache, must-revalidate",
         },
       });
     }
 
+    // =====================================================
+    // TRANSACTION REPORT
+    // =====================================================
+
     if (type === "transaction") {
+      const result =
+        await getTransactions({
+          page,
+          limit,
+          startDate,
+          endDate,
+        });
+
       const transactions =
-        await getTransactions();
+        result?.transactions || [];
 
       const pdfBuffer =
         await generateTransactionReport({
-          transactions:
-            transactions || [],
+          transactions,
           userName,
+          startDate,
+          endDate,
         });
 
       return new NextResponse(pdfBuffer, {
         status: 200,
         headers: {
-          "Content-Type": "application/pdf",
+          "Content-Type":
+            "application/pdf",
+
           "Content-Disposition":
             'inline; filename="laporan-transaksi.pdf"',
+
           "Cache-Control":
             "no-store, no-cache, must-revalidate",
         },
       });
     }
 
+    // =====================================================
+    // ALL REPORT
+    // =====================================================
 
     if (type === "all") {
       const [
         products,
-        transactions,
+        transactionResult,
       ] = await Promise.all([
         getProducts(),
-        getTransactions(),
+
+        getTransactions({
+          page,
+          limit,
+          startDate,
+          endDate,
+        }),
       ]);
+
+      const transactions =
+        transactionResult?.transactions || [];
 
       const pdfBuffer =
         await generateAllReport({
           products: products || [],
-          transactions:
-            transactions || [],
+          transactions,
           userName,
         });
 
       return new NextResponse(pdfBuffer, {
         status: 200,
         headers: {
-          "Content-Type": "application/pdf",
+          "Content-Type":
+            "application/pdf",
+
           "Content-Disposition":
             'inline; filename="laporan-produk-transaksi.pdf"',
+
           "Cache-Control":
             "no-store, no-cache, must-revalidate",
         },
@@ -179,4 +231,3 @@ export async function GET(request) {
     );
   }
 }
-

@@ -10,6 +10,7 @@ import Navbar from "@/frontend/components/shared/Navbar";
 
 export default function ReportsPage() {
   const [products, setProducts] = useState([]);
+
   const [transactions, setTransactions] = useState([]);
 
   const [user, setUser] = useState(null);
@@ -21,6 +22,21 @@ export default function ReportsPage() {
   const [productError, setProductError] = useState("");
 
   const [transactionError, setTransactionError] = useState("");
+
+  const [search, setSearch] = useState("");
+
+  const [page, setPage] = useState(1);
+
+  const [limit, setLimit] = useState(10);
+
+  const [pagination, setPagination] = useState({
+    total: 0,
+    totalPages: 0,
+  });
+
+  const [startDate, setStartDate] = useState("");
+
+  const [endDate, setEndDate] = useState("");
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -52,37 +68,75 @@ export default function ReportsPage() {
     fetchProducts();
   }, []);
 
-  useEffect(() => {
-    const fetchTransactions = async () => {
-      try {
-        setLoadingTransactions(true);
-        setTransactionError("");
+  const fetchTransactions = async () => {
+  try {
+    setLoadingTransactions(true);
+    setTransactionError("");
 
-        const response = await fetch("/api/v1/transactions", {
-          method: "GET",
-          cache: "no-store",
-        });
+    const params = new URLSearchParams({
+      page: String(page),
+      limit: String(limit),
+    });
 
-        const result = await response.json();
+    if (startDate) {
+      params.append("startDate", startDate);
+    }
 
-        console.log("TRANSACTION REPORT:", result);
+    if (endDate) {
+      params.append("endDate", endDate);
+    }
 
-        if (!response.ok) {
-          throw new Error(result.message || "Gagal mengambil data transaksi");
-        }
-
-        setTransactions(result.data || []);
-      } catch (error) {
-        console.error("TRANSACTION REPORT ERROR:", error);
-
-        setTransactionError(error.message || "Gagal mengambil data transaksi");
-      } finally {
-        setLoadingTransactions(false);
+    const response = await fetch(
+      `/api/v1/transactions?${params.toString()}`,
+      {
+        method: "GET",
+        cache: "no-store",
       }
-    };
+    );
 
-    fetchTransactions();
-  }, []);
+    const result = await response.json();
+
+    console.log("TRANSACTION REPORT:", result);
+
+    if (!response.ok) {
+      throw new Error(
+        result.message ||
+          "Gagal mengambil data transaksi"
+      );
+    }
+
+    setTransactions(result.data || []);
+
+    setPagination(
+      result.pagination || {
+        total: 0,
+        totalPages: 0,
+      }
+    );
+
+  } catch (error) {
+    console.error(
+      "TRANSACTION REPORT ERROR:",
+      error
+    );
+
+    setTransactionError(
+      error.message ||
+        "Gagal mengambil data transaksi"
+    );
+
+  } finally {
+    setLoadingTransactions(false);
+  }
+};
+
+  useEffect(() => {
+  const loadTransactions = async () => {
+    await fetchTransactions();
+  };
+
+  loadTransactions();
+}, [page, limit]);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -127,10 +181,22 @@ export default function ReportsPage() {
   );
 
   const handlePrint = (type) => {
-    const url = `/api/v1/reports/pdf?type=${type}`;
+  const params = new URLSearchParams();
 
-    window.open(url, "_blank", "noopener,noreferrer");
-  };
+  params.set("type", type);
+
+  if (startDate) {
+    params.set("startDate", startDate);
+  }
+
+  if (endDate) {
+    params.set("endDate", endDate);
+  }
+
+  const url = `/api/v1/reports/pdf?${params.toString()}`;
+
+  window.open(url, "_blank", "noopener,noreferrer");
+};
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -291,21 +357,79 @@ export default function ReportsPage() {
           <section className={styles.section}>
             {/* SECTION HEADER */}
 
-            <div className={styles.sectionHeader}>
-              <div>
-                <h2>Laporan Transaksi</h2>
+              <div className={styles.sectionHeader}>
+    <div>
+      <h2>Laporan Transaksi</h2>
+      <p>Ringkasan transaksi penjualan</p>
+    </div>
 
-                <p>Ringkasan transaksi penjualan</p>
-              </div>
+    <button
+      type="button"
+      className={styles.printButton}
+      onClick={() => handlePrint("transaction")}
+    >
+      🖨️ Print Transaksi
+    </button>
+  </div>
 
-              <button
-              type="button"
-              className={styles.printButton}
-              onClick={() => handlePrint("transaction")}
-            >
-              🖨️ Print Transaksi
-            </button>
+  <div className={styles.toolbar}>
 
+    <div className={styles.filterContainer}>
+
+      <div className={styles.filterGroup}>
+        <label htmlFor="startDate">
+          Dari tanggal
+        </label>
+
+        <input
+          id="startDate"
+          type="date"
+          value={startDate}
+          onChange={(e) => setStartDate(e.target.value)}
+        />
+      </div>
+
+      <div className={styles.filterGroup}>
+        <label htmlFor="endDate">
+          Sampai tanggal
+        </label>
+
+        <input
+          id="endDate"
+          type="date"
+          value={endDate}
+          onChange={(e) => setEndDate(e.target.value)}
+        />
+      </div>
+
+      <button
+        type="button"
+        className={styles.filterButton}
+        onClick={fetchTransactions}
+      >
+        Filter
+      </button>
+
+      <button
+        type="button"
+        className={styles.resetButton}
+        onClick={() => {
+          setStartDate("");
+          setEndDate("");
+        }}
+      >
+        Reset
+      </button>
+
+    </div>
+
+    <input
+      type="text"
+      className={styles.searchInput}
+      placeholder="Cari transaksi..."
+      value={search}
+      onChange={(e) => setSearch(e.target.value)}
+    />
             </div>
 
             {/* PRINT TRANSACTION */}

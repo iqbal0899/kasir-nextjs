@@ -692,7 +692,23 @@ export async function generateTransactionReport(
   const {
     transactions = [],
     userName = "User",
+    startDate,
+    endDate,
   } = data;
+
+  // =========================================
+  // PERIODE LAPORAN
+  // =========================================
+
+  let periode = "Semua Periode";
+
+  if (startDate && endDate) {
+    periode = `${startDate} s/d ${endDate}`;
+  } else if (startDate) {
+    periode = `Mulai ${startDate}`;
+  } else if (endDate) {
+    periode = `Sampai ${endDate}`;
+  }
 
   const doc = createDocument();
 
@@ -720,14 +736,24 @@ export async function generateTransactionReport(
 
   doc.moveDown(0.5);
 
+  // =========================================
+  // PERIODE
+  // =========================================
+
   doc
     .font("Helvetica")
     .fontSize(9)
     .text(
-      `Total Transaksi : ${totalTransactions}`,
+      `Periode         : ${periode}`,
       40,
       doc.y
     );
+
+  doc.text(
+    `Total Transaksi : ${totalTransactions}`,
+    40,
+    doc.y
+  );
 
   // formatPrice() sudah otomatis menyertakan "Rp".
   doc.text(
@@ -766,7 +792,10 @@ export async function generateTransactionReport(
       );
   }
 
-  for (const [index, transaction] of transactions.entries()) {
+  for (
+    const [index, transaction]
+    of transactions.entries()
+  ) {
     if (y > 720) {
       doc.addPage();
 

@@ -215,6 +215,8 @@ export async function createTransaction({
 export async function getTransactions({
   page = 1,
   limit = 10,
+  startDate,
+  endDate,
 } = {}) {
   const currentPage = Math.max(
     Number(page) || 1,
@@ -229,9 +231,29 @@ export async function getTransactions({
   const skip =
     (currentPage - 1) * currentLimit;
 
+  const where = {};
+
+  if (startDate || endDate) {
+    where.createdAt = {};
+
+    if (startDate) {
+      where.createdAt.gte = new Date(
+        `${startDate}T00:00:00`
+      );
+    }
+
+    if (endDate) {
+      where.createdAt.lte = new Date(
+        `${endDate}T23:59:59.999`
+      );
+    }
+  }
+
   const [transactions, total] =
     await Promise.all([
       prisma.transaction.findMany({
+        where,
+
         skip,
         take: currentLimit,
 
@@ -255,7 +277,9 @@ export async function getTransactions({
         },
       }),
 
-      prisma.transaction.count(),
+      prisma.transaction.count({
+        where,
+      }),
     ]);
 
   const totalPages = Math.ceil(

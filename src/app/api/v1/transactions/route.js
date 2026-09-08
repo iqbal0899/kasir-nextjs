@@ -18,10 +18,18 @@ export async function GET(request) {
     const limit =
       searchParams.get("limit");
 
+    const startDate =
+      searchParams.get("startDate");
+
+    const endDate =
+      searchParams.get("endDate");
+
     const result =
       await getTransactions({
         page,
         limit,
+        startDate,
+        endDate,
       });
 
     return NextResponse.json({

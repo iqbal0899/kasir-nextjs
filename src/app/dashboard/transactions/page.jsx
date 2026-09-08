@@ -8,7 +8,6 @@ import { formatCurrency } from "@/shared/utils/formatCurrency";
 import { formatDate } from "@/shared/utils/formatDate";
 
 import styles from "@/frontend/css/transactions.module.css";
-import { Theater } from "lucide-react";
 
 export default function TransactionPage() {
   const router = useRouter();
@@ -35,13 +34,29 @@ export default function TransactionPage() {
       totalPages: 0,
     });
 
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+
 const fetchTransactions = async () => {
   try {
     setLoading(true);
     setError("");
 
+    const params = new URLSearchParams({
+      page: String(page),
+      limit: String(limit),
+    });
+
+    if (startDate) {
+      params.append("startDate", startDate);
+    }
+
+    if (endDate) {
+      params.append("endDate", endDate);
+    }
+
     const response = await fetch(
-      `/api/v1/transactions?page=${page}&limit=${limit}`,
+      `/api/v1/transactions?${params.toString()}`,
       {
         method: "GET",
         cache: "no-store",
@@ -59,7 +74,6 @@ const fetchTransactions = async () => {
 
     setTransactions(result.data || []);
 
-    // Simpan informasi pagination dari API
     setPagination(
       result.pagination || {
         page: 1,
@@ -84,7 +98,6 @@ const fetchTransactions = async () => {
     setLoading(false);
   }
 };
-
 
 
 
@@ -149,6 +162,8 @@ const fetchTransactions = async () => {
         );
       }
     );
+
+    
 
   const handleDelete = async (id) => {
 
@@ -340,19 +355,66 @@ const fetchTransactions = async () => {
 
       {/* SEARCH */}
 
-      <div className={styles.toolbar}>
+      
 
-        <input
-          type="text"
-          value={search}
-          onChange={(e) =>
-            setSearch(e.target.value)
-          }
-          placeholder="Cari transaksi..."
-          className={styles.searchInput}
-        />
+     <div className={styles.toolbar}>
+  <div className={styles.filterContainer}>
+    <div className={styles.filterGroup}>
+      <label htmlFor="startDate">
+        Dari tanggal
+      </label>
 
-      </div>
+      <input
+        id="startDate"
+        type="date"
+        value={startDate}
+        onChange={(e) =>
+          setStartDate(e.target.value)
+        }
+      />
+    </div>
+
+    <div className={styles.filterGroup}>
+      <label htmlFor="endDate">
+        Sampai tanggal
+      </label>
+
+      <input
+        id="endDate"
+        type="date"
+        value={endDate}
+        onChange={(e) =>
+          setEndDate(e.target.value)
+        }
+      />
+    </div>
+
+    <button
+      className={styles.filterButton}
+      onClick={fetchTransactions}
+    >
+      Filter
+    </button>
+
+    <button
+      className={styles.resetButton}
+      onClick={() => {
+        setStartDate("");
+        setEndDate("");
+      }}
+    >
+      Reset
+    </button>
+  </div>
+
+  <input
+    type="text"
+    className={styles.searchInput}
+    placeholder="Cari transaksi..."
+    value={search}
+    onChange={(e) => setSearch(e.target.value)}
+  />
+</div>
 
 
       {/* EMPTY */}
