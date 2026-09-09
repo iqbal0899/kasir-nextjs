@@ -109,6 +109,8 @@ export default function ReportsPage() {
 
     setPagination(
       result.pagination || {
+        page: 1,
+        limit: 10,
         total: 0,
         totalPages: 0,
       }
@@ -136,7 +138,7 @@ export default function ReportsPage() {
   };
 
   loadTransactions();
-}, [page, limit]);
+}, [page]);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -508,6 +510,27 @@ export default function ReportsPage() {
                 </table>
               </div>
             )}
+            <div className={styles.pagination}>
+              <button
+              onClick={() => setPage((prev) => prev - 1)}
+              disabled={page === 1}
+              >
+                Previous
+              </button>
+
+              <span>
+                Halaman {page} dari {pagination.totalPages}
+              </span>
+
+              <button
+              onClick={() => setPage((prev) => prev + 1)}
+              disabled={page === pagination.totalPages}
+              >
+                Next
+              </button>
+
+            </div>
+
           </section>
         </main>
       </div>

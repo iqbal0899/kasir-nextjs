@@ -584,7 +584,7 @@ Beberapa fitur yang dapat dikembangkan:
 
 * [ ] Dashboard analytics
 * [ ] Grafik penjualan
-* [ ] Filter laporan berdasarkan tanggal
+* [V] Filter laporan berdasarkan tanggal
 * [ ] Export Excel
 * [V] Print receipt thermal printer
 * [ ] Barcode scanner

@@ -435,6 +435,49 @@
   box-shadow: 0 0 0 3px rgba(26, 59, 93, 0.1);
 }
 
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 20px;
+  padding: 14px 0;
+}
+
+.pagination button {
+  min-width: 90px;
+  padding: 9px 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  background: #ffffff;
+  color: #1e293b;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.pagination button:hover:not(:disabled) {
+  background: #1a3b5d;
+  border-color: #1a3b5d;
+  color: #ffffff;
+}
+
+.pagination button:disabled {
+  background: #f1f5f9;
+  color: #94a3b8;
+  border-color: #e2e8f0;
+  cursor: not-allowed;
+}
+
+.pagination span {
+  color: #475569;
+  font-size: 14px;
+  font-weight: 600;
+  min-width: 130px;
+  text-align: center;
+}
+
 
 /* =========================================================
    TABLET
@@ -463,6 +506,19 @@
 
   .searchInput {
     width: 100%;
+  }
+  .pagination {
+    gap: 10px;
+  }
+
+  .pagination button {
+    min-width: 80px;
+    padding: 8px 12px;
+  }
+
+  .pagination span {
+    min-width: auto;
+    font-size: 13px;
   }
 }
 
@@ -551,6 +607,20 @@
 
   .searchInput {
     width: 100%;
+  }
+  .pagination {
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .pagination button {
+    min-width: 75px;
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
+  .pagination span {
+    font-size: 12px;
   }
 }
 
