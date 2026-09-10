@@ -25,48 +25,114 @@ export default function ReportsPage() {
 
   const [search, setSearch] = useState("");
 
-  const [page, setPage] = useState(1);
+  // ===============================
+// PAGINATION PRODUK
+// ===============================
+const [productPage, setProductPage] = useState(1);
 
-  const [limit, setLimit] = useState(10);
+const [productLimit, setProductLimit] = useState(10);
 
-  const [pagination, setPagination] = useState({
-    total: 0,
-    totalPages: 0,
-  });
+const [productPagination, setProductPagination] = useState({
+  page: 1,
+  limit: 10,
+  total: 0,
+  totalPages: 0,
+});
+
+// ===============================
+// PAGINATION TRANSAKSI
+// ===============================
+const [transactionPage, setTransactionPage] = useState(1);
+
+const [transactionLimit, setTransactionLimit] = useState(10);
+
+const [transactionPagination, setTransactionPagination] = useState({
+  page: 1,
+  limit: 10,
+  total: 0,
+  totalPages: 0,
+});
 
   const [startDate, setStartDate] = useState("");
 
   const [endDate, setEndDate] = useState("");
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setLoadingProducts(true);
-        setProductError("");
 
-        const response = await fetch("/api/v1/products", {
-          method: "GET",
-          cache: "no-store",
-        });
 
-        const result = await response.json();
+ const fetchProducts = async () => {
+  try {
+    setLoadingProducts(true);
+    setProductError("");
 
-        if (!response.ok) {
-          throw new Error(result.message || "Gagal mengambil data produk");
-        }
+    const params = new URLSearchParams({
+      page: String(productPage),
+      limit: String(productLimit),
+    });
 
-        setProducts(result.data || []);
-      } catch (error) {
-        console.error("PRODUCT REPORT ERROR:", error);
+    if (startDate) {
+      params.append("startDate", startDate);
+    }
 
-        setProductError(error.message || "Gagal mengambil data produk");
-      } finally {
-        setLoadingProducts(false);
+    if (endDate) {
+      params.append("endDate", endDate);
+    }
+
+    const response = await fetch(
+      `/api/v1/products?${params.toString()}`,
+      {
+        method: "GET",
+        cache: "no-store",
       }
-    };
+    );
 
-    fetchProducts();
-  }, []);
+    const result = await response.json();
+
+    console.log("PRODUCT REPORT:", result);
+
+    if (!response.ok) {
+      throw new Error(
+        result.message ||
+          "Gagal mengambil data produk"
+      );
+    }
+
+    setProducts(result.data || []);
+
+    setProductPagination(
+      result.pagination || {
+        page: 1,
+        limit: 10,
+        total: 0,
+        totalPages: 0,
+      }
+    );
+  } catch (error) {
+    console.error(
+      "PRODUCTS REPORT ERROR:",
+      error
+    );
+
+    setProductError(
+      error.message ||
+        "Gagal mengambil data produk"
+    );
+  } finally {
+    setLoadingProducts(false);
+  }
+};
+
+useEffect(() => {
+  const loadProducts = async () => {
+    await fetchProducts();
+  };
+
+  loadProducts();
+}, [
+  productPage,
+  productLimit,
+  startDate,
+  endDate,
+]);
 
   const fetchTransactions = async () => {
   try {
@@ -74,8 +140,8 @@ export default function ReportsPage() {
     setTransactionError("");
 
     const params = new URLSearchParams({
-      page: String(page),
-      limit: String(limit),
+      page: String(transactionPage),
+      limit: String(transactionLimit),
     });
 
     if (startDate) {
@@ -96,7 +162,10 @@ export default function ReportsPage() {
 
     const result = await response.json();
 
-    console.log("TRANSACTION REPORT:", result);
+    console.log(
+      "TRANSACTION REPORT:",
+      result
+    );
 
     if (!response.ok) {
       throw new Error(
@@ -107,7 +176,7 @@ export default function ReportsPage() {
 
     setTransactions(result.data || []);
 
-    setPagination(
+    setTransactionPagination(
       result.pagination || {
         page: 1,
         limit: 10,
@@ -115,7 +184,6 @@ export default function ReportsPage() {
         totalPages: 0,
       }
     );
-
   } catch (error) {
     console.error(
       "TRANSACTION REPORT ERROR:",
@@ -126,19 +194,23 @@ export default function ReportsPage() {
       error.message ||
         "Gagal mengambil data transaksi"
     );
-
   } finally {
     setLoadingTransactions(false);
   }
 };
 
-  useEffect(() => {
+ useEffect(() => {
   const loadTransactions = async () => {
     await fetchTransactions();
   };
 
   loadTransactions();
-}, [page]);
+}, [
+  transactionPage,
+  transactionLimit,
+  startDate,
+  endDate,
+]);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -171,9 +243,18 @@ export default function ReportsPage() {
     0,
   );
 
+  const readyStock = products.filter(
+    (product) => Number(product.stock || 0) > 30
+  ).length
+
   const lowStock = products.filter(
-    (product) => Number(product.stock || 0) <= 5,
-  ).length;
+    (product) => Number(product.stock || 0) > 0 &&
+                 Number(product.stock || 0) <= 30
+    ).length;
+
+  const emptyStock = products.filter(
+    (product) => Number(product.stock || 0) === 0,
+  ).length
 
   const totalTransactions = transactions.length;
 
@@ -266,23 +347,92 @@ export default function ReportsPage() {
               </button>
             </div>
 
-            <div className={styles.cards}>
-              <div className={styles.card}>
+            <div className={styles.toolbar}>
+
+    <div className={styles.filterContainer}>
+
+      <div className={styles.filterGroup}>
+        <label htmlFor="startDate">
+          Dari tanggal
+        </label>
+
+        <input
+          id="startDate"
+          type="date"
+          value={startDate}
+          onChange={(e) => setStartDate(e.target.value)}
+        />
+      </div>
+
+      <div className={styles.filterGroup}>
+        <label htmlFor="endDate">
+          Sampai tanggal
+        </label>
+
+        <input
+          id="endDate"
+          type="date"
+          value={endDate}
+          onChange={(e) => setEndDate(e.target.value)}
+        />
+      </div>
+
+      <button
+  type="button"
+  className={styles.filterButton}
+  onClick={() => {
+    setProductPage(1);
+  }}
+>
+  Filter
+</button>
+
+      <button
+  type="button"
+  className={styles.resetButton}
+  onClick={() => {
+    setStartDate("");
+    setEndDate("");
+    setProductPage(1);
+  }}
+>
+  Reset
+</button>
+
+    </div>
+
+    <input
+      type="text"
+      className={styles.searchInput}
+      placeholder="Cari transaksi..."
+      value={search}
+      onChange={(e) => setSearch(e.target.value)}
+    />
+            </div>
+
+            <div className={styles.cardsProduct}>
+              <div className={styles.cardProduct}>
                 <span>Total Produk</span>
 
                 <strong>{loadingProducts ? "..." : totalProducts}</strong>
               </div>
 
-              <div className={styles.card}>
+              <div className={styles.cardProduct}>
                 <span>Total Stock</span>
 
                 <strong>{loadingProducts ? "..." : totalStock}</strong>
               </div>
 
-              <div className={styles.card}>
+              <div className={styles.cardProduct}>
                 <span>Stock Menipis</span>
 
                 <strong>{loadingProducts ? "..." : lowStock}</strong>
+              </div>
+
+              <div className={styles.cardProduct}>
+                <span>Stock Habis</span>
+
+                <strong>{loadingProducts ? "..." : emptyStock}</strong>
               </div>
             </div>
 
@@ -304,56 +454,98 @@ export default function ReportsPage() {
 
                       <th>Harga</th>
 
-                      <th>Stock</th>
+                      <th>Stock Terjual</th>
+
+                      <th>Stock Tersisa</th>
 
                       <th>Status</th>
                     </tr>
                   </thead>
 
-                  <tbody>
-                    {products.length === 0 ? (
-                      <tr>
-                        <td colSpan="7" className={styles.empty}>
-                          Belum ada produk.
-                        </td>
-                      </tr>
-                    ) : (
-                      products.map((product, index) => (
-                        <tr key={product.id}>
+<tbody>
+  {products.length === 0 ? (
+    <tr>
+      <td colSpan="8" className={styles.empty}>
+        Belum ada produk.
+      </td>
+    </tr>
+  ) : (
+    products.map((product, index) => (
+      <tr key={product.id}>
+        <td>{index + 1}</td>
 
-                          <td>{index + 1}</td>
+        <td>{product.id}</td>
 
-                          <td>{product.id}</td>
+        <td>
+          <strong>{product.name}</strong>
+        </td>
 
-                          <td>
-                            <strong>{product.name}</strong>
-                          </td>
+        <td>{product.category || "Tanpa kategori"}</td>
 
-                          <td>{product.category || "Tanpa kategori"}</td>
+        <td>Rp {formatPrice(product.price)}</td>
 
-                          <td>Rp {formatPrice(product.price)}</td>
+        {/* STOK TERJUAL */}
+        <td>{product.soldStock || 0}</td>
 
-                          <td>{product.stock}</td>
+        {/* STOK TERSISA */}
+        <td>{product.stock}</td>
 
-                          <td>
-                            {Number(product.stock) === 0 ? (
-                              <span className={styles.danger}>Stok Habis</span>
-                            ) : Number(product.stock) > 0 &&
-                              Number(product.stock) < 30 ? (
-                              <span className={styles.warning}>
-                                Stok Menipis
-                              </span>
-                            ) : (
-                              <span className={styles.success}>Tersedia</span>
-                            )}
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
+        {/* STATUS */}
+        <td>
+          {Number(product.stock) === 0 ? (
+            <span className={styles.danger}>
+              Stok Habis
+            </span>
+          ) : Number(product.stock) <= 30 ? (
+            <span className={styles.warning}>
+              Stok Menipis
+            </span>
+          ) : (
+            <span className={styles.success}>
+              Tersedia
+            </span>
+          )}
+        </td>
+      </tr>
+    ))
+  )}
+</tbody>
                 </table>
               </div>
+              
             )}
+
+            <div className={styles.pagination}>
+  <button
+    type="button"
+    onClick={() =>
+      setProductPage((prev) =>
+        Math.max(prev - 1, 1)
+      )
+    }
+    disabled={productPage === 1}
+  >
+    Previous
+  </button>
+
+  <span>
+    Halaman {productPagination.page} dari{" "}
+    {productPagination.totalPages || 1}
+  </span>
+
+  <button
+    type="button"
+    onClick={() =>
+      setProductPage((prev) => prev + 1)
+    }
+    disabled={
+      productPage >=
+      productPagination.totalPages
+    }
+  >
+    Next
+  </button>
+</div>
           </section>
 
           <section className={styles.section}>
@@ -438,8 +630,8 @@ export default function ReportsPage() {
 
             
 
-            <div className={styles.cards}>
-              <div className={styles.card}>
+            <div className={styles.cardsTransaction}>
+              <div className={styles.cardTransaction}>
                 <span>Total Transaksi</span>
 
                 <strong>
@@ -447,7 +639,7 @@ export default function ReportsPage() {
                 </strong>
               </div>
 
-              <div className={styles.card}>
+              <div className={styles.cardTransaction}>
                 <span>Pendapatan</span>
 
                 <strong>
@@ -511,25 +703,36 @@ export default function ReportsPage() {
               </div>
             )}
             <div className={styles.pagination}>
-              <button
-              onClick={() => setPage((prev) => prev - 1)}
-              disabled={page === 1}
-              >
-                Previous
-              </button>
+  <button
+    type="button"
+    onClick={() =>
+      setTransactionPage((prev) =>
+        Math.max(prev - 1, 1)
+      )
+    }
+    disabled={transactionPage === 1}
+  >
+    Previous
+  </button>
 
-              <span>
-                Halaman {page} dari {pagination.totalPages}
-              </span>
+  <span>
+    Halaman {transactionPagination.page} dari{" "}
+    {transactionPagination.totalPages || 1}
+  </span>
 
-              <button
-              onClick={() => setPage((prev) => prev + 1)}
-              disabled={page === pagination.totalPages}
-              >
-                Next
-              </button>
-
-            </div>
+  <button
+    type="button"
+    onClick={() =>
+      setTransactionPage((prev) => prev + 1)
+    }
+    disabled={
+      transactionPage >=
+      transactionPagination.totalPages
+    }
+  >
+    Next
+  </button>
+</div>
 
           </section>
         </main>

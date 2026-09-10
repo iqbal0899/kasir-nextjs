@@ -1,5 +1,5 @@
 import {
-  getProducts,
+  getActiveProducts,
   createProduct,
 } from "@/backend/service/product.service";
 
@@ -8,24 +8,40 @@ import jwt from "jsonwebtoken";
 
 import fs from "fs/promises";
 import path from "path";
+import { NextResponse } from "next/server";
 
 
-export async function GET() {
+export async function GET(request) {
   try {
-    const products = await getProducts();
+    const { searchParams } = new URL(request.url);
 
-    return Response.json({
+    const page = searchParams.get("page") || 1;
+    const limit = searchParams.get("limit") || 10;
+
+    const startDate = searchParams.get("startDate");
+    const endDate = searchParams.get("endDate");
+
+    const result = await getActiveProducts({
+      page,
+      limit,
+      startDate,
+      endDate,
+    });
+
+    return NextResponse.json({
       success: true,
-      data: products,
+      data: result.data,
+      pagination: result.pagination,
     });
   } catch (error) {
-    console.error("GET PRODUCTS ERROR:", error);
+    console.error("GET PRODUCT ERROR:", error);
 
-    return Response.json(
+    return NextResponse.json(
       {
         success: false,
-        message: "Gagal mengambil data produk",
-        error: error.message,
+        message:
+          error.message ||
+          "Gagal mengambil produk",
       },
       {
         status: 500,

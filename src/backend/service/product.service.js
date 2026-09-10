@@ -2,14 +2,6 @@ import { prisma } from "@/lib/prisma";
 
 export async function getProducts() {
   return await prisma.product.findMany({
-    orderBy: {
-      id: "asc",
-    },
-  });
-}
-
-export async function getActiveProducts() {
-  return await prisma.product.findMany({
     where: {
       isActive: true,
     },
@@ -17,6 +9,92 @@ export async function getActiveProducts() {
       id: "asc",
     },
   });
+}
+
+export async function getActiveProducts({
+  page = 1,
+  limit = 10,
+  startDate,
+  endDate,
+} = {}) {
+  const currentPage = Math.max(Number(page) || 1, 1);
+  const currentLimit = Math.max(Number(limit) || 10, 1);
+
+  const skip = (currentPage - 1) * currentLimit;
+
+  // Filter transaksi berdasarkan tanggal
+  const transactionDateFilter =
+    startDate || endDate
+      ? {
+          createdAt: {
+            ...(startDate
+              ? {
+                  gte: new Date(`${startDate}T00:00:00`),
+                }
+              : {}),
+            ...(endDate
+              ? {
+                  lte: new Date(`${endDate}T23:59:59.999`),
+                }
+              : {}),
+          },
+        }
+      : undefined;
+
+  const where = {
+    isActive: true,
+  };
+
+  const [products, total] = await Promise.all([
+    prisma.product.findMany({
+      where,
+      include: {
+        transactionItems: {
+          where: transactionDateFilter
+            ? {
+                transaction: transactionDateFilter,
+              }
+            : undefined,
+          select: {
+            quantity: true,
+          },
+        },
+      },
+      orderBy: {
+        id: "asc",
+      },
+      skip,
+      take: currentLimit,
+    }),
+
+    prisma.product.count({
+      where,
+    }),
+  ]);
+
+  const data = products.map((product) => {
+    const soldStock = product.transactionItems.reduce(
+      (total, item) =>
+        total + Number(item.quantity || 0),
+      0
+    );
+
+    return {
+      ...product,
+      soldStock,
+      transactionItems: undefined,
+    };
+  });
+
+  return {
+    data,
+    pagination: {
+      page: currentPage,
+      limit: currentLimit,
+      total,
+      totalPages: Math.ceil(total / currentLimit),
+    },
+  };
 }
 
 export async function getProductById(id) {
