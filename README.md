@@ -582,16 +582,16 @@ npm start
 
 Beberapa fitur yang dapat dikembangkan:
 
-* [ ] Dashboard analytics
+* [V] Dashboard analytics
 * [ ] Grafik penjualan
 * [V] Filter laporan berdasarkan tanggal
 * [ ] Export Excel
 * [V] Print receipt thermal printer
 * [ ] Barcode scanner
-* [ ] Product search
+* [V] Product search
 * [V] Pagination
 * [V] Rate limiting
-* [ ] Idempotency untuk mencegah double transaction
+* [V] Idempotency untuk mencegah double transaction
 * [ ] Audit log
 * [ ] WebSocket untuk real-time stock
 * [ ] Dark mode

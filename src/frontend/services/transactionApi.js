@@ -1,5 +1,7 @@
 const API_URL = "/api/v1/transactions";
 
+const idempotencyKey = crypto.randomUUID();
+
 export async function getTransactions() {
   try {
     const response = await fetch(API_URL, {
@@ -62,6 +64,7 @@ export async function createTransaction({
 
       headers: {
         "Content-Type": "application/json",
+        "Idempotency-Key": idempotencyKey,
       },
 
       credentials: "include",

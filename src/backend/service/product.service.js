@@ -2,9 +2,6 @@ import { prisma } from "@/lib/prisma";
 
 export async function getProducts() {
   return await prisma.product.findMany({
-    where: {
-      isActive: true,
-    },
     orderBy: {
       id: "asc",
     },
@@ -22,7 +19,6 @@ export async function getActiveProducts({
 
   const skip = (currentPage - 1) * currentLimit;
 
-  // Filter transaksi berdasarkan tanggal
   const transactionDateFilter =
     startDate || endDate
       ? {

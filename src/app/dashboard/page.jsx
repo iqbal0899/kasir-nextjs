@@ -446,54 +446,51 @@ export default function DashboardPage() {
             Belum ada transaksi.
           </div>
         ) : (
-          <div className={styles.transactionList}>
-            {recentTransactions.map(
-              (transaction) => (
-                <div
-                  className={
-                    styles.transactionItem
-                  }
-                  key={transaction.id}
-                >
-                  <div>
-                    <strong>
-                      Transaksi #{transaction.id}
-                    </strong>
+<div className={styles.transactionList}>
 
-                    <span>
-                      {formatDateTime(
-                        transaction.createdAt
-                      )}
-                    </span>
-                  </div>
+  {/* HEADER */}
+  <div className={styles.transactionHeader}>
+    <span>ID Transaksi</span>
+    <span>Kasir</span>
+    <span>Pembayaran</span>
+    <span>Total</span>
+    <span>Tanggal</span>
+  </div>
 
-                  <div>
-                    <span>
-                      {transaction.paymentMethod ===
-                      "cash"
-                        ? "Tunai"
-                        : transaction.paymentMethod ===
-                          "qris"
-                        ? "QRIS"
-                        : transaction.paymentMethod}
-                    </span>
+  {/* DATA */}
+  {dashboard.recentTransactions.map((transaction) => (
+    <div
+      className={styles.transactionItem}
+      key={transaction.id}
+    >
+      <span className={styles.transactionId}>
+        #{transaction.id}
+      </span>
 
-                    <strong>
-                      Rp{" "}
-                      {formatPrice(
-                        transaction.total
-                      )}
-                    </strong>
-                  </div>
+      <span className={styles.transactionCashier}>
+        {transaction.cashier || "-"}
+      </span>
 
-                  <span>
-                    Kasir:{" "}
-                    {transaction.cashier || "-"}
-                  </span>
-                </div>
-              )
-            )}
-          </div>
+      <span className={styles.transactionMethod}>
+        {transaction.paymentMethod || "-"}
+      </span>
+
+      <span className={styles.transactionTotal}>
+        Rp{" "}
+        {Number(transaction.total || 0).toLocaleString(
+          "id-ID"
+        )}
+      </span>
+
+      <span className={styles.transactionDate}>
+        {new Date(
+          transaction.createdAt
+        ).toLocaleString("id-ID")}
+      </span>
+    </div>
+  ))}
+
+</div>
         )}
       </section>
     </main>

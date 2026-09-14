@@ -1,62 +1,27 @@
-import {
-  getActiveProducts,
-  createProduct,
-} from "@/backend/service/product.service";
+import { restoreProduct } from "@/backend/service/product.service";
 
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 
-import fs from "fs/promises";
-import path from "path";
+import { createAuditLog } from "@/backend/service/audit.service";
+import { getClientIp } from "@/backend/utils/getClientIp";
+
 import { NextResponse } from "next/server";
 
 
-export async function GET(request) {
+export async function PATCH(request, { params }) {
   try {
-    const { searchParams } = new URL(request.url);
+    // ==========================================
+    // AUTH
+    // ==========================================
 
-    const page = searchParams.get("page") || 1;
-    const limit = searchParams.get("limit") || 10;
+    const cookieStore = await cookies();
 
-    const startDate = searchParams.get("startDate");
-    const endDate = searchParams.get("endDate");
-
-    const result = await getActiveProducts({
-      page,
-      limit,
-      startDate,
-      endDate,
-    });
-
-    return NextResponse.json({
-      success: true,
-      data: result.data,
-      pagination: result.pagination,
-    });
-  } catch (error) {
-    console.error("GET PRODUCT ERROR:", error);
-
-    return NextResponse.json(
-      {
-        success: false,
-        message:
-          error.message ||
-          "Gagal mengambil produk",
-      },
-      {
-        status: 500,
-      }
-    );
-  }
-}
-
-export async function POST(request) {
-  try {
-     const cookieStore = await cookies();
-    const token = cookieStore.get("token")?.value;
+    const token =
+      cookieStore.get("token")?.value;
 
     if (!token) {
-      return Response.json(
+      return NextResponse.json(
         {
           success: false,
           message: "Unauthorized",
@@ -67,64 +32,67 @@ export async function POST(request) {
       );
     }
 
-    const user = jwt.verify(
-      token,
-      process.env.JWT_SECRET
-    );
 
-    console.log("USER YANG MEMBUAT:", {
-      id: user.id,
-      username: user.username,
-      role: user.role,
-    });
+    // ==========================================
+    // VERIFY JWT
+    // ==========================================
 
-    const formData = await request.formData();
+    let user;
 
-    const name = formData.get("name");
-    const price = formData.get("price");
-    const stock = formData.get("stock");
-    const category = formData.get("category");
-    const image = formData.get("image");
-
-
-    if (!name || !name.trim()) {
-      return Response.json(
+    try {
+      user = jwt.verify(
+        token,
+        process.env.JWT_SECRET
+      );
+    } catch (error) {
+      return NextResponse.json(
         {
           success: false,
-          message: "Nama produk wajib diisi",
+          message:
+            "Token tidak valid atau sudah expired",
         },
         {
-          status: 400,
+          status: 401,
         }
       );
     }
 
-    // ========================================
-    // VALIDASI HARGA
-    // ========================================
 
-    if (!price) {
-      return Response.json(
+    // ==========================================
+    // ADMIN ONLY
+    // ==========================================
+
+    if (user.role !== "admin") {
+      return NextResponse.json(
         {
           success: false,
-          message: "Harga produk wajib diisi",
+          message:
+            "Hanya admin yang dapat mengaktifkan produk",
         },
         {
-          status: 400,
+          status: 403,
         }
       );
     }
 
-    const productPrice = Number(price);
+
+    // ==========================================
+    // GET ID
+    // ==========================================
+
+    const { id } = await params;
+
+    const productId = Number(id);
 
     if (
-      Number.isNaN(productPrice) ||
-      productPrice < 0
+      Number.isNaN(productId) ||
+      productId <= 0
     ) {
-      return Response.json(
+      return NextResponse.json(
         {
           success: false,
-          message: "Harga tidak valid",
+          message:
+            "ID product tidak valid",
         },
         {
           status: 400,
@@ -132,150 +100,94 @@ export async function POST(request) {
       );
     }
 
-    // ========================================
-    // VALIDASI STOCK
-    // ========================================
 
-    const productStock =
-      stock === ""
-        ? 0
-        : Number(stock);
+    // ==========================================
+    // RESTORE
+    // ==========================================
 
-    if (
-      Number.isNaN(productStock) ||
-      productStock < 0
-    ) {
-      return Response.json(
-        {
-          success: false,
-          message: "Stock tidak valid",
-        },
-        {
-          status: 400,
-        }
-      );
-    }
+    const product =
+      await restoreProduct(productId);
 
-    // ========================================
-    // UPLOAD IMAGE
-    // ========================================
 
-    let imagePath = null;
+    // ==========================================
+    // AUDIT LOG
+    // ==========================================
 
-    if (
-      image &&
-      typeof image !== "string" &&
-      image.size > 0
-    ) {
-      const allowedTypes = [
-        "image/jpeg",
-        "image/png",
-        "image/webp",
-      ];
+    await createAuditLog({
+      userId: user.id,
 
-      if (!allowedTypes.includes(image.type)) {
-        return Response.json(
-          {
-            success: false,
-            message:
-              "Format gambar harus JPG, PNG, atau WEBP",
-          },
-          {
-            status: 400,
-          }
-        );
-      }
+      username:
+        user.username,
 
-      if (image.size > 2 * 1024 * 1024) {
-        return Response.json(
-          {
-            success: false,
-            message:
-              "Ukuran gambar maksimal 2 MB",
-          },
-          {
-            status: 400,
-          }
-        );
-      }
+      role:
+        user.role,
 
-      const bytes = await image.arrayBuffer();
+      action:
+        "RESTORE_PRODUCT",
 
-      const buffer = Buffer.from(bytes);
+      entity:
+        "Product",
 
-      const extension = image.name
-        .split(".")
-        .pop()
-        .toLowerCase();
+      entityId:
+        product.id,
 
-      const fileName =
-        `${Date.now()}-${Math.random()
-          .toString(36)
-          .substring(2)}.${extension}`;
+      details: {
+        name:
+          product.name,
 
-      const uploadDir = path.join(
-        process.cwd(),
-        "public",
-        "products"
-      );
+        price:
+          Number(product.price),
 
-      await fs.mkdir(uploadDir, {
-        recursive: true,
-      });
+        stock:
+          product.stock,
 
-      const filePath = path.join(
-        uploadDir,
-        fileName
-      );
+        category:
+          product.category,
 
-      await fs.writeFile(
-        filePath,
-        buffer
-      );
+        isActive:
+          product.isActive,
 
-      imagePath =
-        `/products/${fileName}`;
-    }
-
-    const product = await createProduct({
-      name: name.trim(),
-      price: productPrice,
-      stock: productStock,
-      category:
-        category?.trim() || null,
-      image: imagePath,
-    });
-
-    console.log(
-      "PRODUK YANG DIBUAT:",
-      product,
-    );
-
-    return Response.json(
-      {
-        success: true,
         message:
-          "Produk berhasil ditambahkan",
-        data: product,
+          "Produk berhasil diaktifkan kembali",
       },
-      {
-        status: 201,
-      }
-    );
+
+      ipAddress:
+        getClientIp(request),
+
+      userAgent:
+        request.headers.get(
+          "user-agent"
+        ) || null,
+    });
+
+
+    // ==========================================
+    // RESPONSE
+    // ==========================================
+
+    return NextResponse.json({
+      success: true,
+
+      message:
+        "Product berhasil diaktifkan kembali",
+
+      data:
+        product,
+    });
+
   } catch (error) {
     console.error(
-      "CREATE PRODUCT ERROR:",
+      "RESTORE PRODUCT ERROR:",
       error
     );
 
-    
-
-    return Response.json(
+    return NextResponse.json(
       {
         success: false,
+
         message:
-          "Gagal menambahkan produk",
-        error: error.message,
+          error.message ||
+          "Gagal mengaktifkan product",
       },
       {
         status: 500,

@@ -6,6 +6,18 @@ import {
   getTransactions,
 } from "@/backend/service/transaction.service";
 
+import {
+  createAuditLog,
+} from "@/backend/service/audit.service";
+
+import {
+  getClientIp,
+} from "@/backend/utils/getClientIp";
+
+
+// =====================================================
+// GET TRANSACTIONS
+// =====================================================
 
 export async function GET(request) {
   try {
@@ -37,6 +49,7 @@ export async function GET(request) {
       data: result.transactions,
       pagination: result.pagination,
     });
+
   } catch (error) {
     console.error(
       "GET TRANSACTIONS ERROR:",
@@ -57,8 +70,17 @@ export async function GET(request) {
   }
 }
 
+
+// =====================================================
+// CREATE TRANSACTION
+// =====================================================
+
 export async function POST(request) {
   try {
+
+    // =================================================
+    // AUTHENTICATION
+    // =================================================
 
     const token =
       request.cookies.get("token")?.value;
@@ -67,14 +89,18 @@ export async function POST(request) {
       return NextResponse.json(
         {
           success: false,
-          message:
-            "Anda belum login",
+          message: "Anda belum login",
         },
         {
           status: 401,
         }
       );
     }
+
+
+    // =================================================
+    // VERIFY JWT
+    // =================================================
 
     let user;
 
@@ -83,7 +109,14 @@ export async function POST(request) {
         token,
         process.env.JWT_SECRET
       );
+
     } catch (error) {
+
+      console.error(
+        "JWT VERIFY ERROR:",
+        error
+      );
+
       return NextResponse.json(
         {
           success: false,
@@ -96,6 +129,39 @@ export async function POST(request) {
       );
     }
 
+
+    // =================================================
+    // IDEMPOTENCY KEY
+    // =================================================
+
+    const idempotencyKey =
+      request.headers.get(
+        "Idempotency-Key"
+      );
+
+    console.log(
+      "IDEMPOTENCY KEY:",
+      idempotencyKey
+    );
+
+    if (!idempotencyKey) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Idempotency-Key wajib dikirim",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+
+    // =================================================
+    // REQUEST BODY
+    // =================================================
+
     const body =
       await request.json();
 
@@ -105,30 +171,135 @@ export async function POST(request) {
       cashReceived,
     } = body;
 
+
+    console.log(
+      "DATA TRANSAKSI:",
+      {
+        paymentMethod,
+        cashReceived,
+        cashierId: user.id,
+        items,
+        idempotencyKey,
+      }
+    );
+
+
+    // =================================================
+    // CREATE TRANSACTION
+    // =================================================
+
     const transaction =
       await createTransaction({
         items,
         paymentMethod,
         cashReceived,
         cashierId: user.id,
+        idempotencyKey,
       });
 
-      console.log(
-        "TRANSAKSI BERHASIL DIBUAT:",
-        {paymentMethod, cashReceived, cashierId: user.id, items}
-      );
 
-      console.log("USER YANG MEMBUAT TRANSAKSI:",{ 
-        id: user.id, 
-        username: user.username, 
-        role: user.role 
-      });
+    // =================================================
+    // USER INFO
+    // =================================================
+
+    console.log(
+      "USER YANG MEMBUAT TRANSAKSI:",
+      {
+        id: user.id,
+        username: user.username,
+        role: user.role,
+      }
+    );
+
+
+    // =================================================
+    // AUDIT LOG
+    // =================================================
+
+    await createAuditLog({
+      userId:
+        user.id,
+
+      username:
+        user.username,
+
+      role:
+        user.role,
+
+      action:
+        "CREATE_TRANSACTION",
+
+      entity:
+        "Transaction",
+
+      entityId:
+        transaction.id,
+
+      details: {
+        totalAmount:
+          Number(
+            transaction.totalAmount
+          ),
+
+        paymentMethod:
+          transaction.paymentMethod,
+
+        cashReceived:
+          Number(
+            transaction.cashReceived || 0
+          ),
+
+        change:
+          Number(
+            transaction.change || 0
+          ),
+
+        idempotencyKey:
+          idempotencyKey,
+
+        itemCount:
+          Array.isArray(items)
+            ? items.length
+            : 0,
+
+        items:
+          Array.isArray(items)
+            ? items.map((item) => ({
+                productId:
+                  item.productId,
+
+                quantity:
+                  item.quantity,
+
+                price:
+                  Number(item.price),
+              }))
+            : [],
+      },
+
+      ipAddress:
+        getClientIp(request),
+
+      userAgent:
+        request.headers.get(
+          "user-agent"
+        ) || null,
+    });
+
+
+    // =================================================
+    // RESPONSE
+    // =================================================
+
     return NextResponse.json(
       {
         success: true,
+
         message:
           "Transaksi berhasil disimpan",
-        data: transaction,
+
+        data:
+          transaction,
       },
       {
         status: 201,
@@ -136,6 +307,7 @@ export async function POST(request) {
     );
 
   } catch (error) {
+
     console.error(
       "CREATE TRANSACTION ERROR:",
       error
@@ -144,6 +316,7 @@ export async function POST(request) {
     return NextResponse.json(
       {
         success: false,
+
         message:
           error.message ||
           "Gagal menyimpan transaksi",

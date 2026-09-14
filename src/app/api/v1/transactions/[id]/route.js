@@ -6,6 +6,9 @@ import {
   getTransactionById,
 } from "@/backend/service/transaction.service";
 
+import { createAuditLog } from "@/backend/service/audit.service";
+import { getClientIp } from "@/backend/utils/getClientIp";
+
 export async function GET(
   request,
   { params }
@@ -67,7 +70,6 @@ export async function GET(
       await getTransactionById(
         transactionId
       );
-
     if (!transaction) {
       return NextResponse.json(
         {
@@ -192,6 +194,25 @@ export async function DELETE(
       await deleteTransaction(
         transactionId
       );
+
+      await createAuditLog({
+  userId: user.id,
+  username: user.username,
+  role: user.role,
+  action: "DELETE_TRANSACTION",
+  entity: "Transaction",
+  entityId: transaction.id,
+  details: {
+    totalAmount: Number(transaction.totalAmount),
+    paymentMethod: transaction.paymentMethod,
+    cashReceived: Number(transaction.cashReceived || 0),
+    change: Number(transaction.change || 0),
+    cashierId: transaction.cashierId,
+    deletedBy: user.username,
+  },
+  ipAddress: getClientIp(request),
+  userAgent: request.headers.get("user-agent") || null,
+});
 
       console.log(
         "DELETE TRANSACTION:",

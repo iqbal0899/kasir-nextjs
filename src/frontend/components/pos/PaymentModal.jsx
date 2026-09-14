@@ -55,6 +55,8 @@ async function handleConfirm() {
         method === "cash"
           ? Math.max(change, 0)
           : 0,
+
+      idempotencyKey: crypto.randomUUID(),
     };
 
     await onConfirm?.(paymentData);
