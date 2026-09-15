@@ -52,25 +52,7 @@
         );
       }
 
-      await createAuditLog({
-  userId: user.id,
-  username: user.username,
-  role: user.role,
-
-  action: "LOGIN",
-
-  entity: "User",
-  entityId: user.id,
-
-  details: {
-    message: "User berhasil login",
-  },
-
-  ipAddress: getClientIp(request),
-
-  userAgent:
-    request.headers.get("user-agent") || null,
-});
+      
 
       const user = await prisma.user.findUnique({
         where: {
@@ -106,6 +88,26 @@
           }
         );
       }
+
+      await createAuditLog({
+  userId: user.id,
+  username: user.username,
+  role: user.role,
+
+  action: "LOGIN",
+
+  entity: "User",
+  entityId: user.id,
+
+  details: {
+    message: "User berhasil login",
+  },
+
+  ipAddress: getClientIp(request),
+
+  userAgent:
+    request.headers.get("user-agent") || null,
+});
 
       const token = jwt.sign(
         {

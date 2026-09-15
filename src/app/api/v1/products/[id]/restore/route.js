@@ -122,20 +122,16 @@ export async function PATCH(request, { params }) {
       details: {
         name: product.name,
 
-        price:
-          Number(product.price),
+        price: Number(product.price),
 
-        stock:
-          product.stock,
+        stock: product.stock,
 
-        category:
-          product.category,
+        category: product.category,
 
-        isActive:
-          product.isActive,
+        isActive: product.isActive,
 
         message:
-          "Product berhasil diaktifkan kembali",
+          "Produk berhasil diaktifkan kembali",
       },
 
       ipAddress:
@@ -155,7 +151,7 @@ export async function PATCH(request, { params }) {
       success: true,
 
       message:
-        "Product berhasil diaktifkan kembali",
+        "Produk berhasil diaktifkan kembali",
 
       data: product,
     });
@@ -171,10 +167,8 @@ export async function PATCH(request, { params }) {
         success: false,
 
         message:
-          "Gagal mengaktifkan product",
-
-        error:
-          error.message,
+          error.message ||
+          "Gagal mengaktifkan produk",
       },
       {
         status: 500,

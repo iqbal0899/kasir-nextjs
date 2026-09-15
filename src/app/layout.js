@@ -4,6 +4,7 @@ import ToastProvider from "@/frontend/components/shared/ToastProvider";
 export const metadata = {
   title: "POS App — Kasir",
   description: "Aplikasi kasir (Point of Sale) sederhana",
+  manifest: "/manifest.webmanifest",
 };
 
 export default function RootLayout({ children }) {

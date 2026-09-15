@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   ResponsiveContainer,
   LineChart,
@@ -12,64 +12,55 @@ import {
 } from "recharts";
 
 import styles from "../../frontend/css/dashboard.module.css";
+import { pusherClient } from "@/frontend/services/pusher";
 
 export default function DashboardPage() {
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-  const fetchDashboard = async () => {
+  // ==========================================
+  // FETCH DASHBOARD
+  // ==========================================
+
+  const fetchDashboard = useCallback(
+  async () => {
     try {
-      setLoading(true);
       setError("");
 
-      const response = await fetch(
-        "/api/v1/dashboard/analytics",
-        {
-          method: "GET",
-          credentials: "include",
-          cache: "no-store",
-        }
-      );
+const response = await fetch(
+  "/api/v1/dashboard/analytics",
+  {
+    method: "GET",
+    credentials: "include",
+    cache: "no-store",
+  }
+);
 
-      const contentType =
-        response.headers.get("content-type");
+console.log("PRODUCT STATUS:", response.status);
 
-      const responseText =
-        await response.text();
+const text = await response.text();
 
-      console.log(
-        "DASHBOARD STATUS:",
-        response.status
-      );
+console.log("PRODUCT RESPONSE:", text);
 
-      console.log(
-        "DASHBOARD CONTENT TYPE:",
-        contentType
-      );
+if (!response.ok) {
+  throw new Error(
+    `Products API error: ${response.status}`
+  );
+}
 
-      console.log(
-        "DASHBOARD RESPONSE:",
-        responseText
-      );
+if (!text.trim()) {
+  throw new Error(
+    "Products API mengembalikan response kosong"
+  );
+}
 
-      if (!response.ok) {
-        throw new Error(
-          `Dashboard API error: ${response.status}`
-        );
-      }
+const result = JSON.parse(text);
 
-      if (!responseText) {
-        throw new Error(
-          "Dashboard API mengembalikan response kosong"
-        );
-      }
-
-      const result =
-        JSON.parse(responseText);
+console.log("PRODUCT RESULT:", result);
 
       setDashboard(result.data);
+
     } catch (error) {
       console.error(
         "FETCH DASHBOARD ANALYTICS ERROR:",
@@ -80,16 +71,64 @@ export default function DashboardPage() {
         error.message ||
           "Gagal mengambil data dashboard"
       );
+
     } finally {
       setLoading(false);
     }
+  },
+  []
+);
+
+  // ==========================================
+  // INITIAL FETCH
+  // ==========================================
+
+  useEffect(() => {
+    fetchDashboard();
+  }, [fetchDashboard]);
+
+  // ==========================================
+  // PUSHER REALTIME
+  // ==========================================
+
+useEffect(() => {
+  const channel =
+    pusherClient.subscribe("dashboard");
+
+  const handleTransactionCreated = (data) => {
+    console.log(
+      "TRANSAKSI BARU:",
+      data
+    );
+
+    fetchDashboard();
   };
 
-  fetchDashboard();
-}, []);
+  channel.bind(
+    "transaction-created",
+    handleTransactionCreated
+  );
+
+  return () => {
+    channel.unbind(
+      "transaction-created",
+      handleTransactionCreated
+    );
+
+    pusherClient.unsubscribe(
+      "dashboard"
+    );
+  };
+}, [fetchDashboard]);
+
+  // ==========================================
+  // FORMAT
+  // ==========================================
 
   const formatPrice = (price) => {
-    return Number(price || 0).toLocaleString("id-ID");
+    return Number(price || 0).toLocaleString(
+      "id-ID"
+    );
   };
 
   const formatDate = (date) => {
@@ -113,6 +152,8 @@ export default function DashboardPage() {
       }
     );
   };
+
+  // ... lanjutkan JSX kamu yang sekarang
 
   if (loading) {
     return (
@@ -458,7 +499,7 @@ export default function DashboardPage() {
   </div>
 
   {/* DATA */}
-  {dashboard.recentTransactions.map((transaction) => (
+  {recentTransactions.map((transaction) => (
     <div
       className={styles.transactionItem}
       key={transaction.id}

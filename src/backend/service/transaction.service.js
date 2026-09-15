@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { pusherServer } from "@/lib/pusher";
 
 export async function createTransaction({
   items,
@@ -45,7 +46,11 @@ export async function createTransaction({
     );
   }
 
-  return await prisma.$transaction(
+  // ==========================================
+  // DATABASE TRANSACTION
+  // ==========================================
+
+  const transaction = await prisma.$transaction(
     async (tx) => {
 
       // ==========================================
@@ -84,11 +89,6 @@ export async function createTransaction({
           existingTransaction.id
         );
 
-        console.log(
-          "IDEMPOTENCY KEY:",
-          idempotencyKey
-        );
-
         return existingTransaction;
       }
 
@@ -110,9 +110,7 @@ export async function createTransaction({
             item.quantity ?? item.qty
           );
 
-          const price = Number(
-            item.price
-          );
+          const price = Number(item.price);
 
           if (
             !productId ||
@@ -294,6 +292,32 @@ export async function createTransaction({
       timeout: 20000,
     }
   );
+
+  // ==========================================
+  // PUSHER
+  // ==========================================
+
+  try {
+    await pusherServer.trigger(
+      "dashboard",
+      "transaction-created",
+      {
+        transactionId: transaction.id,
+      }
+    );
+
+    console.log(
+      "PUSHER: transaction-created terkirim"
+    );
+
+  } catch (error) {
+    console.error(
+      "PUSHER ERROR:",
+      error
+    );
+  }
+
+  return transaction;
 }
 
 export async function getTransactions({
