@@ -4,6 +4,8 @@
   import { cookies } from "next/headers";
   import { formatDate } from "@/shared/utils/formatDate";
   import {rateLimit} from "@/backend/utils/rateLimiter";
+  import { createAuditLog } from "@/backend/service/audit.service";
+  import { getClientIp } from "@/backend/utils/getClientIp";
 
   export async function POST(request) {
     try {
@@ -50,6 +52,8 @@
         );
       }
 
+      
+
       const user = await prisma.user.findUnique({
         where: {
           username,
@@ -84,6 +88,26 @@
           }
         );
       }
+
+      await createAuditLog({
+  userId: user.id,
+  username: user.username,
+  role: user.role,
+
+  action: "LOGIN",
+
+  entity: "User",
+  entityId: user.id,
+
+  details: {
+    message: "User berhasil login",
+  },
+
+  ipAddress: getClientIp(request),
+
+  userAgent:
+    request.headers.get("user-agent") || null,
+});
 
       const token = jwt.sign(
         {

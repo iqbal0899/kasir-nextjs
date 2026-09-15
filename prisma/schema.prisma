@@ -14,34 +14,37 @@ model User {
   createdAt    DateTime      @default(now())
   role         Role          @default(cashier)
   transactions Transaction[]
+  auditLogs    AuditLog[]
 }
 
 model Product {
-  id               Int               @id @default(autoincrement())
-  name             String
-  price            Decimal           @db.Decimal(12, 2)
-  stock            Int               @default(0)
-  category         String?
-  image            String?           @db.VarChar(255)
+  id       Int     @id @default(autoincrement())
+  name     String
+  price    Decimal @db.Decimal(12, 2)
+  stock    Int     @default(0)
+  category String?
+  image    String? @db.VarChar(255)
 
-  isActive         Boolean           @default(true)
+  isActive Boolean @default(true)
 
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   transactionItems TransactionItem[]
 }
 
 model Transaction {
-  id            Int               @id @default(autoincrement())
-  total         Decimal           @db.Decimal(12, 2)
-  paymentMethod String
-  cashReceived  Decimal           @db.Decimal(12, 2)
-  change        Decimal           @db.Decimal(12, 2)
-  createdAt     DateTime          @default(now())
-  cashierId     Int
-  cashier       User              @relation(fields: [cashierId], references: [id])
-  items         TransactionItem[]
+  id             Int      @id @default(autoincrement())
+  idempotencyKey String   @unique
+  totalAmount    Decimal  @db.Decimal(12, 2)
+  paymentMethod  String
+  cashReceived   Decimal  @db.Decimal(12, 2)
+  change         Decimal  @db.Decimal(12, 2)
+  cashierId      Int
+  createdAt      DateTime @default(now())
+
+  cashier User              @relation(fields: [cashierId], references: [id])
+  items   TransactionItem[]
 }
 
 model TransactionItem {
@@ -58,4 +61,30 @@ model TransactionItem {
 enum Role {
   admin
   cashier
+}
+
+model AuditLog {
+  id Int @id @default(autoincrement())
+
+  userId   Int?
+  username String?
+  role     Role?
+
+  action   String
+  entity   String?
+  entityId String?
+
+  details Json?
+
+  ipAddress String?
+  userAgent String?
+
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([action])
+  @@index([entity])
+  @@index([createdAt])
 }

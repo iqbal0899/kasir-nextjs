@@ -9,22 +9,37 @@ export async function getDashboardAnalytics() {
       revenueResult,
       lowStock,
     ] = await Promise.all([
+      // =========================
+      // TOTAL PRODUCTS
+      // =========================
       prisma.product.count(),
 
+      // =========================
+      // TOTAL STOCK
+      // =========================
       prisma.product.aggregate({
         _sum: {
           stock: true,
         },
       }),
 
+      // =========================
+      // TOTAL TRANSACTIONS
+      // =========================
       prisma.transaction.count(),
 
+      // =========================
+      // TOTAL REVENUE
+      // =========================
       prisma.transaction.aggregate({
         _sum: {
-          total: true,
+          totalAmount: true,
         },
       }),
 
+      // =========================
+      // LOW STOCK
+      // =========================
       prisma.product.count({
         where: {
           stock: {
@@ -41,6 +56,7 @@ export async function getDashboardAnalytics() {
     const startDate = new Date();
 
     startDate.setHours(0, 0, 0, 0);
+
     startDate.setDate(
       startDate.getDate() - 6
     );
@@ -54,7 +70,7 @@ export async function getDashboardAnalytics() {
         },
 
         select: {
-          total: true,
+          totalAmount: true,
           createdAt: true,
         },
 
@@ -72,8 +88,14 @@ export async function getDashboardAnalytics() {
 
       const key = [
         date.getFullYear(),
-        String(date.getMonth() + 1).padStart(2, "0"),
-        String(date.getDate()).padStart(2, "0"),
+        String(date.getMonth() + 1).padStart(
+          2,
+          "0"
+        ),
+        String(date.getDate()).padStart(
+          2,
+          "0"
+        ),
       ].join("-");
 
       if (!salesMap[key]) {
@@ -81,7 +103,7 @@ export async function getDashboardAnalytics() {
       }
 
       salesMap[key] += Number(
-        transaction.total || 0
+        transaction.totalAmount || 0
       );
     });
 
@@ -91,14 +113,21 @@ export async function getDashboardAnalytics() {
       const date = new Date();
 
       date.setHours(0, 0, 0, 0);
+
       date.setDate(
         date.getDate() - i
       );
 
       const key = [
         date.getFullYear(),
-        String(date.getMonth() + 1).padStart(2, "0"),
-        String(date.getDate()).padStart(2, "0"),
+        String(date.getMonth() + 1).padStart(
+          2,
+          "0"
+        ),
+        String(date.getDate()).padStart(
+          2,
+          "0"
+        ),
       ].join("-");
 
       salesChart.push({
@@ -181,7 +210,7 @@ export async function getDashboardAnalytics() {
         by: ["paymentMethod"],
 
         _sum: {
-          total: true,
+          totalAmount: true,
         },
 
         _count: {
@@ -194,7 +223,7 @@ export async function getDashboardAnalytics() {
         method: item.paymentMethod,
 
         total: Number(
-          item._sum.total || 0
+          item._sum.totalAmount || 0
         ),
 
         count: item._count.id,
@@ -214,7 +243,7 @@ export async function getDashboardAnalytics() {
 
         select: {
           id: true,
-          total: true,
+          totalAmount: true,
           paymentMethod: true,
           createdAt: true,
 
@@ -226,6 +255,10 @@ export async function getDashboardAnalytics() {
         },
       });
 
+    // =========================
+    // RETURN
+    // =========================
+
     return {
       summary: {
         totalProducts,
@@ -236,7 +269,7 @@ export async function getDashboardAnalytics() {
         totalTransactions,
 
         totalRevenue: Number(
-          revenueResult._sum.total || 0
+          revenueResult._sum.totalAmount || 0
         ),
 
         lowStock,
@@ -254,7 +287,7 @@ export async function getDashboardAnalytics() {
             id: transaction.id,
 
             total: Number(
-              transaction.total || 0
+              transaction.totalAmount || 0
             ),
 
             paymentMethod:

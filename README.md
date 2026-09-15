@@ -1,273 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# 🛒 POS Kasir — Toko Iqbal
 
-## Getting Started
+Aplikasi **Point of Sale (POS)** berbasis web untuk membantu pengelolaan penjualan, produk, stok, pengguna, transaksi, dashboard analytics, dan laporan.
 
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
-Product
-# 🛒 POS Kasir — Point of Sale Management System
-
-Aplikasi **Point of Sale (POS)** berbasis web yang digunakan untuk membantu proses transaksi penjualan, pengelolaan produk, stok, pengguna, dan laporan penjualan.
-
-Project ini dikembangkan menggunakan **Next.js** dengan arsitektur full-stack, sehingga frontend dan backend berada dalam satu aplikasi.
+Project ini dibangun menggunakan **Next.js App Router** dengan pendekatan full-stack, sehingga frontend dan backend API berada dalam satu aplikasi.
 
 ---
 
-## Features
+## 📌 Overview
 
-### Authentication & Authorization
+**POS Kasir — Toko Iqbal** menyediakan sistem kasir dengan fitur:
 
-* Login dan logout pengguna
-* Authentication menggunakan JWT
-* Role-based access control
-* Role **Admin** dan **Cashier**
-* Protected dashboard dan API endpoint
-
-### Product Management
-
-* Menampilkan daftar produk
-* Menambahkan produk
-* Mengubah data produk
-* Menghapus produk
-* Pengelolaan harga dan stok
-* Kategori produk
-* Dukungan gambar produk
-
-### Point of Sale
-
-* Menampilkan produk untuk transaksi
-* Menambahkan produk ke keranjang
-* Mengatur quantity produk
-* Perhitungan subtotal otomatis
-* Perhitungan total transaksi
-* Input pembayaran pelanggan
-* Perhitungan kembalian
-* Pemilihan metode pembayaran
-
-### Transaction Management
-
-* Membuat transaksi
-* Menampilkan riwayat transaksi
-* Melihat detail transaksi
-* Menyimpan informasi kasir
-* Menyimpan detail produk yang dibeli
-* Update stok setelah transaksi
-
-### Reports
-
-* Laporan produk
-* Laporan transaksi
-* Ringkasan data penjualan
-* Export laporan dalam format PDF
-
-### 👥 User Management
-
-* Menampilkan daftar pengguna
-* Menambahkan pengguna
-* Mengubah role pengguna
-* Menghapus pengguna
-* Pengelolaan role Admin dan Cashier
-
-### 📱 Responsive UI
-
-* Responsive untuk desktop
-* Responsive untuk tablet
-* Responsive untuk smartphone
-* Sidebar navigation
-* Dashboard layout
+* 🔐 Authentication & Authorization
+* 👥 Role-based Access Control
+* 📦 Product Management
+* 🛒 Point of Sale
+* 💳 Multiple Payment Methods
+* 📊 Dashboard Analytics
+* 🧾 Transaction Management
+* 📄 PDF Reports
+* 🔍 Product Search
+* 📑 Pagination
+* 🛡️ Rate Limiting
+* 🔑 JWT Authentication
+* 📝 Audit Log
+* 🔄 Idempotency untuk mencegah transaksi ganda
+* ⚡ Real-time update menggunakan Pusher
+* 📱 Responsive UI
+* 📲 Progressive Web App (PWA)
+* 🧮 Server-side transaction calculation
 
 ---
 
-## 🛠️ Tech Stack
+# ✨ Features
 
-### Frontend
+## 🔐 Authentication & Authorization
 
-* **Next.js**
-* **React.js**
-* **CSS Modules**
-* **Lucide React**
-* **SweetAlert2**
-* **React Toastify**
+Sistem authentication menggunakan JWT.
 
-### Backend
+Features:
 
-* **Next.js API Routes**
-* **Node.js**
-* **Prisma ORM**
-* **JWT**
-* **bcrypt**
+* Login
+* Logout
+* JWT Authentication
+* HTTP Cookie Authentication
+* Password hashing menggunakan bcrypt
+* Role-based authorization
+* Protected API endpoint
+* Protected dashboard
+* Admin role
+* Cashier role
+* Automatic session expiration
+* Rate limiting pada login
+* reCAPTCHA protection
 
-### Database
-
-* **PostgreSQL**
-* **Neon PostgreSQL**
-
-### Tools
-
-* **Git**
-* **GitHub**
-* **VS Code**
-* **Postman**
-* **Prisma Studio**
-
----
-
-## Architecture
-
-Project menggunakan pendekatan full-stack menggunakan Next.js.
-
-```text
-┌─────────────────────────────┐
-│          Frontend           │
-│                             │
-│  React + Next.js            │
-│  CSS Modules                │
-│  POS / Dashboard / Reports  │
-└──────────────┬──────────────┘
-               │
-               │ HTTP Request
-               ▼
-┌─────────────────────────────┐
-│          Backend            │
-│                             │
-│  Next.js API Routes         │
-│  Authentication             │
-│  Authorization              │
-│  Business Logic             │
-└──────────────┬──────────────┘
-               │
-               │ Prisma ORM
-               ▼
-┌─────────────────────────────┐
-│          Database           │
-│                             │
-│     PostgreSQL / Neon       │
-└─────────────────────────────┘
-```
-
----
-
-## Project Structure
-
-```text
-src/
-│
-├── app/
-│   ├── api/
-│   │   └── v1/
-│   │       ├── users/
-│   │       ├── products/
-│   │       ├── transactions/
-│   │       └── reports/
-│   │
-│   ├── auth/
-│   │   └── login/
-│   │
-│   ├── dashboard/
-│   │   ├── products/
-│   │   ├── transactions/
-│   │   ├── users/
-│   │   ├── reports/
-│   │   └── layout.jsx
-│   │
-│   └── pos/
-│       └── pos/
-│
-├── backend/
-│   ├── service/
-│   │   ├── auth.service.js
-│   │   ├── product.service.js
-│   │   └── transaction.service.js
-│   │
-│   └── utils/
-│       └── pdfGenerator.js
-│
-├── frontend/
-│   ├── components/
-│   │   ├── Sidebar/
-│   │   ├── Navbar/
-│   │   ├── ProductGrid/
-│   │   ├── CartSidebar/
-│   │   ├── PaymentModal/
-│   │   └── ReceiptModal/
-│   │
-│   └── services/
-│       ├── authApi.js
-│       └── transactionApi.js
-│
-└── shared/
-    └── utils/
-        └── formatCurrency.js
-
-prisma/
-└── schema.prisma
-
-public/
-└── images/
-```
-
----
-
-## Authentication Flow
-
-Authentication menggunakan JWT.
-
-```text
-User
- │
- │ Login
- ▼
-Login API
- │
- ├── Validate username
- ├── Validate password
- └── Generate JWT
- │
- ▼
-Authentication Cookie
- │
- ▼
-Protected API
- │
- ├── Verify JWT
- └── Check User Role
- │
- ▼
-Allow / Reject Request
-```
-
-Role yang tersedia:
+### Role
 
 | Role    | Access                   |
 | ------- | ------------------------ |
@@ -276,35 +62,79 @@ Role yang tersedia:
 
 ---
 
-## Transaction Flow
+# 👥 User Management
 
-Proses transaksi:
+Admin dapat mengelola pengguna aplikasi.
 
-```text
-Select Product
-      ↓
-Add to Cart
-      ↓
-Set Quantity
-      ↓
-Calculate Subtotal
-      ↓
-Calculate Total
-      ↓
-Payment
-      ↓
-Calculate Change
-      ↓
-Create Transaction
-      ↓
-Create Transaction Items
-      ↓
-Update Product Stock
-      ↓
-Transaction Completed
-```
+Features:
 
-Perhitungan transaksi dilakukan berdasarkan data produk yang tersimpan di database.
+* Menampilkan user
+* Membuat user
+* Mengubah user
+* Mengubah role
+* Menghapus user
+* Password hashing
+* Role management
+* Audit log aktivitas user
+
+---
+
+# 📦 Product Management
+
+Admin dapat mengelola seluruh data produk.
+
+Features:
+
+* Tambah produk
+* Edit produk
+* Hapus produk
+* Restore produk
+* Soft delete
+* Product search
+* Pagination
+* Kategori produk
+* Harga produk
+* Stok produk
+* Upload gambar produk
+* Product status
+* Validasi harga
+* Validasi stok
+* Validasi image
+
+### Product Status
+
+|  Stock | Status       |
+| -----: | ------------ |
+|   > 30 | Tersedia     |
+| 1 - 30 | Stok Menipis |
+|      0 | Stok Habis   |
+
+Product menggunakan **soft delete**, sehingga produk yang dihapus tidak langsung hilang dari database dan dapat dipulihkan.
+
+---
+
+# 🛒 Point of Sale
+
+POS digunakan oleh kasir untuk melakukan transaksi.
+
+Features:
+
+* Menampilkan produk aktif
+* Product search
+* Menambahkan produk ke cart
+* Mengubah quantity
+* Menghapus item dari cart
+* Perhitungan subtotal
+* Perhitungan total
+* Input pembayaran
+* Perhitungan kembalian
+* Cash payment
+* QRIS payment
+* Validasi stok
+* Update stok otomatis
+* Receipt / struk transaksi
+
+### Transaction Calculation
 
 ```text
 Subtotal = Product Price × Quantity
@@ -314,13 +144,482 @@ Total = Σ Subtotal
 Change = Cash Received - Total
 ```
 
+Perhitungan transaksi dilakukan kembali di server untuk mencegah manipulasi harga atau total dari client.
+
 ---
 
-## Database
+# 💳 Payment Method
 
-Database menggunakan **PostgreSQL** dengan Prisma ORM.
+Saat ini sistem mendukung:
 
-Model utama:
+* 💵 Cash
+* 📱 QRIS
+
+Payment method disimpan pada database bersama informasi transaksi.
+
+---
+
+# 🧾 Transaction Management
+
+Admin dapat melihat dan mengelola transaksi.
+
+Features:
+
+* Membuat transaksi
+* Transaction history
+* Transaction detail
+* Transaction pagination
+* Filter berdasarkan tanggal
+* Informasi kasir
+* Transaction items
+* Product information
+* Total transaksi
+* Payment method
+* Cash received
+* Change
+* Update stock
+* Receipt
+
+---
+
+# 🔐 Idempotency
+
+Transaction API menggunakan **idempotency key** untuk mencegah transaksi yang sama diproses lebih dari satu kali.
+
+Contoh kasus:
+
+```text
+User klik "Bayar"
+        ↓
+Request dikirim
+        ↓
+Network lambat
+        ↓
+User klik "Bayar" lagi
+        ↓
+Request kedua masuk
+```
+
+Tanpa idempotency:
+
+```text
+Transaction #1
+Transaction #2
+```
+
+Dengan idempotency:
+
+```text
+Request #1 → Transaction created
+
+Request #2 → Existing transaction returned
+```
+
+Hal ini membantu mencegah **double transaction**.
+
+---
+
+# 📝 Audit Log
+
+Aktivitas penting user dicatat menggunakan audit log.
+
+Contoh aktivitas:
+
+```text
+CREATE_PRODUCT
+UPDATE_PRODUCT
+DELETE_PRODUCT
+ACTIVATE_PRODUCT
+DEACTIVATE_PRODUCT
+CREATE_TRANSACTION
+LOGIN
+LOGOUT
+```
+
+Informasi yang dapat dicatat:
+
+* User ID
+* Username
+* Role
+* Action
+* Entity
+* Entity ID
+* Detail aktivitas
+* IP Address
+* User Agent
+* Timestamp
+
+Contoh:
+
+```text
+USER YANG MEMBUAT:
+{
+  id: 1,
+  username: "admin",
+  role: "admin"
+}
+
+PRODUK YANG DIBUAT:
+{
+  id: 10,
+  name: "Indomie Goreng",
+  price: 3500,
+  stock: 50
+}
+```
+
+---
+
+# ⚡ Real-time Update
+
+Dashboard menggunakan **Pusher** untuk menerima event secara real-time.
+
+Flow:
+
+```text
+Cashier
+   │
+   │ Create Transaction
+   ▼
+Transaction API
+   │
+   ▼
+PostgreSQL
+   │
+   │ Transaction Success
+   ▼
+Pusher
+   │
+   │ transaction-created
+   ▼
+Dashboard
+   │
+   ▼
+Refresh Analytics
+```
+
+Pusher digunakan sebagai **notification/event layer**, bukan sebagai database.
+
+Contoh event:
+
+```text
+transaction-created
+```
+
+Dashboard kemudian melakukan request ulang ke API analytics untuk mendapatkan data terbaru.
+
+---
+
+# 📊 Dashboard Analytics
+
+Dashboard menyediakan informasi statistik penjualan.
+
+Contoh informasi:
+
+* Total transaksi
+* Total revenue
+* Total produk
+* Total stok
+* Produk terlaris
+* Penjualan berdasarkan periode
+* Grafik penjualan
+
+Visualisasi menggunakan **Recharts**.
+
+---
+
+# 📄 Reports
+
+Aplikasi menyediakan laporan dalam format PDF.
+
+Jenis laporan:
+
+### Product Report
+
+Berisi:
+
+* Product ID
+* Product name
+* Category
+* Price
+* Stock
+* Product status
+
+### Transaction Report
+
+Berisi:
+
+* Transaction ID
+* Cashier
+* Total
+* Payment method
+* Cash received
+* Change
+* Transaction date
+
+### Combined Report
+
+Menggabungkan:
+
+* Product report
+* Transaction report
+* Summary
+
+Endpoint:
+
+```text
+GET /api/v1/reports/pdf
+```
+
+Parameter:
+
+```text
+type=product
+type=transaction
+type=all
+```
+
+Filter tanggal:
+
+```text
+startDate=2026-01-01
+endDate=2026-01-31
+```
+
+Contoh:
+
+```text
+/api/v1/reports/pdf?type=transaction&startDate=2026-01-01&endDate=2026-01-31
+```
+
+---
+
+# 🧾 Receipt / Thermal Printer
+
+Sistem menyediakan tampilan receipt setelah transaksi selesai.
+
+Receipt dapat digunakan untuk kebutuhan printer thermal.
+
+Flow:
+
+```text
+Transaction
+     ↓
+Receipt Modal
+     ↓
+Print
+     ↓
+Thermal Printer
+```
+
+---
+
+# 📱 Responsive UI
+
+Interface dibuat responsive untuk:
+
+* Desktop
+* Laptop
+* Tablet
+* Smartphone
+
+Komponen utama:
+
+* Navbar
+* Sidebar
+* Dashboard
+* Product Grid
+* Cart Sidebar
+* Payment Modal
+* Receipt Modal
+* Product Management
+* Transaction Management
+* User Management
+* Reports
+
+---
+
+# 📲 Progressive Web App
+
+Project juga memiliki konfigurasi PWA.
+
+Komponen PWA:
+
+```text
+public/
+├── manifest.webmanifest
+├── sw.js
+└── icons/
+    ├── icon-192.png
+    └── icon-512.png
+```
+
+PWA memungkinkan aplikasi memiliki pengalaman seperti aplikasi mobile.
+
+---
+
+# 🧱 Architecture
+
+Project menggunakan arsitektur full-stack menggunakan Next.js.
+
+```text
+┌──────────────────────────────────┐
+│            Frontend              │
+│                                  │
+│ React + Next.js                  │
+│ Dashboard                        │
+│ POS                              │
+│ Products                         │
+│ Transactions                     │
+│ Reports                          │
+└────────────────┬─────────────────┘
+                 │
+                 │ HTTP Request
+                 ▼
+┌──────────────────────────────────┐
+│             Backend              │
+│                                  │
+│ Next.js API Routes               │
+│ Authentication                   │
+│ Authorization                    │
+│ Business Logic                   │
+│ Validation                       │
+│ Rate Limiting                    │
+│ Audit Log                        │
+└────────────────┬─────────────────┘
+                 │
+                 │ Prisma ORM
+                 ▼
+┌──────────────────────────────────┐
+│            Database              │
+│                                  │
+│ PostgreSQL / Neon                │
+└──────────────────────────────────┘
+```
+
+Real-time communication:
+
+```text
+Backend
+   │
+   ▼
+ Pusher
+   │
+   ▼
+Frontend Dashboard
+```
+
+---
+
+# 📂 Project Structure
+
+```text
+kasir-nextjs/
+│
+├── prisma/
+│   ├── schema.prisma
+│   └── migrations/
+│
+├── public/
+│   ├── icons/
+│   │   ├── icon-192.png
+│   │   └── icon-512.png
+│   ├── manifest.webmanifest
+│   └── sw.js
+│
+├── src/
+│   │
+│   ├── app/
+│   │   ├── api/
+│   │   │   └── v1/
+│   │   │       ├── dashboard/
+│   │   │       │   └── analytics/
+│   │   │       ├── products/
+│   │   │       │   ├── route.js
+│   │   │       │   └── [id]/
+│   │   │       │       ├── route.js
+│   │   │       │       └── restore/
+│   │   │       ├── transactions/
+│   │   │       │   ├── route.js
+│   │   │       │   └── [id]/
+│   │   │       ├── users/
+│   │   │       └── reports/
+│   │   │           └── pdf/
+│   │   │
+│   │   ├── auth/
+│   │   │   └── login/
+│   │   │
+│   │   ├── dashboard/
+│   │   │   ├── products/
+│   │   │   ├── transactions/
+│   │   │   ├── users/
+│   │   │   └── page.jsx
+│   │   │
+│   │   ├── reports/
+│   │   │   └── page.jsx
+│   │   │
+│   │   └── page.jsx
+│   │
+│   ├── backend/
+│   │   ├── service/
+│   │   │   ├── auth.service.js
+│   │   │   ├── product.service.js
+│   │   │   ├── transaction.service.js
+│   │   │   ├── user.service.js
+│   │   │   └── audit.service.js
+│   │   │
+│   │   └── utils/
+│   │       ├── rateLimit.js
+│   │       ├── getClientIp.js
+│   │       └── pdfGenerator.js
+│   │
+│   ├── frontend/
+│   │   ├── components/
+│   │   │   ├── Navbar/
+│   │   │   ├── Sidebar/
+│   │   │   ├── ProductGrid/
+│   │   │   ├── CartSidebar/
+│   │   │   ├── PaymentModal/
+│   │   │   └── ReceiptModal/
+│   │   │
+│   │   ├── services/
+│   │   │   ├── authApi.js
+│   │   │   ├── productApi.js
+│   │   │   ├── transactionApi.js
+│   │   │   └── pusher.js
+│   │   │
+│   │   └── css/
+│   │
+│   ├── lib/
+│   │   ├── prisma.js
+│   │   └── pusher.js
+│   │
+│   ├── generated/
+│   │   └── prisma/
+│   │
+│   └── shared/
+│       └── utils/
+│           ├── formatCurrency.js
+│           └── formatDate.js
+│
+├── .env
+├── .gitignore
+├── next.config.js
+├── package.json
+└── README.md
+```
+
+---
+
+# 🗄️ Database
+
+Database menggunakan:
+
+* PostgreSQL
+* Neon PostgreSQL
+* Prisma ORM
+
+Relasi utama:
 
 ```text
 User
@@ -332,9 +631,11 @@ User
                 └── Product
 ```
 
-### User
+---
 
-Menyimpan data pengguna aplikasi.
+## User
+
+Menyimpan data pengguna.
 
 ```text
 id
@@ -342,9 +643,19 @@ username
 password
 role
 createdAt
+updatedAt
 ```
 
-### Product
+Role:
+
+```text
+admin
+cashier
+```
+
+---
+
+## Product
 
 Menyimpan data produk.
 
@@ -355,13 +666,18 @@ price
 stock
 category
 image
+isActive
 createdAt
 updatedAt
 ```
 
-### Transaction
+`isActive` digunakan untuk soft delete.
 
-Menyimpan data transaksi.
+---
+
+## Transaction
+
+Menyimpan transaksi penjualan.
 
 ```text
 id
@@ -370,12 +686,15 @@ paymentMethod
 cashReceived
 change
 cashierId
+idempotencyKey
 createdAt
 ```
 
-### TransactionItem
+---
 
-Menyimpan detail produk pada setiap transaksi.
+## TransactionItem
+
+Menyimpan detail produk pada transaksi.
 
 ```text
 id
@@ -388,78 +707,147 @@ subtotal
 
 ---
 
-##  Installation
-
-### 1. Clone Repository
-
-```bash
-git clone https://github.com/username/pos-kasir.git
-```
-
-Masuk ke directory project:
-
-```bash
-cd pos-kasir
-```
-
-### 2. Install Dependencies
-
-```bash
-npm install
-```
-
-### 3. Setup Environment Variables
-
-Buat file:
+# 🔄 Transaction Flow
 
 ```text
-.env
+Select Product
+       ↓
+Add to Cart
+       ↓
+Set Quantity
+       ↓
+Calculate Subtotal
+       ↓
+Calculate Total
+       ↓
+Payment
+       ↓
+Validate Stock
+       ↓
+Validate Payment
+       ↓
+Check Idempotency Key
+       ↓
+Create Transaction
+       ↓
+Create Transaction Items
+       ↓
+Update Product Stock
+       ↓
+Commit Database Transaction
+       ↓
+Create Audit Log
+       ↓
+Trigger Pusher Event
+       ↓
+Transaction Completed
 ```
 
-Kemudian masukkan konfigurasi:
+Database transaction menggunakan Prisma transaction untuk menjaga konsistensi data.
 
-```env
-DATABASE_URL="your_postgresql_database_url"
+---
 
-JWT_SECRET="your_secret_key"
+# 🔐 Security
 
-JWT_EXPIRES_IN="1d"
-```
+Security yang diterapkan:
 
+* JWT Authentication
+* HTTP Cookie Authentication
+* bcrypt password hashing
+* Role-based Authorization
+* Protected API
+* Server-side validation
+* Database validation
+* Rate limiting
+* reCAPTCHA
+* Idempotency
+* Audit logging
+* Stock validation
+* Server-side price validation
+* Server-side total calculation
+* Prisma transaction
+* PostgreSQL database
 
-### 4. Setup Prisma
+### Prinsip penting
 
-Generate Prisma Client:
+Data dari client tidak langsung dipercaya.
 
-```bash
-npx prisma generate
-```
-
-Jalankan migration:
-
-```bash
-npx prisma migrate dev
-```
-
-### 5. Jalankan Development Server
-
-```bash
-npm run dev
-```
-
-Aplikasi dapat diakses melalui:
+Contohnya:
 
 ```text
-http://localhost:3000
+price
+total
+stock
+cashierId
+subtotal
+quantity
+```
+
+Server melakukan validasi dan perhitungan ulang sebelum menyimpan transaksi.
+
+---
+
+# 🚦 Rate Limiting
+
+Login API menggunakan rate limiting untuk membantu mencegah brute-force attack.
+
+Contoh konsep:
+
+```text
+Login attempt
+      ↓
+Rate limiter
+      ↓
+Allowed?
+  ┌───┴───┐
+ YES      NO
+  ↓        ↓
+Login    Reject
+```
+
+Jika jumlah percobaan melebihi batas, request akan ditolak sementara.
+
+---
+
+# 🤖 reCAPTCHA
+
+Login dapat dilindungi menggunakan **Google reCAPTCHA v3** untuk membantu mendeteksi aktivitas otomatis/bot.
+
+Flow:
+
+```text
+Login Form
+    ↓
+reCAPTCHA
+    ↓
+Token
+    ↓
+Login API
+    ↓
+Verify Token
+    ↓
+Authentication
 ```
 
 ---
 
-## API
+# ⏱️ Session Expiration
 
-Beberapa endpoint utama:
+JWT digunakan dengan expiration time untuk membatasi masa berlaku session.
 
-### Authentication
+Contoh konfigurasi:
+
+```env
+JWT_EXPIRES_IN="12h"
+```
+
+Dengan konfigurasi tersebut, token akan expired setelah 12 jam.
+
+---
+
+# 🌐 API Endpoints
+
+## Authentication
 
 ```text
 POST /api/v1/users/login
@@ -467,16 +855,24 @@ POST /api/v1/users/register
 POST /api/v1/users/logout
 ```
 
-### Products
+---
+
+## Products
 
 ```text
 GET    /api/v1/products
 POST   /api/v1/products
+
+GET    /api/v1/products/:id
 PATCH  /api/v1/products/:id
 DELETE /api/v1/products/:id
+
+PATCH  /api/v1/products/:id/restore
 ```
 
-### Users
+---
+
+## Users
 
 ```text
 GET    /api/v1/users
@@ -485,7 +881,9 @@ PATCH  /api/v1/users/:id
 DELETE /api/v1/users/:id
 ```
 
-### Transactions
+---
+
+## Transactions
 
 ```text
 GET  /api/v1/transactions
@@ -493,84 +891,377 @@ POST /api/v1/transactions
 GET  /api/v1/transactions/:id
 ```
 
-### Reports
+---
+
+## Dashboard
+
+```text
+GET /api/v1/dashboard/analytics
+```
+
+---
+
+## Reports
 
 ```text
 GET /api/v1/reports/pdf
 ```
 
----
+Parameter:
 
-##  Security
-
-Beberapa mekanisme keamanan yang diterapkan:
-
-* JWT authentication
-* Password hashing menggunakan bcrypt
-* Role-based authorization
-* Protected API endpoints
-* Server-side validation
-* Database validation menggunakan Prisma
-* Transaction database menggunakan Prisma transaction
-* Validasi stok sebelum transaksi
-* Perhitungan total transaksi di server
-* Database menggunakan PostgreSQL
-
-### Important
-
-Data penting seperti:
-
-* harga produk
-* total transaksi
-* stok
-* cashier ID
-* subtotal
-
-sebaiknya tidak dipercaya langsung dari client.
-
-Server harus melakukan validasi dan perhitungan ulang sebelum menyimpan transaksi.
+```text
+type=product
+type=transaction
+type=all
+```
 
 ---
 
-##  PDF Reports
+# 📚 Libraries & Dependencies
 
-Aplikasi menyediakan fitur untuk membuat laporan dalam format PDF menggunakan **PDFKit**.
+Berikut library utama yang digunakan dalam project.
 
-Jenis laporan meliputi:
+## Core
+
+### Next.js
+
+Framework utama untuk frontend dan backend.
+
+```bash
+npm install next
+```
+
+### React
+
+Library UI.
+
+```bash
+npm install react react-dom
+```
+
+---
+
+# 🗄️ Database & ORM
+
+### Prisma
+
+ORM untuk PostgreSQL.
+
+```bash
+npm install prisma @prisma/client
+```
+
+Project menggunakan Prisma PostgreSQL adapter:
+
+```bash
+npm install @prisma/adapter-pg pg
+```
+
+Generate Prisma Client:
+
+```bash
+npx prisma generate
+```
+
+Migration:
+
+```bash
+npx prisma migrate dev
+```
+
+---
+
+# 🔐 Authentication & Security
+
+### JSON Web Token
+
+Digunakan untuk authentication.
+
+```bash
+npm install jsonwebtoken
+```
+
+### bcrypt
+
+Digunakan untuk hashing password.
+
+```bash
+npm install bcrypt
+```
+
+### reCAPTCHA
+
+Digunakan untuk perlindungan login terhadap bot dan automated requests.
+
+---
+
+# 🎨 UI & Styling
+
+### CSS Modules
+
+Digunakan untuk styling component/page secara modular.
+
+Next.js sudah mendukung CSS Modules secara built-in.
+
+### Lucide React
+
+Icon library.
+
+```bash
+npm install lucide-react
+```
+
+### SweetAlert2
+
+Digunakan untuk dialog, confirmation, dan notification.
+
+```bash
+npm install sweetalert2
+```
+
+### React Toastify
+
+Digunakan untuk toast notification.
+
+```bash
+npm install react-toastify
+```
+
+---
+
+# 📊 Data Visualization
+
+### Recharts
+
+Digunakan untuk dashboard analytics dan grafik penjualan.
+
+```bash
+npm install recharts
+```
+
+Contoh chart:
+
+```text
+Sales
+  │
+  │        ╭──╮
+  │   ╭────╯  ╰──╮
+  │───╯           ╰──
+  └──────────────────
+       Date
+```
+
+---
+
+# 📄 PDF
+
+### PDFKit
+
+Digunakan untuk membuat laporan PDF.
+
+```bash
+npm install pdfkit
+```
+
+Digunakan untuk:
 
 * Product Report
 * Transaction Report
 * Combined Report
 
-Contoh penggunaan:
+---
+
+# ⚡ Real-time
+
+### Pusher
+
+Server-side Pusher.
+
+```bash
+npm install pusher
+```
+
+### Pusher JS
+
+Client-side Pusher.
+
+```bash
+npm install pusher-js
+```
+
+Digunakan untuk real-time notification/event seperti:
 
 ```text
-Reports
-   ↓
-Select Report
-   ↓
-Generate PDF
-   ↓
-PDF Report
+transaction-created
 ```
 
 ---
 
-## Development
+# 🛡️ Rate Limiting
 
-Menjalankan development server:
+Project menggunakan utility rate limiting pada backend untuk membatasi request tertentu, terutama login.
+
+Contoh:
+
+```text
+Login API
+    ↓
+Rate Limiter
+    ↓
+Allowed / Blocked
+```
+
+---
+
+# 📱 PWA
+
+Project menggunakan:
+
+* Web App Manifest
+* Service Worker
+* PWA Icons
+
+File:
+
+```text
+public/manifest.webmanifest
+public/sw.js
+public/icons/icon-192.png
+public/icons/icon-512.png
+```
+
+---
+
+# 🧰 Development Tools
+
+Tools yang digunakan selama development:
+
+* VS Code
+* Git
+* GitHub
+* Postman
+* Prisma Studio
+* Chrome DevTools
+* Vercel
+* Neon PostgreSQL
+
+---
+
+# 📦 Installation
+
+## 1. Clone Repository
+
+```bash
+git clone https://github.com/iqbal0899/kasir-nextjs.git
+```
+
+Masuk ke project:
+
+```bash
+cd kasir-nextjs
+```
+
+---
+
+# 2. Install Dependencies
+
+```bash
+npm install
+```
+
+---
+
+# 3. Environment Variables
+
+Buat file:
+
+```text
+.env
+```
+
+Contoh:
+
+```env
+DATABASE_URL="your_postgresql_database_url"
+
+JWT_SECRET="your_secret_key"
+
+JWT_EXPIRES_IN="12h"
+
+NEXT_PUBLIC_PUSHER_KEY="your_pusher_key"
+
+PUSHER_APP_ID="your_pusher_app_id"
+
+PUSHER_SECRET="your_pusher_secret"
+
+PUSHER_CLUSTER="your_pusher_cluster"
+
+NEXT_PUBLIC_RECAPTCHA_SITE_KEY="your_recaptcha_site_key"
+
+RECAPTCHA_SECRET_KEY="your_recaptcha_secret_key"
+```
+
+> Jangan commit `.env` ke GitHub.
+
+---
+
+# 4. Generate Prisma Client
+
+```bash
+npx prisma generate
+```
+
+---
+
+# 5. Database Migration
+
+Development:
+
+```bash
+npx prisma migrate dev
+```
+
+Production:
+
+```bash
+npx prisma migrate deploy
+```
+
+---
+
+# 6. Prisma Studio
+
+Untuk melihat database:
+
+```bash
+npx prisma studio
+```
+
+---
+
+# 7. Jalankan Development Server
 
 ```bash
 npm run dev
 ```
 
-Build production:
+Aplikasi berjalan pada:
+
+```text
+http://localhost:5000
+```
+
+---
+
+# 🏗️ Build Production
+
+Build aplikasi:
 
 ```bash
 npm run build
 ```
 
-Menjalankan production:
+Jalankan production:
 
 ```bash
 npm start
@@ -578,69 +1269,175 @@ npm start
 
 ---
 
-## Future Improvements
+# 🧪 Testing API
 
-Beberapa fitur yang dapat dikembangkan:
+API dapat diuji menggunakan:
 
-* [ ] Dashboard analytics
-* [ ] Grafik penjualan
-* [V] Filter laporan berdasarkan tanggal
-* [ ] Export Excel
-* [V] Print receipt thermal printer
-* [ ] Barcode scanner
-* [ ] Product search
-* [V] Pagination
-* [V] Rate limiting
-* [ ] Idempotency untuk mencegah double transaction
-* [ ] Audit log
-* [ ] WebSocket untuk real-time stock
-* [ ] Dark mode
-* [ ] Progressive Web App (PWA)
+* Postman
+* Browser
+* Chrome DevTools
+* REST Client
 
----
-
-## Project Goals
-
-Project ini dibuat untuk mengimplementasikan konsep **Full-Stack Web Development**, termasuk:
-
-* Frontend development
-* Backend API development
-* Database design
-* Authentication
-* Authorization
-* REST API
-* ORM
-* Transaction management
-* State management
-* Responsive UI
-* Report generation
-* Deployment
-
----
-
-## Developer
-
-**Muhammad Iqbal**
-
-Full-Stack Web Developer
-
-Skills:
+Contoh:
 
 ```text
-Next.js
-React.js
-Node.js
-Prisma
-PostgreSQL
-JavaScript
-REST API
-JWT
-Git
-GitHub
+POST /api/v1/products
+POST /api/v1/transactions
+GET  /api/v1/products
+GET  /api/v1/transactions
 ```
 
 ---
 
-## License
+# 🚀 Deployment
 
-This project is developed for learning, portfolio, and educational purposes.
+Project dapat di-deploy menggunakan Vercel.
+
+Production flow:
+
+```text
+GitHub
+   ↓
+Push Code
+   ↓
+Vercel
+   ↓
+npm run build
+   ↓
+Prisma Generate
+   ↓
+Next.js Build
+   ↓
+Production
+```
+
+Database menggunakan PostgreSQL/Neon.
+
+---
+
+# ⚠️ Production Notes
+
+File upload sebaiknya tidak disimpan langsung ke filesystem server menggunakan:
+
+```text
+/public/products
+```
+
+karena filesystem pada platform serverless seperti Vercel bersifat ephemeral/read-only pada bagian tertentu.
+
+Untuk production, gunakan object storage seperti:
+
+* Vercel Blob
+* Cloudinary
+* Amazon S3
+* Storage provider lainnya
+
+Database hanya menyimpan URL gambar.
+
+---
+
+# 📈 Future Improvements
+
+Roadmap pengembangan:
+
+* [x] Dashboard analytics
+* [x] Grafik penjualan
+* [x] Filter laporan berdasarkan tanggal
+* [x] Print receipt
+* [x] Product search
+* [x] Pagination
+* [x] Rate limiting
+* [x] Idempotency
+* [x] Audit log
+* [x] Real-time update
+* [x] PWA basic setup
+* [x] Soft delete product
+* [x] Restore product
+* [ ] Export Excel
+* [ ] Barcode scanner
+* [ ] Dark mode
+* [ ] Cloud image storage
+* [ ] Automated testing
+* [ ] Unit testing
+* [ ] Integration testing
+* [ ] E2E testing
+
+---
+
+# 🎯 Project Goals
+
+Project ini dibuat untuk menerapkan konsep **Full-Stack Web Development**, meliputi:
+
+* Frontend Development
+* Backend Development
+* REST API
+* Database Design
+* PostgreSQL
+* Prisma ORM
+* Authentication
+* Authorization
+* JWT
+* Password Hashing
+* Role-based Access Control
+* API Security
+* Rate Limiting
+* Idempotency
+* Audit Logging
+* Database Transactions
+* Real-time Communication
+* State Management
+* Responsive UI
+* PWA
+* PDF Generation
+* Deployment
+
+---
+
+# 👨‍💻 Developer
+
+## Muhammad Iqbal
+
+**Full-Stack Web Developer**
+
+### Skills
+
+```text
+Next.js
+React.js
+JavaScript
+Node.js
+Prisma
+PostgreSQL
+Neon
+REST API
+JWT
+bcrypt
+Pusher
+Recharts
+Git
+GitHub
+Vercel
+```
+
+---
+
+# 📄 License
+
+Project ini dikembangkan untuk:
+
+* Learning
+* Portfolio
+* Educational purposes
+* Full-Stack Web Development practice
+
+---
+
+# ⭐ Support
+
+Jika project ini bermanfaat, jangan lupa memberikan ⭐ pada repository GitHub.
+
+Repository:
+
+```text
+https://github.com/iqbal0899/kasir-nextjs
+```

@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import Swal from "sweetalert2";
+
 import { formatCurrency } from "@/shared/utils/formatCurrency";
 import { formatDate } from "@/shared/utils/formatDate";
 
@@ -12,199 +12,255 @@ import styles from "@/frontend/css/transactions.module.css";
 export default function TransactionPage() {
   const router = useRouter();
 
-  const [transactions, setTransactions] =
-    useState([]);
+  const [transactions, setTransactions] = useState([]);
 
-  const [loading, setLoading] =
-    useState(true);
+  // Loading halaman hanya untuk pertama kali
+  const [loading, setLoading] = useState(true);
 
-  const [error, setError] =
-    useState("");
+  // Loading khusus tabel
+  const [tableLoading, setTableLoading] = useState(false);
 
-  const [search, setSearch] =
-    useState("");
+  const [error, setError] = useState("");
+
+  const [search, setSearch] = useState("");
 
   const [page, setPage] = useState(1);
 
   const [limit, setLimit] = useState(10);
 
-  const [pagination, setPagination] =
-    useState({
-      total: 0,
-      totalPages: 0,
-    });
+  const [pagination, setPagination] = useState({
+    total: 0,
+    totalPages: 0,
+  });
 
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-const fetchTransactions = async () => {
-  try {
-    setLoading(true);
-    setError("");
+  // Untuk membedakan request pertama dengan request berikutnya
+  const firstRender = useRef(true);
 
-    const params = new URLSearchParams({
-      page: String(page),
-      limit: String(limit),
-    });
+  // =====================================================
+  // FETCH TRANSACTIONS
+  // =====================================================
 
-    if (startDate) {
-      params.append("startDate", startDate);
-    }
-
-    if (endDate) {
-      params.append("endDate", endDate);
-    }
-
-    const response = await fetch(
-      `/api/v1/transactions?${params.toString()}`,
-      {
-        method: "GET",
-        cache: "no-store",
+  const fetchTransactions = async ({
+    initial = false,
+    currentPage = page,
+    currentStartDate = startDate,
+    currentEndDate = endDate,
+  } = {}) => {
+    try {
+      if (initial) {
+        setLoading(true);
+      } else {
+        setTableLoading(true);
       }
-    );
 
-    const result = await response.json();
+      setError("");
 
-    if (!response.ok) {
-      throw new Error(
-        result.message ||
-          "Gagal mengambil data transaksi"
-      );
-    }
+      const params = new URLSearchParams({
+        page: String(currentPage),
+        limit: String(limit),
+      });
 
-    setTransactions(result.data || []);
-
-    setPagination(
-      result.pagination || {
-        page: 1,
-        limit: 10,
-        total: 0,
-        totalPages: 0,
+      if (currentStartDate) {
+        params.append("startDate", currentStartDate);
       }
-    );
 
-  } catch (error) {
-    console.error(
-      "FETCH TRANSACTIONS ERROR:",
-      error
-    );
+      if (currentEndDate) {
+        params.append("endDate", currentEndDate);
+      }
 
-    setError(
-      error.message ||
-        "Gagal mengambil data transaksi"
-    );
-
-  } finally {
-    setLoading(false);
-  }
-};
-
-
-
-  useEffect(() => {
-    fetchTransactions();
-  }, [page]);
-
-
-  const formatCurrency = (value) => {
-    return Number(
-      value || 0
-    ).toLocaleString("id-ID");
-  };
-
-  const formatDate = (value) => {
-    if (!value) {
-      return "-";
-    }
-
-    return new Date(
-      value
-    ).toLocaleString("id-ID", {
-      dateStyle: "medium",
-      timeStyle: "short",
-    });
-  };
-
-  const filteredTransactions =
-    transactions.filter(
-      (transaction) => {
-
-        const keyword =
-          search
-            .toLowerCase()
-            .trim();
-
-        if (!keyword) {
-          return true;
+      const response = await fetch(
+        `/api/v1/transactions?${params.toString()}`,
+        {
+          method: "GET",
+          cache: "no-store",
+          credentials: "include",
         }
+      );
 
-        const id =
-          String(
-            transaction.id || ""
-          ).toLowerCase();
+      const result = await response.json();
 
-        const username =
-          String(
-            transaction.cashier
-              ?.username || ""
-          ).toLowerCase();
-
-        const paymentMethod =
-          String(
-            transaction.paymentMethod ||
-              ""
-          ).toLowerCase();
-
-        return (
-          id.includes(keyword) ||
-          username.includes(keyword) ||
-          paymentMethod.includes(keyword)
+      if (!response.ok) {
+        throw new Error(
+          result.message || "Gagal mengambil data transaksi"
         );
       }
-    );
 
-    
+      setTransactions(result.data || []);
+
+      setPagination(
+        result.pagination || {
+          page: currentPage,
+          limit,
+          total: 0,
+          totalPages: 0,
+        }
+      );
+    } catch (error) {
+      console.error(
+        "FETCH TRANSACTIONS ERROR:",
+        error
+      );
+
+      setError(
+        error.message ||
+          "Gagal mengambil data transaksi"
+      );
+    } finally {
+      if (initial) {
+        setLoading(false);
+      } else {
+        setTableLoading(false);
+      }
+    }
+  };
+
+  // =====================================================
+  // INITIAL FETCH + PAGINATION
+  // =====================================================
+
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+
+      fetchTransactions({
+        initial: true,
+      });
+
+      return;
+    }
+
+    // Perubahan page hanya refresh table
+    fetchTransactions({
+      initial: false,
+    });
+  }, [page]);
+
+  // =====================================================
+  // FILTER
+  // =====================================================
+
+  const handleFilter = () => {
+    // Kalau sedang di halaman selain 1,
+    // kembalikan ke halaman 1.
+    //
+    // useEffect [page] akan melakukan fetch.
+    if (page !== 1) {
+      setPage(1);
+      return;
+    }
+
+    // Kalau sudah halaman 1,
+    // langsung refresh table.
+    fetchTransactions({
+      initial: false,
+      currentPage: 1,
+      currentStartDate: startDate,
+      currentEndDate: endDate,
+    });
+  };
+
+  // =====================================================
+  // RESET FILTER
+  // =====================================================
+
+  const handleResetFilter = () => {
+    setStartDate("");
+    setEndDate("");
+
+    if (page !== 1) {
+      setPage(1);
+      return;
+    }
+
+    // Karena state masih belum tentu berubah saat fungsi ini
+    // dijalankan, kirim value kosong secara langsung.
+    fetchTransactions({
+      initial: false,
+      currentPage: 1,
+      currentStartDate: "",
+      currentEndDate: "",
+    });
+  };
+
+  // =====================================================
+  // REFRESH
+  // =====================================================
+
+  const handleRefresh = () => {
+    fetchTransactions({
+      initial: false,
+    });
+  };
+
+  // =====================================================
+  // SEARCH
+  // =====================================================
+
+  const filteredTransactions = transactions.filter(
+    (transaction) => {
+      const keyword = search
+        .toLowerCase()
+        .trim();
+
+      if (!keyword) {
+        return true;
+      }
+
+      const id = String(
+        transaction.id || ""
+      ).toLowerCase();
+
+      const username = String(
+        transaction.cashier?.username || ""
+      ).toLowerCase();
+
+      const paymentMethod = String(
+        transaction.paymentMethod || ""
+      ).toLowerCase();
+
+      return (
+        id.includes(keyword) ||
+        username.includes(keyword) ||
+        paymentMethod.includes(keyword)
+      );
+    }
+  );
+
+  // =====================================================
+  // DELETE
+  // =====================================================
 
   const handleDelete = async (id) => {
-
     const confirmation =
       await Swal.fire({
         title: "Hapus transaksi?",
         text:
           "Transaksi yang dihapus tidak dapat dikembalikan.",
         icon: "warning",
-
         showCancelButton: true,
-
-        confirmButtonText:
-          "Ya, Hapus",
-
-        cancelButtonText:
-          "Batal",
-
+        confirmButtonText: "Ya, Hapus",
+        cancelButtonText: "Batal",
         reverseButtons: true,
       });
-
 
     if (!confirmation.isConfirmed) {
       return;
     }
 
-
     try {
-
-      const response =
-        await fetch(
-          `/api/v1/transactions/${id}`,
-          {
-            method: "DELETE",
-          }
-        );
-
+      const response = await fetch(
+        `/api/v1/transactions/${id}`,
+        {
+          method: "DELETE",
+          credentials: "include",
+        }
+      );
 
       const result =
         await response.json();
-
 
       if (!response.ok) {
         throw new Error(
@@ -213,15 +269,12 @@ const fetchTransactions = async () => {
         );
       }
 
-
-      setTransactions(
-        (prev) =>
-          prev.filter(
-            (transaction) =>
-              transaction.id !== id
-          )
+      setTransactions((prev) =>
+        prev.filter(
+          (transaction) =>
+            transaction.id !== id
+        )
       );
-
 
       await Swal.fire({
         title: "Berhasil!",
@@ -230,15 +283,11 @@ const fetchTransactions = async () => {
         icon: "success",
         confirmButtonText: "OK",
       });
-
-
     } catch (error) {
-
       console.error(
         "DELETE TRANSACTION ERROR:",
         error
       );
-
 
       Swal.fire({
         title: "Gagal!",
@@ -248,14 +297,15 @@ const fetchTransactions = async () => {
         icon: "error",
         confirmButtonText: "OK",
       });
-
     }
   };
 
+  // =====================================================
+  // SUMMARY
+  // =====================================================
 
   const totalTransaction =
     transactions.length;
-
 
   const totalSales =
     transactions.reduce(
@@ -267,18 +317,23 @@ const fetchTransactions = async () => {
       0
     );
 
+  // =====================================================
+  // INITIAL LOADING
+  // =====================================================
 
   if (loading) {
     return (
       <main className={styles.container}>
-
         <div className={styles.message}>
           Memuat data transaksi...
         </div>
-
       </main>
     );
   }
+
+  // =====================================================
+  // RENDER
+  // =====================================================
 
   return (
     <main className={styles.container}>
@@ -286,9 +341,7 @@ const fetchTransactions = async () => {
       {/* HEADER */}
 
       <div className={styles.header}>
-
         <div>
-
           <h1 className={styles.title}>
             Transaksi
           </h1>
@@ -297,20 +350,19 @@ const fetchTransactions = async () => {
             Kelola seluruh transaksi
             penjualan.
           </p>
-
         </div>
-
 
         <button
           type="button"
           className={styles.refreshButton}
-          onClick={fetchTransactions}
+          onClick={handleRefresh}
+          disabled={tableLoading}
         >
-          Refresh
+          {tableLoading
+            ? "Memuat..."
+            : "Refresh"}
         </button>
-
       </div>
-
 
       {/* ERROR */}
 
@@ -320,13 +372,10 @@ const fetchTransactions = async () => {
         </div>
       )}
 
-
       {/* SUMMARY */}
 
       <div className={styles.summary}>
-
         <div className={styles.summaryCard}>
-
           <span>
             Total Transaksi
           </span>
@@ -334,12 +383,9 @@ const fetchTransactions = async () => {
           <strong>
             {totalTransaction}
           </strong>
-
         </div>
 
-
         <div className={styles.summaryCard}>
-
           <span>
             Total Penjualan
           </span>
@@ -347,309 +393,273 @@ const fetchTransactions = async () => {
           <strong>
             Rp {formatCurrency(totalSales)}
           </strong>
+        </div>
+      </div>
+
+      {/* TOOLBAR */}
+
+      <div className={styles.toolbar}>
+
+        <div className={styles.filterContainer}>
+
+          <div className={styles.filterGroup}>
+            <label htmlFor="startDate">
+              Dari tanggal
+            </label>
+
+            <input
+              id="startDate"
+              type="date"
+              value={startDate}
+              onChange={(e) =>
+                setStartDate(e.target.value)
+              }
+            />
+          </div>
+
+          <div className={styles.filterGroup}>
+            <label htmlFor="endDate">
+              Sampai tanggal
+            </label>
+
+            <input
+              id="endDate"
+              type="date"
+              value={endDate}
+              onChange={(e) =>
+                setEndDate(e.target.value)
+              }
+            />
+          </div>
+
+          <button
+            type="button"
+            className={styles.filterButton}
+            onClick={handleFilter}
+            disabled={tableLoading}
+          >
+            {tableLoading
+              ? "Memuat..."
+              : "Filter"}
+          </button>
+
+          <button
+            type="button"
+            className={styles.resetButton}
+            onClick={handleResetFilter}
+            disabled={tableLoading}
+          >
+            Reset
+          </button>
 
         </div>
 
+        <input
+          type="text"
+          className={styles.searchInput}
+          placeholder="Cari transaksi..."
+          value={search}
+          onChange={(e) =>
+            setSearch(e.target.value)
+          }
+        />
+
       </div>
 
+      {/* TABLE AREA */}
 
-      {/* SEARCH */}
+      <div className={styles.tableWrapper}>
 
-      
+        {tableLoading ? (
 
-     <div className={styles.toolbar}>
-  <div className={styles.filterContainer}>
-    <div className={styles.filterGroup}>
-      <label htmlFor="startDate">
-        Dari tanggal
-      </label>
-
-      <input
-        id="startDate"
-        type="date"
-        value={startDate}
-        onChange={(e) =>
-          setStartDate(e.target.value)
-        }
-      />
-    </div>
-
-    <div className={styles.filterGroup}>
-      <label htmlFor="endDate">
-        Sampai tanggal
-      </label>
-
-      <input
-        id="endDate"
-        type="date"
-        value={endDate}
-        onChange={(e) =>
-          setEndDate(e.target.value)
-        }
-      />
-    </div>
-
-    <button
-      className={styles.filterButton}
-      onClick={fetchTransactions}
-    >
-      Filter
-    </button>
-
-    <button
-      className={styles.resetButton}
-      onClick={() => {
-        setStartDate("");
-        setEndDate("");
-      }}
-    >
-      Reset
-    </button>
-  </div>
-
-  <input
-    type="text"
-    className={styles.searchInput}
-    placeholder="Cari transaksi..."
-    value={search}
-    onChange={(e) => setSearch(e.target.value)}
-  />
-</div>
-
-
-      {/* EMPTY */}
-
-      {!error &&
-        filteredTransactions.length === 0 && (
           <div className={styles.message}>
+            Memuat transaksi...
+          </div>
 
+        ) : error ? (
+
+          <div className={styles.message}>
+            Gagal memuat transaksi.
+          </div>
+
+        ) : filteredTransactions.length === 0 ? (
+
+          <div className={styles.message}>
             {search
               ? "Transaksi tidak ditemukan."
               : "Belum ada transaksi."}
-
           </div>
-        )}
 
+        ) : (
 
-      {/* TABLE */}
+          <table className={styles.table}>
 
-      {!error &&
-        filteredTransactions.length > 0 && (
+            <thead>
+              <tr>
+                <th>No.</th>
+                <th>ID</th>
+                <th>Tanggal</th>
+                <th>Kasir</th>
+                <th>Total</th>
+                <th>Pembayaran</th>
+                <th>Diterima</th>
+                <th>Kembalian</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
 
-          <div
-            className={
-              styles.tableWrapper
-            }
-          >
+            <tbody>
 
-            <table className={styles.table}>
+              {filteredTransactions.map(
+                (transaction, index) => (
 
-              <thead>
+                  <tr
+                    key={transaction.id}
+                  >
 
-                <tr>
+                    <td>
+                      {index + 1}
+                    </td>
 
-                  <th>
-                    No.
-                  </th>
+                    <td>
+                      #{transaction.id}
+                    </td>
 
-                  <th>
-                    ID
-                  </th>
+                    <td>
+                      {formatDate(
+                        transaction.createdAt
+                      )}
+                    </td>
 
-                  <th>
-                    Tanggal
-                  </th>
+                    <td>
+                      {transaction.cashier
+                        ?.username || "-"}
+                    </td>
 
-                  <th>
-                    Kasir
-                  </th>
-
-                  <th>
-                    Total
-                  </th>
-
-                  <th>
-                    Pembayaran
-                  </th>
-
-                  <th>
-                    Diterima
-                  </th>
-
-                  <th>
-                    Kembalian
-                  </th>
-
-                  <th>
-                    Aksi
-                  </th>
-
-                </tr>
-
-              </thead>
-
-
-              <tbody>
-
-                {filteredTransactions.map(
-                  (transaction) => (
-
-                    <tr
-                      key={
-                        transaction.id
+                    <td
+                      className={
+                        styles.total
                       }
                     >
+                      Rp{" "}
+                      {formatCurrency(
+                        transaction.total
+                      )}
+                    </td>
 
-                      <td>
-                        {
-                          filteredTransactions.indexOf(transaction) + 1
-                        }
-                      </td>
-
-                      <td>
-                        #
-                        {
-                          transaction.id
-                        }
-                      </td>
-
-
-                      <td>
-                        {formatDate(
-                          transaction.createdAt
-                        )}
-                      </td>
-
-
-                      <td>
-                        {
-                          transaction
-                            .cashier
-                            ?.username ||
-                          "-"
-                        }
-                      </td>
-
-
-                      <td
+                    <td>
+                      <span
                         className={
-                          styles.total
+                          styles.paymentBadge
                         }
                       >
-                        Rp{" "}
-                        {formatCurrency(
-                          transaction.total
-                        )}
-                      </td>
+                        {transaction.paymentMethod ||
+                          "-"}
+                      </span>
+                    </td>
 
+                    <td>
+                      Rp{" "}
+                      {formatCurrency(
+                        transaction.cashReceived
+                      )}
+                    </td>
 
-                      <td>
-                        <span
+                    <td>
+                      Rp{" "}
+                      {formatCurrency(
+                        transaction.change
+                      )}
+                    </td>
+
+                    <td>
+                      <div
+                        className={
+                          styles.actions
+                        }
+                      >
+
+                        <button
+                          type="button"
                           className={
-                            styles.paymentBadge
+                            styles.detailButton
+                          }
+                          onClick={() =>
+                            router.push(
+                              `/dashboard/transactions/${transaction.id}`
+                            )
                           }
                         >
-                          {
-                            transaction
-                              .paymentMethod ||
-                            "-"
-                          }
-                        </span>
-                      </td>
+                          Detail
+                        </button>
 
-
-                      <td>
-                        Rp{" "}
-                        {formatCurrency(
-                          transaction
-                            .cashReceived
-                        )}
-                      </td>
-
-
-                      <td>
-                        Rp{" "}
-                        {formatCurrency(
-                          transaction.change
-                        )}
-                      </td>
-
-
-                      <td>
-
-                        <div
+                        <button
+                          type="button"
                           className={
-                            styles.actions
+                            styles.deleteButton
+                          }
+                          onClick={() =>
+                            handleDelete(
+                              transaction.id
+                            )
                           }
                         >
+                          Hapus
+                        </button>
 
-                          <button
-                            type="button"
-                            className={
-                              styles.detailButton
-                            }
-                            onClick={() =>
-                              router.push(
-                                `/dashboard/transactions/${transaction.id}`
-                              )
-                            }
-                          >
-                            Detail
-                          </button>
+                      </div>
+                    </td>
 
+                  </tr>
 
-                          <button
-                            type="button"
-                            className={
-                              styles.deleteButton
-                            }
-                            onClick={() =>
-                              handleDelete(
-                                transaction.id
-                              )
-                            }
-                          >
-                            Hapus
-                          </button>
+                )
+              )}
 
-                        </div>
+            </tbody>
 
-                      </td>
-
-                    </tr>
-
-                  )
-                )}
-
-              </tbody>
-
-            </table>
-
-          </div>
+          </table>
 
         )}
 
-        <div className={styles.pagination}>
-  <button
-    onClick={() => setPage((prev) => prev - 1)}
-    disabled={page === 1}
-  >
-    Previous
-  </button>
+      </div>
 
-  <span>
-    Halaman {page} dari {pagination.totalPages}
-  </span>
+      {/* PAGINATION */}
 
-  <button
-    onClick={() => setPage((prev) => prev + 1)}
-    disabled={page === pagination.totalPages}
-  >
-    Next
-  </button>
-</div>
+      <div className={styles.pagination}>
+
+        <button
+          type="button"
+          onClick={() =>
+            setPage((prev) => prev - 1)
+          }
+          disabled={
+            page === 1 || tableLoading
+          }
+        >
+          Previous
+        </button>
+
+        <span>
+          Halaman {page} dari{" "}
+          {pagination.totalPages}
+        </span>
+
+        <button
+          type="button"
+          onClick={() =>
+            setPage((prev) => prev + 1)
+          }
+          disabled={
+            page === pagination.totalPages ||
+            pagination.totalPages === 0 ||
+            tableLoading
+          }
+        >
+          Next
+        </button>
+
+      </div>
 
     </main>
   );
 }
-
