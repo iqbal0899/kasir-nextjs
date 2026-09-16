@@ -33,8 +33,8 @@ export default function TransactionPage() {
     totalPages: 0,
   });
 
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [startDateTransaction, setStartDateTransaction] = useState("");
+  const [endDateTransaction, setEndDateTransaction] = useState("");
 
   // Untuk membedakan request pertama dengan request berikutnya
   const firstRender = useRef(true);
@@ -46,8 +46,8 @@ export default function TransactionPage() {
   const fetchTransactions = async ({
     initial = false,
     currentPage = page,
-    currentStartDate = startDate,
-    currentEndDate = endDate,
+    currentStartDateTransaction = startDateTransaction,
+    currentEndDateTransaction = endDateTransaction,
   } = {}) => {
     try {
       if (initial) {
@@ -63,12 +63,12 @@ export default function TransactionPage() {
         limit: String(limit),
       });
 
-      if (currentStartDate) {
-        params.append("startDate", currentStartDate);
+      if (currentStartDateTransaction) {
+        params.append("startDateTransaction", currentStartDateTransaction);
       }
 
-      if (currentEndDate) {
-        params.append("endDate", currentEndDate);
+      if (currentEndDateTransaction) {
+        params.append("endDateTransaction", currentEndDateTransaction);
       }
 
       const response = await fetch(
@@ -157,8 +157,8 @@ export default function TransactionPage() {
     fetchTransactions({
       initial: false,
       currentPage: 1,
-      currentStartDate: startDate,
-      currentEndDate: endDate,
+      currentStartDateTransaction: startDateTransaction,
+      currentEndDateTransaction: endDateTransaction,
     });
   };
 
@@ -167,8 +167,8 @@ export default function TransactionPage() {
   // =====================================================
 
   const handleResetFilter = () => {
-    setStartDate("");
-    setEndDate("");
+    setStartDateTransaction("");
+    setEndDateTransaction("");
 
     if (page !== 1) {
       setPage(1);
@@ -180,8 +180,8 @@ export default function TransactionPage() {
     fetchTransactions({
       initial: false,
       currentPage: 1,
-      currentStartDate: "",
-      currentEndDate: "",
+      currentStartDateTransaction: "",
+      currentEndDateTransaction: "",
     });
   };
 
@@ -410,9 +410,9 @@ export default function TransactionPage() {
             <input
               id="startDate"
               type="date"
-              value={startDate}
+              value={startDateTransaction}
               onChange={(e) =>
-                setStartDate(e.target.value)
+                setStartDateTransaction(e.target.value)
               }
             />
           </div>
@@ -425,9 +425,9 @@ export default function TransactionPage() {
             <input
               id="endDate"
               type="date"
-              value={endDate}
+              value={endDateTransaction}
               onChange={(e) =>
-                setEndDate(e.target.value)
+                setEndDateTransaction(e.target.value)
               }
             />
           </div>
@@ -543,7 +543,7 @@ export default function TransactionPage() {
                     >
                       Rp{" "}
                       {formatCurrency(
-                        transaction.total
+                        transaction.totalAmount
                       )}
                     </td>
 

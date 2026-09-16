@@ -1113,25 +1113,6 @@ Allowed / Blocked
 
 ---
 
-# 📱 PWA
-
-Project menggunakan:
-
-* Web App Manifest
-* Service Worker
-* PWA Icons
-
-File:
-
-```text
-public/manifest.webmanifest
-public/sw.js
-public/icons/icon-192.png
-public/icons/icon-512.png
-```
-
----
-
 # 🧰 Development Tools
 
 Tools yang digunakan selama development:
@@ -1387,7 +1368,6 @@ Project ini dibuat untuk menerapkan konsep **Full-Stack Web Development**, melip
 * Real-time Communication
 * State Management
 * Responsive UI
-* PWA
 * PDF Generation
 * Deployment
 

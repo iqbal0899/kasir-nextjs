@@ -31,9 +31,17 @@ export async function GET(request) {
       1
     );
 
+    const startDateProduct =
+      searchParams.get("startDateProduct");
+
+    const endDateProduct =
+      searchParams.get("endDateProduct");
+
     const result = await getProducts({
       page,
       limit,
+      startDateProduct,
+      endDateProduct,
     });
 
     return NextResponse.json({

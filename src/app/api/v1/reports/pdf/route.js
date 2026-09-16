@@ -64,11 +64,17 @@ export async function GET(request) {
     const limit =
       Number(searchParams.get("limit")) || 1000;
 
-    const startDate =
-      searchParams.get("startDate");
+    const startDateProduct =
+      searchParams.get("startDateProduct");
 
-    const endDate =
-      searchParams.get("endDate");
+    const endDateProduct =
+      searchParams.get("endDateProduct");
+
+    const startDateTransaction =
+      searchParams.get("startDateTransaction");
+
+    const endDateTransaction =
+      searchParams.get("endDateTransaction");
 
     // =====================================================
     // VALIDATE TYPE
@@ -105,13 +111,26 @@ export async function GET(request) {
     // =====================================================
 
     if (type === "product") {
-      const products =
-        await getProducts();
+      
+      const productsResult =
+        await getProducts({
+          page,
+          limit,
+          startDateProduct,
+          endDateProduct
+        });
+
+         const products =
+      Array.isArray(productsResult)
+      ? productsResult
+      : productsResult ?.data || [];
 
       const pdfBuffer =
         await generateProductReport({
           products: products || [],
           userName,
+          startDateProduct,
+          endDateProduct,
         });
 
       return new NextResponse(pdfBuffer, {
@@ -138,8 +157,8 @@ export async function GET(request) {
         await getTransactions({
           page,
           limit,
-          startDate,
-          endDate,
+          startDateTransaction,
+          endDateTransaction,
         });
 
       const transactions =
@@ -149,8 +168,8 @@ export async function GET(request) {
         await generateTransactionReport({
           transactions,
           userName,
-          startDate,
-          endDate,
+          startDateTransaction,
+          endDateTransaction,
         });
 
       return new NextResponse(pdfBuffer, {
@@ -174,27 +193,42 @@ export async function GET(request) {
 
     if (type === "all") {
       const [
-        products,
+        productsResult,
         transactionResult,
       ] = await Promise.all([
-        getProducts(),
+        getProducts({
+          page,
+          limit,
+          startDateProduct,
+          endDateProduct,
+        }),
 
         getTransactions({
           page,
           limit,
-          startDate,
-          endDate,
+          startDateTransaction,
+          endDateTransaction,
         }),
       ]);
 
+      const products =
+      Array.isArray(productsResult)
+      ? productsResult
+      : productsResult ?.data || [];
+
       const transactions =
-        transactionResult?.transactions || [];
+        transactionResult?.transactions ||
+        transactionResult?.data ;
 
       const pdfBuffer =
         await generateAllReport({
-          products: products || [],
-          transactions,
-          userName,
+ products,
+  transactions,
+  userName,
+  startDateProduct,
+  endDateProduct,
+  startDateTransaction,
+  endDateTransaction,
         });
 
       return new NextResponse(pdfBuffer, {

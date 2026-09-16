@@ -3,41 +3,10 @@ import { prisma } from "@/lib/prisma";
 export async function getProducts({
   page = 1,
   limit = 10,
+  startDateProduct,
+  endDateProduct,
 } = {}) {
-  const currentPage = Math.max(Number(page) || 1, 1);
-  const currentLimit = Math.max(Number(limit) || 10, 1);
 
-  const skip = (currentPage - 1) * currentLimit;
-
-  const [products, total] = await Promise.all([
-    prisma.product.findMany({
-      orderBy: {
-        id: "asc",
-      },
-      skip,
-      take: currentLimit,
-    }),
-
-    prisma.product.count(),
-  ]);
-
-  return {
-    data: products,
-    pagination: {
-      page: currentPage,
-      limit: currentLimit,
-      total,
-      totalPages: Math.ceil(total / currentLimit),
-    },
-  };
-}
-
-export async function getActiveProducts({
-  page = 1,
-  limit = 10,
-  startDate,
-  endDate,
-} = {}) {
   const currentPage = Math.max(
     Number(page) || 1,
     1
@@ -51,32 +20,26 @@ export async function getActiveProducts({
   const skip =
     (currentPage - 1) * currentLimit;
 
+
   // =====================================================
   // FILTER TANGGAL TRANSAKSI
   // =====================================================
 
   const transactionDateFilter = {};
 
-  if (startDate) {
+  if (startDateProduct) {
     transactionDateFilter.gte =
-      new Date(`${startDate}T00:00:00`);
+      new Date(`${startDateProduct}T00:00:00`);
   }
 
-  if (endDate) {
+  if (endDateProduct) {
     transactionDateFilter.lte =
-      new Date(`${endDate}T23:59:59.999`);
+      new Date(`${endDateProduct}T23:59:59.999`);
   }
 
   const hasDateFilter =
     Object.keys(transactionDateFilter).length > 0;
 
-  // =====================================================
-  // PRODUCT WHERE
-  // =====================================================
-
-  const where = {
-    isActive: true,
-  };
 
   // =====================================================
   // QUERY
@@ -84,6 +47,159 @@ export async function getActiveProducts({
 
   const [products, total] =
     await Promise.all([
+
+      prisma.product.findMany({
+        include: {
+          transactionItems: {
+            where: hasDateFilter
+              ? {
+                  transaction: {
+                    createdAt:
+                      transactionDateFilter,
+                  },
+                }
+              : undefined,
+
+            select: {
+              quantity: true,
+            },
+          },
+        },
+
+        orderBy: {
+          id: "asc",
+        },
+
+        skip,
+        take: currentLimit,
+      }),
+
+
+      prisma.product.count(),
+    ]);
+
+
+  // =====================================================
+  // HITUNG STOCK TERJUAL
+  // =====================================================
+
+  const data = products.map((product) => {
+
+    const soldStock =
+      product.transactionItems.reduce(
+        (totalSold, item) => {
+          return (
+            totalSold +
+            Number(item.quantity || 0)
+          );
+        },
+        0
+      );
+
+
+    return {
+      id: product.id,
+
+      name: product.name,
+
+      price:
+        Number(product.price),
+
+      stock:
+        Number(product.stock || 0),
+
+      category:
+        product.category,
+
+      image:
+        product.image,
+
+      isActive:
+        product.isActive,
+
+      createdAt:
+        product.createdAt,
+
+      updatedAt:
+        product.updatedAt,
+
+      soldStock,
+    };
+  });
+
+
+  // =====================================================
+  // RESPONSE
+  // =====================================================
+
+  return {
+    data,
+
+    pagination: {
+      page: currentPage,
+
+      limit: currentLimit,
+
+      total,
+
+      totalPages:
+        Math.ceil(
+          total / currentLimit
+        ),
+    },
+  };
+}
+
+
+// =====================================================
+// GET ACTIVE PRODUCTS
+// =====================================================
+
+export async function getActiveProducts({
+  page = 1,
+  limit = 10,
+  startDateProduct,
+  endDateProduct,
+} = {}) {
+
+  const currentPage = Math.max(
+    Number(page) || 1,
+    1
+  );
+
+  const currentLimit = Math.max(
+    Number(limit) || 10,
+    1
+  );
+
+  const skip =
+    (currentPage - 1) * currentLimit;
+
+
+  const transactionDateFilter = {};
+
+  if (startDateProduct) {
+    transactionDateFilter.gte =
+      new Date(`${startDateProduct}T00:00:00`);
+  }
+
+  if (endDateProduct) {
+    transactionDateFilter.lte =
+      new Date(`${endDateProduct}T23:59:59.999`);
+  }
+
+  const hasDateFilter =
+    Object.keys(transactionDateFilter).length > 0;
+
+
+  const where = {
+    isActive: true,
+  };
+
+
+  const [products, total] =
+    await Promise.all([
+
       prisma.product.findMany({
         where,
 
@@ -117,57 +233,74 @@ export async function getActiveProducts({
       }),
     ]);
 
-  // =====================================================
-  // HITUNG STOCK TERJUAL
-  // =====================================================
 
-  const data = products.map(
-    (product) => {
-       console.log("PRODUCT:", product.name);
-  console.log("TRANSACTION ITEMS:", product.transactionItems);
-      const soldStock =
-        product.transactionItems.reduce(
-          (totalSold, item) => {
-            return (
-              totalSold +
-              Number(item.quantity || 0)
-            );
-          },
-          0
-        );
+  const data = products.map((product) => {
 
-      return {
-        id: product.id,
-        name: product.name,
-        price: Number(product.price),
-        stock: Number(product.stock || 0),
-        category: product.category,
-        image: product.image,
-        isActive: product.isActive,
-        createdAt: product.createdAt,
-        updatedAt: product.updatedAt,
+    const soldStock =
+      product.transactionItems.reduce(
+        (totalSold, item) => {
+          return (
+            totalSold +
+            Number(item.quantity || 0)
+          );
+        },
+        0
+      );
 
-        soldStock,
-      };
-    }
-  );
 
-  // =====================================================
-  // RESPONSE
-  // =====================================================
+    return {
+      id: product.id,
+
+      name: product.name,
+
+      price:
+        Number(product.price),
+
+      stock:
+        Number(product.stock || 0),
+
+      category:
+        product.category,
+
+      image:
+        product.image,
+
+      isActive:
+        product.isActive,
+
+      createdAt:
+        product.createdAt,
+
+      updatedAt:
+        product.updatedAt,
+
+      soldStock,
+    };
+  });
+
 
   return {
     data,
 
     pagination: {
       page: currentPage,
+
       limit: currentLimit,
+
       total,
+
       totalPages:
-        Math.ceil(total / currentLimit),
+        Math.ceil(
+          total / currentLimit
+        ),
     },
   };
 }
+
+
+// =====================================================
+// GET PRODUCT BY ID
+// =====================================================
 
 export async function getProductById(id) {
   return await prisma.product.findUnique({
@@ -176,6 +309,11 @@ export async function getProductById(id) {
     },
   });
 }
+
+
+// =====================================================
+// CREATE PRODUCT
+// =====================================================
 
 export async function createProduct(data) {
   return await prisma.product.create({
@@ -190,6 +328,11 @@ export async function createProduct(data) {
   });
 }
 
+
+// =====================================================
+// UPDATE PRODUCT
+// =====================================================
+
 export async function updateProduct(id, data) {
   return await prisma.product.update({
     where: {
@@ -199,7 +342,11 @@ export async function updateProduct(id, data) {
   });
 }
 
+
+// =====================================================
 // AKTIF / NONAKTIF PRODUK
+// =====================================================
+
 export async function toggleProductStatus(
   id,
   isActive
@@ -214,7 +361,11 @@ export async function toggleProductStatus(
   });
 }
 
+
+// =====================================================
 // SOFT DELETE
+// =====================================================
+
 export async function deleteProduct(id) {
   return await prisma.product.update({
     where: {
@@ -226,22 +377,39 @@ export async function deleteProduct(id) {
   });
 }
 
+
+// =====================================================
+// RESTORE PRODUCT
+// =====================================================
+
 export async function restoreProduct(id) {
+
   const productId = Number(id);
 
-  if (!productId || Number.isNaN(productId)) {
-    throw new Error("ID produk tidak valid");
+  if (
+    !productId ||
+    Number.isNaN(productId)
+  ) {
+    throw new Error(
+      "ID produk tidak valid"
+    );
   }
 
-  const product = await prisma.product.findUnique({
-    where: {
-      id: productId,
-    },
-  });
+
+  const product =
+    await prisma.product.findUnique({
+      where: {
+        id: productId,
+      },
+    });
+
 
   if (!product) {
-    throw new Error("Produk tidak ditemukan");
+    throw new Error(
+      "Produk tidak ditemukan"
+    );
   }
+
 
   const restoredProduct =
     await prisma.product.update({
@@ -254,5 +422,7 @@ export async function restoreProduct(id) {
       },
     });
 
+
   return restoredProduct;
 }
+
