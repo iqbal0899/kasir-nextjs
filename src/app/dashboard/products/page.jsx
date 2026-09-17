@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import {formatCurrency} from "@/shared/utils/formatCurrency";
+import { formatCurrency } from "@/shared/utils/formatCurrency";
 import styles from "../../../frontend/css/product.module.css";
 import Swal from "sweetalert2";
+import { toast } from "react-toastify";
 
 export default function ProductPage() {
   const router = useRouter();
@@ -19,40 +20,29 @@ export default function ProductPage() {
         setLoading(true);
         setError("");
 
-        const response = await fetch(
-          "/api/v1/products"
-        );
+        const response = await fetch("/api/v1/products");
 
-        const result =
-          await response.json();
+        const result = await response.json();
 
-        console.log(
-          "PRODUCT API:",
-          result
-        );
+        console.log("PRODUCT API:", result);
 
         if (!response.ok) {
           throw new Error(
-            result.message ||
-              "Gagal mengambil data produk"
+            result.message || "Gagal mengambil data produk"
           );
         }
 
-        setProducts(
-          result.data || []
-        );
-
+        setProducts(result.data || []);
       } catch (error) {
-        console.error(
-          "FETCH PRODUCTS ERROR:",
-          error
-        );
+        console.error("FETCH PRODUCTS ERROR:", error);
 
         setError(
-          error.message ||
-            "Gagal mengambil data produk"
+          error.message || "Gagal mengambil data produk"
         );
 
+        toast.error(
+          error.message || "Gagal mengambil data produk"
+        );
       } finally {
         setLoading(false);
       }
@@ -61,114 +51,130 @@ export default function ProductPage() {
     fetchProducts();
   }, []);
 
+  // =====================================================
+  // DELETE PRODUCT
+  // =====================================================
+
   const handleDelete = async (id) => {
-  const result = await Swal.fire({
-    title: "Hapus produk?",
-    text: "Produk yang dihapus tidak dapat dikembalikan.",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonText: "Ya, Hapus",
-    cancelButtonText: "Batal",
-    reverseButtons: true,
-  });
-
-  if (!result.isConfirmed) {
-    return;
-  }
-
-  try {
-    const response = await fetch(
-      `/api/v1/products/${id}`,
-      {
-        method: "DELETE",
-      }
-    );
-
-    const result =
-      await response.json();
-
-    if (!response.ok) {
-      throw new Error(
-        result.message ||
-          "Gagal menghapus produk"
-      );
-    }
-
-    setProducts((prev) =>
-      prev.filter(
-        (product) =>
-          product.id !== id
-      )
-    );
-
-    await Swal.fire({
-      title: "Berhasil!",
-      text: "Produk berhasil dihapus.",
-      icon: "success",
-      confirmButtonText: "OK",
+    // Konfirmasi tetap menggunakan SweetAlert2
+    const result = await Swal.fire({
+      title: "Hapus produk?",
+      text: "Produk yang dihapus tidak dapat dikembalikan.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Ya, Hapus",
+      cancelButtonText: "Batal",
+      reverseButtons: true,
     });
 
-  } catch (error) {
-    console.error(
-      "DELETE PRODUCT ERROR:",
-      error
-    );
+    if (!result.isConfirmed) {
+      return;
+    }
 
-    Swal.fire({
-      title: "Gagal!",
-      text:
+    try {
+      const response = await fetch(
+        `/api/v1/products/${id}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result.message || "Gagal menghapus produk"
+        );
+      }
+
+      // Hapus produk dari state
+      setProducts((prev) =>
+        prev.filter(
+          (product) => product.id !== id
+        )
+      );
+
+      // Notifikasi berhasil menggunakan Toast
+      toast.success("Produk berhasil dihapus.");
+    } catch (error) {
+      console.error(
+        "DELETE PRODUCT ERROR:",
+        error
+      );
+
+      // Notifikasi error menggunakan Toast
+      toast.error(
         error.message ||
-        "Gagal menghapus produk.",
-      icon: "error",
-      confirmButtonText: "OK",
-    });
-  }
-};
-
-const handleToggleStatus = async (
-  id,
-  isActive
-) => {
-  try {
-    const response = await fetch(
-      `/api/v1/products/${id}`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          isActive,
-        }),
-      }
-    );
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      throw new Error(
-        result.message ||
-          "Gagal mengubah status produk"
+          "Gagal menghapus produk."
       );
     }
+  };
 
-    setProducts((prev) =>
-      prev.map((product) =>
-        product.id === id
-          ? {
-              ...product,
-              isActive,
-            }
-          : product
-      )
-    );
-  } catch (error) {
-    console.error(
-      "TOGGLE STATUS ERROR:",
-      error
-    );
-  }
-};
+  // =====================================================
+  // TOGGLE STATUS PRODUCT
+  // =====================================================
+
+  const handleToggleStatus = async (
+    id,
+    isActive
+  ) => {
+    try {
+      const response = await fetch(
+        `/api/v1/products/${id}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            isActive,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result.message ||
+            "Gagal mengubah status produk"
+        );
+      }
+
+      // Update state
+      setProducts((prev) =>
+        prev.map((product) =>
+          product.id === id
+            ? {
+                ...product,
+                isActive,
+              }
+            : product
+        )
+      );
+
+      // Toast berdasarkan status
+      if (isActive) {
+        toast.success(
+          "Produk berhasil diaktifkan."
+        );
+      } else {
+        toast.warning(
+          "Produk berhasil dinonaktifkan."
+        );
+      }
+    } catch (error) {
+      console.error(
+        "TOGGLE STATUS ERROR:",
+        error
+      );
+
+      toast.error(
+        error.message ||
+          "Gagal mengubah status produk."
+      );
+    }
+  };
 
   return (
     <main className={styles.container}>
@@ -261,29 +267,34 @@ const handleToggleStatus = async (
                       Tidak ada gambar
                     </div>
                   )}
-                  
                 </div>
 
-                <div className={styles.productStatus}>
-  <label>
-    <input
-      type="checkbox"
-      checked={product.isActive}
-      onChange={(e) =>
-        handleToggleStatus(
-          product.id,
-          e.target.checked
-        )
-      }
-    />
+                {/* STATUS */}
 
-    <span>
-      {product.isActive
-        ? "Aktif"
-        : "Nonaktif"}
-    </span>
-  </label>
-</div>
+                <div
+                  className={
+                    styles.productStatus
+                  }
+                >
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={product.isActive}
+                      onChange={(e) =>
+                        handleToggleStatus(
+                          product.id,
+                          e.target.checked
+                        )
+                      }
+                    />
+
+                    <span>
+                      {product.isActive
+                        ? "Aktif"
+                        : "Nonaktif"}
+                    </span>
+                  </label>
+                </div>
 
                 {/* CONTENT */}
 
@@ -311,16 +322,17 @@ const handleToggleStatus = async (
                   </p>
 
                   <p className={styles.price}>
-  {formatCurrency(product.price)}
-</p>
+                    {formatCurrency(
+                      product.price
+                    )}
+                  </p>
 
                   <p
                     className={
                       styles.stock
                     }
                   >
-                    Stock:{" "}
-                    {product.stock}
+                    Stock: {product.stock}
                   </p>
 
                   {/* ACTION */}
@@ -331,27 +343,33 @@ const handleToggleStatus = async (
                     }
                   >
 
-<button
-  type="button"
-  className={styles.editButton}
-  onClick={() =>
-    router.push(
-      `/dashboard/products/edit/${product.id}`
-    )
-  }
->
-  Edit
-</button>
+                    <button
+                      type="button"
+                      className={
+                        styles.editButton
+                      }
+                      onClick={() =>
+                        router.push(
+                          `/dashboard/products/edit/${product.id}`
+                        )
+                      }
+                    >
+                      Edit
+                    </button>
 
-<button
-  type="button"
-  className={styles.deleteButton}
-  onClick={() =>
-    handleDelete(product.id)
-  }
->
-  Hapus
-</button>
+                    <button
+                      type="button"
+                      className={
+                        styles.deleteButton
+                      }
+                      onClick={() =>
+                        handleDelete(
+                          product.id
+                        )
+                      }
+                    >
+                      Hapus
+                    </button>
 
                   </div>
 

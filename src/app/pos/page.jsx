@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Swal from "sweetalert2";
+import { toast } from "react-toastify";
 
 import CartSidebar from "@/frontend/components/pos/CartSidebar";
 import PaymentModal from "@/frontend/components/pos/PaymentModal";
@@ -22,12 +23,17 @@ export default function POSPage() {
     0
   );
 
+  // =====================================================
+  // CHECKOUT
+  // =====================================================
+
   const handleCheckout = () => {
     if (cart.length === 0) {
       Swal.fire({
         title: "Keranjang Kosong",
         text: "Silakan pilih produk terlebih dahulu.",
         icon: "warning",
+        confirmButtonText: "OK",
       });
 
       return;
@@ -35,6 +41,10 @@ export default function POSPage() {
 
     setPaymentModalOpen(true);
   };
+
+  // =====================================================
+  // PAYMENT
+  // =====================================================
 
   const handlePayment = async ({
     method,
@@ -44,9 +54,11 @@ export default function POSPage() {
       setLoading(true);
 
       if (cart.length === 0) {
-        throw new Error(
-          "Keranjang transaksi kosong"
+        toast.warning(
+          "Keranjang transaksi kosong."
         );
+
+        return;
       }
 
       const items = cart.map((item) => ({
@@ -54,7 +66,10 @@ export default function POSPage() {
         quantity: Number(item.qty),
       }));
 
-      console.log("TRANSACTION ITEMS:", items);
+      console.log(
+        "TRANSACTION ITEMS:",
+        items
+      );
 
       const response = await fetch(
         "/api/v1/transactions",
@@ -65,6 +80,8 @@ export default function POSPage() {
             "Content-Type":
               "application/json",
           },
+
+          credentials: "include",
 
           body: JSON.stringify({
             items,
@@ -94,17 +111,18 @@ export default function POSPage() {
         );
       }
 
-      await Swal.fire({
-        title: "Pembayaran Berhasil!",
-        text:
-          "Transaksi berhasil disimpan ke database.",
-        icon: "success",
-        confirmButtonText: "OK",
-      });
+      // =================================================
+      // SUCCESS
+      // =================================================
 
+      toast.success(
+        "Pembayaran berhasil! Transaksi telah disimpan."
+      );
 
+      // Kosongkan keranjang
       setCart([]);
 
+      // Tutup payment modal
       setPaymentModalOpen(false);
 
     } catch (error) {
@@ -113,29 +131,36 @@ export default function POSPage() {
         error
       );
 
-      Swal.fire({
-        title: "Pembayaran Gagal",
-        text:
-          error.message ||
-          "Gagal menyimpan transaksi.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      // =================================================
+      // ERROR
+      // =================================================
+
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Gagal menyimpan transaksi.";
+
+      toast.error(message);
+
     } finally {
       setLoading(false);
     }
   };
+
+  // =====================================================
+  // RENDER
+  // =====================================================
 
   return (
     <div className="pos-layout">
 
       <section>
         <h1>Kasir</h1>
-
       </section>
 
       <CartSidebar
         items={cart}
+
         onIncrease={(id) => {
           setCart((prev) =>
             prev.map((item) =>
@@ -148,6 +173,7 @@ export default function POSPage() {
             )
           );
         }}
+
         onDecrease={(id) => {
           setCart((prev) =>
             prev
@@ -164,6 +190,7 @@ export default function POSPage() {
               )
           );
         }}
+
         onRemove={(id) => {
           setCart((prev) =>
             prev.filter(
@@ -171,16 +198,22 @@ export default function POSPage() {
             )
           );
         }}
+
         onCheckout={handleCheckout}
       />
 
       <PaymentModal
         open={paymentModalOpen}
+
         onClose={() =>
           setPaymentModalOpen(false)
         }
+
         total={cartTotal}
+
         onConfirm={handlePayment}
+
+        loading={loading}
       />
 
     </div>

@@ -7,13 +7,17 @@ export default function ToastProvider() {
   return (
     <ToastContainer
       position="top-right"
-      autoClose={3000}
-      hideProgressBar={false}
-      newestOnTop
+      autoClose={2500}
+      hideProgressBar
       closeOnClick
       pauseOnHover
-      draggable
+      newestOnTop
       theme="light"
+      toastStyle={{
+        fontSize: "14px",
+        borderRadius: "6px",
+        padding: "10px 14px",
+      }}
     />
   );
 }

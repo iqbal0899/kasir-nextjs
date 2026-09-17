@@ -30,18 +30,18 @@ export async function GET(request) {
     const limit =
       searchParams.get("limit");
 
-    const startDate =
-      searchParams.get("startDate");
+    const startDateTransaction =
+      searchParams.get("startDateTransaction");
 
-    const endDate =
-      searchParams.get("endDate");
+    const endDateTransaction =
+      searchParams.get("endDateTransaction");
 
     const result =
       await getTransactions({
         page,
         limit,
-        startDate,
-        endDate,
+        startDateTransaction,
+        endDateTransaction,
       });
 
     return NextResponse.json({

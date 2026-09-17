@@ -32,6 +32,48 @@ function formatDate(date) {
 
 /**
  * =========================================================
+ * PERIODE (Ambil dari filter tanggal)
+ * =========================================================
+ *
+ * Mengubah startDate & endDate dari filter menjadi teks
+ * periode yang bisa ditampilkan di ringkasan laporan.
+ * =========================================================
+ */
+
+function getPeriodeProduct(startDateProduct, endDateProduct) {
+  if (startDateProduct && endDateProduct) {
+    return `${startDateProduct} s/d ${endDateProduct}`;
+  }
+
+  if (startDateProduct) {
+    return `Mulai ${startDateProduct}`;
+  }
+
+  if (endDateProduct) {
+    return `Sampai ${endDateProduct}`;
+  }
+
+  return "Semua Periode";
+}
+
+function getPeriodeTransaction(startDateTransaction, endDateTransaction) {
+  if (startDateTransaction && endDateTransaction) {
+    return `${startDateTransaction} s/d ${endDateTransaction}`;
+  }
+
+  if (startDateTransaction) {
+    return `Mulai ${startDateTransaction}`;
+  }
+
+  if (endDateTransaction) {
+    return `Sampai ${endDateTransaction}`;
+  }
+
+  return "Semua Periode";
+}
+
+/**
+ * =========================================================
  * DOCUMENT
  * =========================================================
  */
@@ -54,12 +96,9 @@ function addHeader(doc, title, userName = "User") {
   // NAMA TOKO
   // ========================================
 
-  doc
-    .font("Helvetica-Bold")
-    .fontSize(20)
-    .text("TOKO IQBAL", {
-      align: "center",
-    });
+  doc.font("Helvetica-Bold").fontSize(20).text("TOKO IQBAL", {
+    align: "center",
+  });
 
   doc.moveDown(0.2);
 
@@ -67,28 +106,19 @@ function addHeader(doc, title, userName = "User") {
   // SUBTITLE
   // ========================================
 
-  doc
-    .font("Helvetica")
-    .fontSize(9)
-    .text("Toko Penjualan & Kasir", {
-      align: "center",
-    });
+  doc.font("Helvetica").fontSize(9).text("Toko Penjualan & Kasir", {
+    align: "center",
+  });
 
-  doc.text(
-    "Melayani kebutuhan Anda dengan mudah dan terpercaya",
-    {
-      align: "center",
-    }
-  );
+  doc.text("Melayani kebutuhan Anda dengan mudah dan terpercaya", {
+    align: "center",
+  });
 
   doc.moveDown(0.2);
 
-  doc.text(
-    "Jl. Contoh Alamat Toko Iqbal | Telp. 08xxxxxxxxxx",
-    {
-      align: "center",
-    }
-  );
+  doc.text("Jl. Contoh Alamat Toko Iqbal | Telp. 08xxxxxxxxxx", {
+    align: "center",
+  });
 
   doc.moveDown(0.8);
 
@@ -96,11 +126,7 @@ function addHeader(doc, title, userName = "User") {
   // GARIS ATAS
   // ========================================
 
-  doc
-    .moveTo(40, doc.y)
-    .lineTo(555, doc.y)
-    .lineWidth(1)
-    .stroke();
+  doc.moveTo(40, doc.y).lineTo(555, doc.y).lineWidth(1).stroke();
 
   doc.moveDown(0.7);
 
@@ -115,43 +141,28 @@ function addHeader(doc, title, userName = "User") {
   doc
     .font("Helvetica")
     .fontSize(8)
-    .text(
-      `Dicetak oleh: ${userName}`,
-      40,
-      infoY,
-      {
-        width: 150,
-        align: "left",
-      }
-    );
+    .text(`Dicetak oleh: ${userName}`, 40, infoY, {
+      width: 150,
+      align: "left",
+    });
 
   // Judul laporan - TENGAH
   doc
     .font("Helvetica-Bold")
     .fontSize(13)
-    .text(
-      title,
-      210,
-      infoY - 2,
-      {
-        width: 175,
-        align: "center",
-      }
-    );
+    .text(title, 210, infoY - 2, {
+      width: 175,
+      align: "center",
+    });
 
   // Tanggal cetak - KANAN
   doc
     .font("Helvetica")
     .fontSize(8)
-    .text(
-      `Tanggal cetak: ${formatDate(new Date())}`,
-      365,
-      infoY,
-      {
-        width: 190,
-        align: "right",
-      }
-    );
+    .text(`Tanggal cetak: ${formatDate(new Date())}`, 365, infoY, {
+      width: 190,
+      align: "right",
+    });
 
   doc.moveDown(2);
 
@@ -159,16 +170,10 @@ function addHeader(doc, title, userName = "User") {
   // GARIS BAWAH
   // ========================================
 
-  doc
-    .moveTo(40, doc.y)
-    .lineTo(555, doc.y)
-    .lineWidth(0.5)
-    .stroke();
+  doc.moveTo(40, doc.y).lineTo(555, doc.y).lineWidth(0.5).stroke();
 
   doc.moveDown(0.7);
 }
-
-
 
 /**
  * =========================================================
@@ -199,18 +204,11 @@ function addFooter(doc) {
   doc
     .font("Helvetica-Bold")
     .fontSize(8)
-    .text(
-      "TOKO IQBAL",
-      40,
-      footerY,
-      {
-        width: pageWidth - 80,
-        align: "center",
-      }
-    );
+    .text("TOKO IQBAL", 40, footerY, {
+      width: pageWidth - 80,
+      align: "center",
+    });
 }
-
-
 
 /**
  * =========================================================
@@ -223,11 +221,7 @@ function addFooter(doc) {
 function applyFooters(doc) {
   const range = doc.bufferedPageRange();
 
-  for (
-    let i = range.start;
-    i < range.start + range.count;
-    i++
-  ) {
+  for (let i = range.start; i < range.start + range.count; i++) {
     doc.switchToPage(i);
 
     const pageHeight = doc.page.height;
@@ -244,15 +238,10 @@ function applyFooters(doc) {
     doc
       .font("Helvetica-Bold")
       .fontSize(8)
-      .text(
-        "TOKO IQBAL",
-        40,
-        footerY,
-        {
-          width: pageWidth - 80,
-          align: "center",
-        }
-      );
+      .text("TOKO IQBAL", 40, footerY, {
+        width: pageWidth - 80,
+        align: "center",
+      });
   }
 }
 
@@ -289,20 +278,13 @@ function documentToBuffer(doc) {
  */
 
 function drawTableHeader(doc, columns, y) {
-  doc
-    .font("Helvetica-Bold")
-    .fontSize(9);
+  doc.font("Helvetica-Bold").fontSize(9);
 
   columns.forEach((column) => {
-    doc.text(
-      column.label,
-      column.x,
-      y,
-      {
-        width: column.width,
-        align: column.align || "left",
-      }
-    );
+    doc.text(column.label, column.x, y, {
+      width: column.width,
+      align: column.align || "left",
+    });
   });
 
   doc
@@ -324,39 +306,45 @@ const productColumns = [
   {
     label: "No.",
     x: 40,
-    width: 35,
+    width: 30,
   },
   {
     label: "ID",
-    x: 75,
+    x: 70,
     width: 35,
   },
   {
     label: "Produk",
-    x: 110,
-    width: 125,
+    x: 105,
+    width: 115,
   },
   {
     label: "Kategori",
-    x: 245,
-    width: 100,
+    x: 220,
+    width: 90,
   },
   {
     label: "Harga",
-    x: 275,
-    width: 90,
+    x: 238,
+    width: 85,
     align: "right",
   },
   {
-    label: "Stock",
-    x: 375,
+    label: "Terjual",
+    x: 350,
     width: 50,
     align: "right",
   },
   {
+    label: "Total",
+    x: 400,
+    width: 45,
+    align: "right",
+  },
+  {
     label: "Status",
-    x: 450,
-    width: 75,
+    x: 490,
+    width: 65,
   },
 ];
 
@@ -408,89 +396,54 @@ const transactionColumns = [
 
 function writeProductRow(doc, product, y, index) {
   const stock = Number(product.stock || 0);
+  const soldStock = Number(product.soldStock || 0);
 
-  const status =
-    stock === 0
-      ? "Habis"
-      : stock < 30
-      ? "Menipis"
-      : "Tersedia";
+  const status = stock === 0 ? "Habis" : stock < 30 ? "Menipis" : "Tersedia";
 
-  doc
-    .font("Helvetica")
-    .fontSize(8);
+  doc.font("Helvetica").fontSize(8);
 
   // NO.
-  doc.text(
-    String(index + 1),
-    40,
-    y,
-    {
-      width: 35,
-    }
-  );
+  doc.text(String(index + 1), 40, y, {
+    width: 30,
+  });
 
   // ID
-  doc.text(
-    String(product.id ?? "-"),
-    75,
-    y,
-    {
-      width: 35,
-    }
-  );
+  doc.text(String(product.id ?? "-"), 70, y, {
+    width: 35,
+  });
 
   // PRODUK
-  doc.text(
-    product.name || "-",
-    110,
-    y,
-    {
-      width: 125,
-    }
-  );
+  doc.text(product.name || "-", 105, y, {
+    width: 115,
+  });
 
   // KATEGORI
-  doc.text(
-    product.category || "Tanpa kategori",
-    245,
-    y,
-    {
-      width: 100,
-    }
-  );
+  doc.text(product.category || "Tanpa kategori", 220, y, {
+    width: 90,
+  });
 
   // HARGA
-  doc.text(
-    formatPrice(product.price),
-    285,
-    y,
-    {
-      width: 90,
-      align: "right",
-    }
-  );
+  doc.text(formatPrice(product.price), 250, y, {
+    width: 85,
+    align: "right",
+  });
+
+  // STOK TERJUAL
+  doc.text(String(soldStock), 340, y, {
+    width: 50,
+    align: "right",
+  });
 
   // STOCK
-  doc.text(
-    String(stock),
-    365,
-    y,
-    {
-      width: 50,
-      align: "right",
-    }
-  );
+  doc.text(String(stock), 430, y, {
+    width: 45,
+    align: "left",
+  });
 
   // STATUS
-  doc.text(
-    status,
-    450,
-    y,
-    {
-      width: 75,
-    }
-  );
+  doc.text(status, 490, y, {
+    width: 65,
+  });
 }
 
 /**
@@ -499,69 +452,35 @@ function writeProductRow(doc, product, y, index) {
  * =========================================================
  */
 
-function writeTransactionRow(
-  doc,
-  transaction,
-  y,
-  index
-) {
-  doc
-    .font("Helvetica")
-    .fontSize(8);
+function writeTransactionRow(doc, transaction, y, index) {
+  doc.font("Helvetica").fontSize(8);
+
+  doc.text(String(index + 1), 40, y, { width: 35 });
+
+  doc.text(String(transaction.id ?? "-"), 75, y, { width: 45 });
+
+  doc.text(formatDate(transaction.createdAt), 120, y, { width: 115 });
 
   doc.text(
-    String(index + 1),
-    40,
-    y,
-    { width: 35 }
-  );
-
-  doc.text(
-    String(transaction.id ?? "-"),
-    75,
-    y,
-    { width: 45 }
-  );
-
-  doc.text(
-    formatDate(transaction.createdAt),
-    120,
-    y,
-    { width: 115 }
-  );
-
-  doc.text(
-    transaction.cashier?.username ||
-      transaction.cashierName ||
-      "-",
+    transaction.cashier?.username || transaction.cashierName || "-",
     235,
     y,
-    { width: 100 }
+    { width: 100 },
   );
 
-  doc.text(
-    formatPrice(transaction.total),
-    258,
-    y,
-    {
-      width: 110,
-      align: "right",
-    }
-  );
+  doc.text(formatPrice(transaction.totalAmount), 258, y, {
+    width: 110,
+    align: "right",
+  });
 
   const method =
     transaction.paymentMethod === "cash"
       ? "Tunai"
       : transaction.paymentMethod === "qris"
-      ? "QRIS"
-      : transaction.paymentMethod || "-";
+        ? "QRIS"
+        : transaction.paymentMethod || "-";
 
-  doc.text(
-    method,
-    450,
-    y,
-    { width: 105 }
-  );
+  doc.text(method, 450, y, { width: 105 });
 }
 
 /**
@@ -570,81 +489,64 @@ function writeTransactionRow(
  * =========================================================
  */
 
-export async function generateProductReport(
-  data = {}
-) {
+export async function generateProductReport(data = {}) {
   const {
     products = [],
     userName = "User",
+    startDateProduct,
+    endDateProduct,
   } = data;
+
+  const periode = getPeriodeProduct(startDateProduct, endDateProduct);
 
   const doc = createDocument();
 
-  addHeader(
-    doc,
-    "LAPORAN PRODUK",
-    userName
+  addHeader(doc, "LAPORAN PRODUK", userName);
+
+  const totalProducts = products.length;
+
+  const totalStock = products.reduce(
+    (total, product) => total + Number(product.stock || 0),
+    0,
   );
 
-  const totalProducts =
-    products.length;
+  const totalSoldStock = products.reduce(
+    (total, product) => total + Number(product.soldStock || 0),
+    0,
+  );
 
-  const totalStock =
-    products.reduce(
-      (total, product) =>
-        total +
-        Number(product.stock || 0),
-      0
-    );
+  const lowStock = products.filter(
+    (product) => Number(product.stock || 0) <= 5,
+  ).length;
 
-  const lowStock =
-    products.filter(
-      (product) =>
-        Number(product.stock || 0) <= 5
-    ).length;
-
-  doc
-    .font("Helvetica-Bold")
-    .fontSize(10)
-    .text("Ringkasan Produk", 40, doc.y);
+  doc.font("Helvetica-Bold").fontSize(10).text("Ringkasan Produk", 40, doc.y);
 
   doc.moveDown(0.5);
 
   doc
     .font("Helvetica")
     .fontSize(9)
-    .text(`Total Produk : ${totalProducts}`, 40, doc.y);
+    .text(`Periode : ${periode}`, 40, doc.y);
+
+  doc.text(`Total Produk : ${totalProducts}`, 40, doc.y);
 
   doc.text(`Total Stok : ${totalStock}`, 40, doc.y);
+
+  doc.text(`Total Stok : ${totalSoldStock}`, 40, doc.y);
 
   doc.text(`Stok Menipis : ${lowStock}`, 40, doc.y);
 
   doc.moveDown(0.6);
 
   // Garis panjang di bawah Ringkasan Produk
-  doc
-    .moveTo(40, doc.y)
-    .lineTo(555, doc.y)
-    .lineWidth(0.5)
-    .stroke();
+  doc.moveTo(40, doc.y).lineTo(555, doc.y).lineWidth(0.5).stroke();
 
   doc.moveDown(1.4);
 
-  let y = drawTableHeader(
-    doc,
-    productColumns,
-    doc.y
-  );
+  let y = drawTableHeader(doc, productColumns, doc.y);
 
   if (products.length === 0) {
-    doc
-      .font("Helvetica")
-      .fontSize(9)
-      .text(
-        "Belum ada produk.",
-        40,
-        y
-      );
+    doc.font("Helvetica").fontSize(9).text("Belum ada produk.", 40, y);
   }
 
   for (const [index, product] of products.entries()) {
@@ -654,25 +556,12 @@ export async function generateProductReport(
     if (y > 720) {
       doc.addPage();
 
-      addHeader(
-        doc,
-        "LAPORAN PRODUK",
-        userName
-      );
+      addHeader(doc, "LAPORAN PRODUK", userName);
 
-      y = drawTableHeader(
-        doc,
-        productColumns,
-        doc.y
-      );
+      y = drawTableHeader(doc, productColumns, doc.y);
     }
 
-    writeProductRow(
-      doc,
-      product,
-      y,
-      index
-    );
+    writeProductRow(doc, product, y, index);
 
     y += 28;
   }
@@ -686,48 +575,30 @@ export async function generateProductReport(
  * =========================================================
  */
 
-export async function generateTransactionReport(
-  data = {}
-) {
+export async function generateTransactionReport(data = {}) {
   const {
     transactions = [],
     userName = "User",
-    startDate,
-    endDate,
+    startDateTransaction,
+    endDateTransaction,
   } = data;
 
   // =========================================
   // PERIODE LAPORAN
   // =========================================
 
-  let periode = "Semua Periode";
-
-  if (startDate && endDate) {
-    periode = `${startDate} s/d ${endDate}`;
-  } else if (startDate) {
-    periode = `Mulai ${startDate}`;
-  } else if (endDate) {
-    periode = `Sampai ${endDate}`;
-  }
+  const periode = getPeriodeTransaction(startDateTransaction, endDateTransaction);
 
   const doc = createDocument();
 
-  addHeader(
-    doc,
-    "LAPORAN TRANSAKSI",
-    userName
+  addHeader(doc, "LAPORAN TRANSAKSI", userName);
+
+  const totalTransactions = transactions.length;
+
+  const totalRevenue = transactions.reduce(
+    (total, transaction) => total + Number(transaction.totalAmount || 0),
+    0,
   );
-
-  const totalTransactions =
-    transactions.length;
-
-  const totalRevenue =
-    transactions.reduce(
-      (total, transaction) =>
-        total +
-        Number(transaction.total || 0),
-      0
-    );
 
   doc
     .font("Helvetica-Bold")
@@ -743,81 +614,36 @@ export async function generateTransactionReport(
   doc
     .font("Helvetica")
     .fontSize(9)
-    .text(
-      `Periode         : ${periode}`,
-      40,
-      doc.y
-    );
+    .text(`Periode         : ${periode}`, 40, doc.y);
 
-  doc.text(
-    `Total Transaksi : ${totalTransactions}`,
-    40,
-    doc.y
-  );
+  doc.text(`Total Transaksi : ${totalTransactions}`, 40, doc.y);
 
   // formatPrice() sudah otomatis menyertakan "Rp".
-  doc.text(
-    `Total Pendapatan: ${formatPrice(
-      totalRevenue
-    )}`,
-    40,
-    doc.y
-  );
+  doc.text(`Total Pendapatan: ${formatPrice(totalRevenue)}`, 40, doc.y);
 
   doc.moveDown(0.6);
 
   // Garis panjang di bawah Ringkasan Transaksi
-  doc
-    .moveTo(40, doc.y)
-    .lineTo(555, doc.y)
-    .lineWidth(0.5)
-    .stroke();
+  doc.moveTo(40, doc.y).lineTo(555, doc.y).lineWidth(0.5).stroke();
 
   doc.moveDown(1.4);
 
-  let y = drawTableHeader(
-    doc,
-    transactionColumns,
-    doc.y
-  );
+  let y = drawTableHeader(doc, transactionColumns, doc.y);
 
   if (transactions.length === 0) {
-    doc
-      .font("Helvetica")
-      .fontSize(9)
-      .text(
-        "Belum ada transaksi.",
-        40,
-        y
-      );
+    doc.font("Helvetica").fontSize(9).text("Belum ada transaksi.", 40, y);
   }
 
-  for (
-    const [index, transaction]
-    of transactions.entries()
-  ) {
+  for (const [index, transaction] of transactions.entries()) {
     if (y > 720) {
       doc.addPage();
 
-      addHeader(
-        doc,
-        "LAPORAN TRANSAKSI",
-        userName
-      );
+      addHeader(doc, "LAPORAN TRANSAKSI", userName);
 
-      y = drawTableHeader(
-        doc,
-        transactionColumns,
-        doc.y
-      );
+      y = drawTableHeader(doc, transactionColumns, doc.y);
     }
 
-    writeTransactionRow(
-      doc,
-      transaction,
-      y,
-      index
-    );
+    writeTransactionRow(doc, transaction, y, index);
 
     y += 28;
   }
@@ -846,14 +672,19 @@ export async function generateTransactionReport(
  * =========================================================
  */
 
-export async function generateAllReport(
-  data = {}
-) {
+export async function generateAllReport(data = {}) {
   const {
     products = [],
     transactions = [],
     userName = "User",
+    startDateProduct,
+    endDateProduct,
+    startDateTransaction,
+    endDateTransaction,
   } = data;
+
+  const periodeProduk = getPeriodeProduct(startDateProduct, endDateProduct);
+  const periodeTransaksi = getPeriodeTransaction(startDateTransaction, endDateTransaction);
 
   const doc = createDocument();
 
@@ -864,39 +695,25 @@ export async function generateAllReport(
    * =====================================================
    */
 
-  addHeader(
-    doc,
-    "LAPORAN PRODUK &TRANSAKSI",
-    userName
+  addHeader(doc, "LAPORAN PRODUK &TRANSAKSI", userName);
+
+  const totalProducts = products.length;
+
+  const totalStock = products.reduce(
+    (total, product) => total + Number(product.stock || 0),
+    0,
   );
 
-  const totalProducts =
-    products.length;
+  const lowStock = products.filter(
+    (product) => Number(product.stock || 0) <= 5,
+  ).length;
 
-  const totalStock =
-    products.reduce(
-      (total, product) =>
-        total +
-        Number(product.stock || 0),
-      0
-    );
+  const totalTransactions = transactions.length;
 
-  const lowStock =
-    products.filter(
-      (product) =>
-        Number(product.stock || 0) <= 5
-    ).length;
-
-  const totalTransactions =
-    transactions.length;
-
-  const totalRevenue =
-    transactions.reduce(
-      (total, transaction) =>
-        total +
-        Number(transaction.total || 0),
-      0
-    );
+  const totalRevenue = transactions.reduce(
+    (total, transaction) => total + Number(transaction.totalAmount || 0),
+    0,
+  );
 
   /**
    * =====================================================
@@ -918,54 +735,41 @@ export async function generateAllReport(
   doc
     .font("Helvetica-Bold")
     .fontSize(11)
-    .text(
-      "Ringkasan Produk",
-      summaryX,
-      summaryY,
-      {
-        width: summaryWidth,
-        align: "left",
-      }
-    );
+    .text("Ringkasan Produk", summaryX, summaryY, {
+      width: summaryWidth,
+      align: "left",
+    });
 
   summaryY = doc.y + 4;
 
   doc
     .font("Helvetica")
     .fontSize(9)
-    .text(
-      `Total Produk : ${totalProducts}`,
-      summaryX,
-      summaryY,
-      {
-        width: summaryWidth,
-        align: "left",
-      }
-    );
+    .text(`Periode : ${periodeProduk}`, summaryX, summaryY, {
+      width: summaryWidth,
+      align: "left",
+    });
 
   summaryY = doc.y;
 
-  doc.text(
-    `Total Stok : ${totalStock}`,
-    summaryX,
-    summaryY,
-    {
-      width: summaryWidth,
-      align: "left",
-    }
-  );
+  doc.text(`Total Produk : ${totalProducts}`, summaryX, summaryY, {
+    width: summaryWidth,
+    align: "left",
+  });
 
   summaryY = doc.y;
 
-  doc.text(
-    `Stok Menipis : ${lowStock}`,
-    summaryX,
-    summaryY,
-    {
-      width: summaryWidth,
-      align: "left",
-    }
-  );
+  doc.text(`Total Stok : ${totalStock}`, summaryX, summaryY, {
+    width: summaryWidth,
+    align: "left",
+  });
+
+  summaryY = doc.y;
+
+  doc.text(`Stok Menipis : ${lowStock}`, summaryX, summaryY, {
+    width: summaryWidth,
+    align: "left",
+  });
 
   /**
    * ============================
@@ -976,11 +780,7 @@ export async function generateAllReport(
 
   summaryY = doc.y + 8;
 
-  doc
-    .moveTo(40, summaryY)
-    .lineTo(555, summaryY)
-    .lineWidth(0.5)
-    .stroke();
+  doc.moveTo(40, summaryY).lineTo(555, summaryY).lineWidth(0.5).stroke();
 
   summaryY += 12;
 
@@ -993,30 +793,27 @@ export async function generateAllReport(
   doc
     .font("Helvetica-Bold")
     .fontSize(11)
-    .text(
-      "Ringkasan Transaksi",
-      summaryX,
-      summaryY,
-      {
-        width: summaryWidth,
-        align: "left",
-      }
-    );
+    .text("Ringkasan Transaksi", summaryX, summaryY, {
+      width: summaryWidth,
+      align: "left",
+    });
 
   summaryY = doc.y + 4;
 
   doc
     .font("Helvetica")
     .fontSize(9)
-    .text(
-      `Total Transaksi : ${totalTransactions}`,
-      summaryX,
-      summaryY,
-      {
-        width: summaryWidth,
-        align: "left",
-      }
-    );
+    .text(`Periode : ${periodeTransaksi}`, summaryX, summaryY, {
+      width: summaryWidth,
+      align: "left",
+    });
+
+  summaryY = doc.y;
+
+  doc.text(`Total Transaksi : ${totalTransactions}`, summaryX, summaryY, {
+    width: summaryWidth,
+    align: "left",
+  });
 
   summaryY = doc.y;
 
@@ -1027,7 +824,7 @@ export async function generateAllReport(
     {
       width: summaryWidth,
       align: "left",
-    }
+    },
   );
 
   /**
@@ -1039,11 +836,7 @@ export async function generateAllReport(
 
   summaryY = doc.y + 8;
 
-  doc
-    .moveTo(40, summaryY)
-    .lineTo(555, summaryY)
-    .lineWidth(0.5)
-    .stroke();
+  doc.moveTo(40, summaryY).lineTo(555, summaryY).lineWidth(0.5).stroke();
 
   /**
    * =====================================================
@@ -1051,102 +844,54 @@ export async function generateAllReport(
    * =====================================================
    */
 
+  if (products.length > 0) {
+    doc.addPage();
+
+    addHeader(doc, "LAPORAN PRODUK", userName);
+
+    let y = drawTableHeader(doc, productColumns, doc.y);
+
+    for (const [index, product] of products.entries()) {
+      if (y > 720) {
+        doc.addPage();
+
+        addHeader(doc, "LAPORAN PRODUK", userName);
+
+        y = drawTableHeader(doc, productColumns, doc.y);
+      }
+
+      writeProductRow(doc, product, y, index);
+
+      y += 28;
+    }
+  }
+
   /**
- * =====================================================
- * HALAMAN PRODUK
- * =====================================================
- */
+   * =====================================================
+   * HALAMAN TRANSAKSI
+   * =====================================================
+   */
 
-if (products.length > 0) {
-  doc.addPage();
+  if (transactions.length > 0) {
+    doc.addPage();
 
-  addHeader(
-    doc,
-    "LAPORAN PRODUK",
-    userName
-  );
+    addHeader(doc, "LAPORAN TRANSAKSI", userName);
 
-  let y = drawTableHeader(
-    doc,
-    productColumns,
-    doc.y
-  );
+    let y = drawTableHeader(doc, transactionColumns, doc.y);
 
-  for (const [index, product] of products.entries()) {
-    if (y > 720) {
-      doc.addPage();
+    for (const [index, transaction] of transactions.entries()) {
+      if (y > 720) {
+        doc.addPage();
 
-      addHeader(
-        doc,
-        "LAPORAN PRODUK",
-        userName
-      );
+        addHeader(doc, "LAPORAN TRANSAKSI", userName);
 
-      y = drawTableHeader(
-        doc,
-        productColumns,
-        doc.y
-      );
+        y = drawTableHeader(doc, transactionColumns, doc.y);
+      }
+
+      writeTransactionRow(doc, transaction, y, index);
+
+      y += 28;
     }
-
-    writeProductRow(
-      doc,
-      product,
-      y,
-      index
-    );
-
-    y += 28;
   }
-}
-
-/**
- * =====================================================
- * HALAMAN TRANSAKSI
- * =====================================================
- */
-
-if (transactions.length > 0) {
-  doc.addPage();
-
-  addHeader(
-    doc,
-    "LAPORAN TRANSAKSI",
-    userName
-  );
-
-  let y = drawTableHeader(
-    doc,
-    transactionColumns,
-    doc.y
-  );
-
-  for (const [index, transaction] of transactions.entries()) {
-    if (y > 720) {
-      doc.addPage();
-
-      addHeader(
-        doc,
-        "LAPORAN TRANSAKSI",
-        userName
-      );
-
-      y = drawTableHeader(
-        doc,
-        transactionColumns,
-        doc.y
-      );
-    }
-
-    writeTransactionRow(
-      doc,
-      transaction,
-      y,
-      index
-    );
-
-    y += 28;
-  }
-}
-return documentToBuffer(doc);
+  return documentToBuffer(doc);
 }

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
+import { toast } from "react-toastify";
 
 import { formatCurrency } from "@/shared/utils/formatCurrency";
 import { formatDate } from "@/shared/utils/formatDate";
@@ -33,8 +34,11 @@ export default function TransactionPage() {
     totalPages: 0,
   });
 
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [startDateTransaction, setStartDateTransaction] =
+    useState("");
+
+  const [endDateTransaction, setEndDateTransaction] =
+    useState("");
 
   // Untuk membedakan request pertama dengan request berikutnya
   const firstRender = useRef(true);
@@ -46,8 +50,10 @@ export default function TransactionPage() {
   const fetchTransactions = async ({
     initial = false,
     currentPage = page,
-    currentStartDate = startDate,
-    currentEndDate = endDate,
+    currentStartDateTransaction = startDateTransaction,
+    currentEndDateTransaction = endDateTransaction,
+    showSuccessToast = false,
+    successMessage = "",
   } = {}) => {
     try {
       if (initial) {
@@ -63,12 +69,18 @@ export default function TransactionPage() {
         limit: String(limit),
       });
 
-      if (currentStartDate) {
-        params.append("startDate", currentStartDate);
+      if (currentStartDateTransaction) {
+        params.append(
+          "startDateTransaction",
+          currentStartDateTransaction
+        );
       }
 
-      if (currentEndDate) {
-        params.append("endDate", currentEndDate);
+      if (currentEndDateTransaction) {
+        params.append(
+          "endDateTransaction",
+          currentEndDateTransaction
+        );
       }
 
       const response = await fetch(
@@ -84,7 +96,8 @@ export default function TransactionPage() {
 
       if (!response.ok) {
         throw new Error(
-          result.message || "Gagal mengambil data transaksi"
+          result.message ||
+            "Gagal mengambil data transaksi"
         );
       }
 
@@ -98,16 +111,25 @@ export default function TransactionPage() {
           totalPages: 0,
         }
       );
+
+      // Toast hanya jika diminta
+      if (showSuccessToast && successMessage) {
+        toast.success(successMessage);
+      }
     } catch (error) {
       console.error(
         "FETCH TRANSACTIONS ERROR:",
         error
       );
 
-      setError(
-        error.message ||
-          "Gagal mengambil data transaksi"
-      );
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Gagal mengambil data transaksi";
+
+      setError(message);
+
+      toast.error(message);
     } finally {
       if (initial) {
         setLoading(false);
@@ -143,6 +165,19 @@ export default function TransactionPage() {
   // =====================================================
 
   const handleFilter = () => {
+    // Validasi tanggal
+    if (
+      startDateTransaction &&
+      endDateTransaction &&
+      startDateTransaction > endDateTransaction
+    ) {
+      toast.warning(
+        "Tanggal mulai tidak boleh lebih besar dari tanggal akhir."
+      );
+
+      return;
+    }
+
     // Kalau sedang di halaman selain 1,
     // kembalikan ke halaman 1.
     //
@@ -157,8 +192,12 @@ export default function TransactionPage() {
     fetchTransactions({
       initial: false,
       currentPage: 1,
-      currentStartDate: startDate,
-      currentEndDate: endDate,
+      currentStartDateTransaction:
+        startDateTransaction,
+      currentEndDateTransaction:
+        endDateTransaction,
+      showSuccessToast: true,
+      successMessage: "Filter transaksi berhasil diterapkan.",
     });
   };
 
@@ -167,11 +206,14 @@ export default function TransactionPage() {
   // =====================================================
 
   const handleResetFilter = () => {
-    setStartDate("");
-    setEndDate("");
+    setStartDateTransaction("");
+    setEndDateTransaction("");
 
     if (page !== 1) {
       setPage(1);
+
+      toast.info("Filter transaksi telah direset.");
+
       return;
     }
 
@@ -180,8 +222,10 @@ export default function TransactionPage() {
     fetchTransactions({
       initial: false,
       currentPage: 1,
-      currentStartDate: "",
-      currentEndDate: "",
+      currentStartDateTransaction: "",
+      currentEndDateTransaction: "",
+      showSuccessToast: true,
+      successMessage: "Filter transaksi berhasil direset.",
     });
   };
 
@@ -192,6 +236,8 @@ export default function TransactionPage() {
   const handleRefresh = () => {
     fetchTransactions({
       initial: false,
+      showSuccessToast: true,
+      successMessage: "Data transaksi berhasil diperbarui.",
     });
   };
 
@@ -244,6 +290,7 @@ export default function TransactionPage() {
         confirmButtonText: "Ya, Hapus",
         cancelButtonText: "Batal",
         reverseButtons: true,
+        focusCancel: true,
       });
 
     if (!confirmation.isConfirmed) {
@@ -251,6 +298,8 @@ export default function TransactionPage() {
     }
 
     try {
+      setTableLoading(true);
+
       const response = await fetch(
         `/api/v1/transactions/${id}`,
         {
@@ -276,27 +325,27 @@ export default function TransactionPage() {
         )
       );
 
-      await Swal.fire({
-        title: "Berhasil!",
-        text:
-          "Transaksi berhasil dihapus.",
-        icon: "success",
-        confirmButtonText: "OK",
-      });
+      // Toast sukses
+      toast.success(
+        "Transaksi berhasil dihapus."
+      );
     } catch (error) {
       console.error(
         "DELETE TRANSACTION ERROR:",
         error
       );
 
-      Swal.fire({
-        title: "Gagal!",
-        text:
-          error.message ||
-          "Gagal menghapus transaksi.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Gagal menghapus transaksi.";
+
+      setError(message);
+
+      // Toast error
+      toast.error(message);
+    } finally {
+      setTableLoading(false);
     }
   };
 
@@ -312,7 +361,7 @@ export default function TransactionPage() {
       (total, transaction) =>
         total +
         Number(
-          transaction.total || 0
+          transaction.totalAmount || 0
         ),
       0
     );
@@ -410,9 +459,11 @@ export default function TransactionPage() {
             <input
               id="startDate"
               type="date"
-              value={startDate}
+              value={startDateTransaction}
               onChange={(e) =>
-                setStartDate(e.target.value)
+                setStartDateTransaction(
+                  e.target.value
+                )
               }
             />
           </div>
@@ -425,9 +476,11 @@ export default function TransactionPage() {
             <input
               id="endDate"
               type="date"
-              value={endDate}
+              value={endDateTransaction}
               onChange={(e) =>
-                setEndDate(e.target.value)
+                setEndDateTransaction(
+                  e.target.value
+                )
               }
             />
           </div>
@@ -543,7 +596,7 @@ export default function TransactionPage() {
                     >
                       Rp{" "}
                       {formatCurrency(
-                        transaction.total
+                        transaction.totalAmount
                       )}
                     </td>
 
@@ -589,6 +642,7 @@ export default function TransactionPage() {
                               `/dashboard/transactions/${transaction.id}`
                             )
                           }
+                          disabled={tableLoading}
                         >
                           Detail
                         </button>
@@ -603,6 +657,7 @@ export default function TransactionPage() {
                               transaction.id
                             )
                           }
+                          disabled={tableLoading}
                         >
                           Hapus
                         </button>

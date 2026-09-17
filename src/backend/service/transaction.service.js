@@ -323,8 +323,8 @@ export async function createTransaction({
 export async function getTransactions({
   page = 1,
   limit = 10,
-  startDate,
-  endDate,
+  startDateTransaction,
+  endDateTransaction,
 } = {}) {
   const currentPage = Math.max(
     Number(page) || 1,
@@ -341,18 +341,18 @@ export async function getTransactions({
 
   const where = {};
 
-  if (startDate || endDate) {
+  if (startDateTransaction || endDateTransaction) {
     where.createdAt = {};
 
-    if (startDate) {
+    if (startDateTransaction) {
       where.createdAt.gte = new Date(
-        `${startDate}T00:00:00`
+        `${startDateTransaction}T00:00:00`
       );
     }
 
-    if (endDate) {
+    if (endDateTransaction) {
       where.createdAt.lte = new Date(
-        `${endDate}T23:59:59.999`
+        `${endDateTransaction}T23:59:59.999`
       );
     }
   }

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Swal from "sweetalert2";
+import { toast } from "react-toastify";
 
 import styles from "@/frontend/css/ProductForm.module.css";
 
@@ -98,6 +99,11 @@ export default function EditProductPage() {
           error.message ||
             "Gagal mengambil data produk"
         );
+
+        toast.error(
+          error.message ||
+            "Gagal mengambil data produk"
+        );
       } finally {
         setLoading(false);
       }
@@ -147,31 +153,21 @@ export default function EditProductPage() {
 
     // Validasi format
     if (!allowedTypes.includes(file.type)) {
-      Swal.fire({
-        title: "Format Tidak Valid",
-        text:
-          "Format gambar harus JPG, PNG, atau WEBP.",
-        icon: "warning",
-        confirmButtonText: "OK",
-      });
+      toast.warning(
+        "Format gambar harus JPG, PNG, atau WEBP."
+      );
 
       e.target.value = "";
-
       return;
     }
 
     // Validasi ukuran
     if (file.size > 2 * 1024 * 1024) {
-      Swal.fire({
-        title: "File Terlalu Besar",
-        text:
-          "Ukuran gambar maksimal 2 MB.",
-        icon: "warning",
-        confirmButtonText: "OK",
-      });
+      toast.warning(
+        "Ukuran gambar maksimal 2 MB."
+      );
 
       e.target.value = "";
-
       return;
     }
 
@@ -187,206 +183,283 @@ export default function EditProductPage() {
   };
 
   // =====================================================
+  // DELETE PRODUCT
+  // =====================================================
+
+  const handleDelete = async () => {
+    const result = await Swal.fire({
+      title: "Hapus produk?",
+      text: `Produk "${form.name}" akan dihapus.`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Ya, Hapus",
+      cancelButtonText: "Batal",
+      reverseButtons: true,
+      focusCancel: true,
+    });
+
+    if (!result.isConfirmed) {
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setError("");
+
+      const response = await fetch(
+        `/api/v1/products/${id}`,
+        {
+          method: "DELETE",
+          credentials: "include",
+        }
+      );
+
+      const text = await response.text();
+
+      let result = {};
+
+      if (text) {
+        try {
+          result = JSON.parse(text);
+        } catch {
+          throw new Error(
+            `Response server bukan JSON. HTTP ${response.status}`
+          );
+        }
+      }
+
+      if (!response.ok) {
+        throw new Error(
+          result.message ||
+            `Gagal menghapus produk. HTTP ${response.status}`
+        );
+      }
+
+      toast.success(
+        "Produk berhasil dihapus."
+      );
+
+      setTimeout(() => {
+        router.push(
+          "/dashboard/products"
+        );
+
+        router.refresh();
+      }, 500);
+
+    } catch (error) {
+      console.error(
+        "DELETE PRODUCT ERROR:",
+        error
+      );
+
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Gagal menghapus produk.";
+
+      setError(message);
+
+      toast.error(message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // =====================================================
   // SUBMIT
   // =====================================================
-const handleSubmit = async (e) => {
-  e.preventDefault();
 
-  // =====================================================
-  // VALIDASI NAMA
-  // =====================================================
-
-  if (!form.name.trim()) {
-    Swal.fire({
-      title: "Perhatian",
-      text: "Nama produk wajib diisi.",
-      icon: "warning",
-      confirmButtonText: "OK",
-    });
-
-    return;
-  }
-
-  // =====================================================
-  // VALIDASI HARGA
-  // =====================================================
-
-  if (
-    form.price === "" ||
-    form.price === null ||
-    Number.isNaN(Number(form.price)) ||
-    Number(form.price) < 0
-  ) {
-    Swal.fire({
-      title: "Perhatian",
-      text: "Harga produk tidak valid.",
-      icon: "warning",
-      confirmButtonText: "OK",
-    });
-
-    return;
-  }
-
-  // =====================================================
-  // VALIDASI STOCK
-  // =====================================================
-
-  if (
-    form.stock === "" ||
-    form.stock === null ||
-    Number.isNaN(Number(form.stock)) ||
-    Number(form.stock) < 0
-  ) {
-    Swal.fire({
-      title: "Perhatian",
-      text: "Stock produk tidak valid.",
-      icon: "warning",
-      confirmButtonText: "OK",
-    });
-
-    return;
-  }
-
-  setSaving(true);
-  setError("");
-
-  try {
-    // ===================================================
-    // FORM DATA
-    // ===================================================
-
-    const formData = new FormData();
-
-    formData.append(
-      "name",
-      form.name.trim()
-    );
-
-    formData.append(
-      "price",
-      String(form.price)
-    );
-
-    formData.append(
-      "stock",
-      String(form.stock)
-    );
-
-    formData.append(
-      "category",
-      form.category?.trim() || ""
-    );
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
     // ===================================================
-    // IMAGE
+    // VALIDASI NAMA
+    // ===================================================
+
+    if (!form.name.trim()) {
+      toast.warning(
+        "Nama produk wajib diisi."
+      );
+
+      return;
+    }
+
+    // ===================================================
+    // VALIDASI HARGA
     // ===================================================
 
     if (
-      form.image &&
-      form.image instanceof File
+      form.price === "" ||
+      form.price === null ||
+      Number.isNaN(Number(form.price)) ||
+      Number(form.price) < 0
     ) {
+      toast.warning(
+        "Harga produk tidak valid."
+      );
+
+      return;
+    }
+
+    // ===================================================
+    // VALIDASI STOCK
+    // ===================================================
+
+    if (
+      form.stock === "" ||
+      form.stock === null ||
+      Number.isNaN(Number(form.stock)) ||
+      Number(form.stock) < 0
+    ) {
+      toast.warning(
+        "Stock produk tidak valid."
+      );
+
+      return;
+    }
+
+    setSaving(true);
+    setError("");
+
+    try {
+      // =================================================
+      // FORM DATA
+      // =================================================
+
+      const formData = new FormData();
+
       formData.append(
-        "image",
-        form.image
+        "name",
+        form.name.trim()
       );
-    }
 
-    // ===================================================
-    // PATCH REQUEST
-    // ===================================================
+      formData.append(
+        "price",
+        String(form.price)
+      );
 
-    const response = await fetch(
-      `/api/v1/products/${id}`,
-      {
-        method: "PATCH",
-        credentials: "include",
-        body: formData,
-      }
-    );
+      formData.append(
+        "stock",
+        String(form.stock)
+      );
 
-    // ===================================================
-    // BACA RESPONSE
-    // ===================================================
+      formData.append(
+        "category",
+        form.category?.trim() || ""
+      );
 
-    const text = await response.text();
+      // =================================================
+      // IMAGE
+      // =================================================
 
-    console.log(
-      "UPDATE STATUS:",
-      response.status
-    );
-
-    console.log(
-      "UPDATE RESPONSE:",
-      text
-    );
-
-    let result = {};
-
-    if (text) {
-      try {
-        result = JSON.parse(text);
-      } catch (parseError) {
-        console.error(
-          "JSON PARSE ERROR:",
-          parseError
+      if (
+        form.image &&
+        form.image instanceof File
+      ) {
+        formData.append(
+          "image",
+          form.image
         );
+      }
 
+      // =================================================
+      // PATCH REQUEST
+      // =================================================
+
+      const response = await fetch(
+        `/api/v1/products/${id}`,
+        {
+          method: "PATCH",
+          credentials: "include",
+          body: formData,
+        }
+      );
+
+      // =================================================
+      // BACA RESPONSE
+      // =================================================
+
+      const text = await response.text();
+
+      console.log(
+        "UPDATE STATUS:",
+        response.status
+      );
+
+      console.log(
+        "UPDATE RESPONSE:",
+        text
+      );
+
+      let result = {};
+
+      if (text) {
+        try {
+          result = JSON.parse(text);
+        } catch (parseError) {
+          console.error(
+            "JSON PARSE ERROR:",
+            parseError
+          );
+
+          throw new Error(
+            `Response server bukan JSON. HTTP ${response.status}`
+          );
+        }
+      }
+
+      // =================================================
+      // RESPONSE ERROR
+      // =================================================
+
+      if (!response.ok) {
         throw new Error(
-          `Response server bukan JSON. HTTP ${response.status}`
+          result.message ||
+            `Gagal memperbarui produk. HTTP ${response.status}`
         );
       }
-    }
 
-    // ===================================================
-    // RESPONSE ERROR
-    // ===================================================
+      // =================================================
+      // SUCCESS
+      // =================================================
 
-    if (!response.ok) {
-      throw new Error(
-        result.message ||
-          `Gagal memperbarui produk. HTTP ${response.status}`
+      toast.success(
+        "Produk berhasil diperbarui."
       );
+
+      // Beri waktu agar toast terlihat
+      setTimeout(() => {
+        router.push(
+          "/dashboard/products"
+        );
+
+        router.refresh();
+      }, 500);
+
+    } catch (error) {
+      console.error(
+        "UPDATE PRODUCT ERROR:",
+        error
+      );
+
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Gagal memperbarui produk.";
+
+      setError(message);
+
+      toast.error(message);
+    } finally {
+      setSaving(false);
     }
+  };
 
-    // ===================================================
-    // SUCCESS
-    // ===================================================
+  // =====================================================
+  // LOADING
+  // =====================================================
 
-    await Swal.fire({
-      title: "Berhasil!",
-      text: "Produk berhasil diperbarui.",
-      icon: "success",
-      confirmButtonText: "OK",
-    });
-
-    router.push(
-      "/dashboard/products"
-    );
-
-    router.refresh();
-  } catch (error) {
-    console.error(
-      "UPDATE PRODUCT ERROR:",
-      error
-    );
-
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Gagal memperbarui produk.";
-
-    setError(message);
-
-    Swal.fire({
-      title: "Gagal!",
-      text: message,
-      icon: "error",
-      confirmButtonText: "OK",
-    });
-  } finally {
-    setSaving(false);
-  }
-}
   if (loading) {
     return (
       <main className={styles.container}>
@@ -654,6 +727,19 @@ const handleSubmit = async (e) => {
               disabled={saving}
             >
               Batal
+            </button>
+
+            <button
+              type="button"
+              className={
+                styles.deleteButton
+              }
+              onClick={handleDelete}
+              disabled={saving}
+            >
+              {saving
+                ? "Memproses..."
+                : "Hapus"}
             </button>
 
             <button
