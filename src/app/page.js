@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Swal from "sweetalert2";
+import { toast } from "react-toastify";
 
 import {
   createTransaction,
@@ -54,68 +54,69 @@ export default function Home() {
   );
 
   // ========================================
-  // AMBIL PRODUCTS
+  // AMBIL PRODUCTS AKTIF UNTUK KASIR
   // ========================================
 
-// ========================================
-// AMBIL PRODUCTS AKTIF UNTUK KASIR
-// ========================================
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoadingProducts(true);
+        setProductError("");
 
-useEffect(() => {
-  const fetchProducts = async () => {
-    try {
-      setLoadingProducts(true);
-      setProductError("");
-
-      const response = await fetch(
-        "/api/v1/products",
-        {
-          method: "GET",
-          cache: "no-store",
-        }
-      );
-
-      const result = await response.json();
-
-      console.log(
-        "PRODUCT API:",
-        result
-      );
-
-      if (!response.ok) {
-        throw new Error(
-          result.message ||
-            "Gagal mengambil produk"
+        const response = await fetch(
+          "/api/v1/products",
+          {
+            method: "GET",
+            cache: "no-store",
+            credentials: "include",
+          }
         );
+
+        const result =
+          await response.json();
+
+        console.log(
+          "PRODUCT API:",
+          result
+        );
+
+        if (!response.ok) {
+          throw new Error(
+            result.message ||
+              "Gagal mengambil produk"
+          );
+        }
+
+        // Hanya tampilkan produk yang aktif
+        const activeProducts = (
+          result.data || []
+        ).filter(
+          (product) =>
+            product.isActive === true
+        );
+
+        setProducts(activeProducts);
+      } catch (error) {
+        console.error(
+          "FETCH PRODUCTS ERROR:",
+          error
+        );
+
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Gagal mengambil data produk";
+
+        setProductError(message);
+
+        toast.error(message);
+      } finally {
+        setLoadingProducts(false);
       }
+    };
 
-      // Hanya tampilkan produk yang aktif
-      const activeProducts = (
-        result.data || []
-      ).filter(
-        (product) =>
-          product.isActive === true
-      );
-
-      setProducts(activeProducts);
-
-    } catch (error) {
-      console.error(
-        "FETCH PRODUCTS ERROR:",
-        error
-      );
-
-      setProductError(
-        error.message ||
-          "Gagal mengambil data produk"
-      );
-    } finally {
-      setLoadingProducts(false);
-    }
-  };
-
-  fetchProducts();
-}, []);
+    fetchProducts();
+  }, []);
 
   // ========================================
   // AMBIL USER LOGIN
@@ -143,6 +144,10 @@ useEffect(() => {
         );
 
         localStorage.removeItem("user");
+
+        toast.error(
+          "Data pengguna tidak valid. Silakan login kembali."
+        );
       }
     }
   }, []);
@@ -180,6 +185,10 @@ useEffect(() => {
         },
       ];
     });
+
+    toast.success(
+      `${product.name} ditambahkan ke keranjang.`
+    );
   }
 
   // ========================================
@@ -217,8 +226,7 @@ useEffect(() => {
             : item
         )
         .filter(
-          (item) =>
-            item.qty > 0
+          (item) => item.qty > 0
         )
     );
   }
@@ -228,12 +236,23 @@ useEffect(() => {
   // ========================================
 
   function handleRemove(id) {
+    const product =
+      cart.find(
+        (item) => item.id === id
+      );
+
     setCart((prev) =>
       prev.filter(
         (item) =>
           item.id !== id
       )
     );
+
+    if (product) {
+      toast.info(
+        `${product.name} dihapus dari keranjang.`
+      );
+    }
   }
 
   // ========================================
@@ -242,6 +261,10 @@ useEffect(() => {
 
   function handleCheckout() {
     if (cart.length === 0) {
+      toast.warning(
+        "Keranjang masih kosong. Silakan pilih produk terlebih dahulu."
+      );
+
       return;
     }
 
@@ -253,95 +276,147 @@ useEffect(() => {
   // ========================================
 
   async function handleConfirmPayment({
-    method,
-    cashReceived,
-    change,
-  }) {
-    try {
-      if (cart.length === 0) {
-        throw new Error(
-          "Keranjang masih kosong"
-        );
-      }
-
-      console.log(
-        "CART BEFORE PAYMENT:",
-        cart
+  method,
+  cashReceived,
+  change,
+  idempotencyKey,
+}) {
+  try {
+    if (cart.length === 0) {
+      toast.warning(
+        "Keranjang masih kosong."
       );
 
-      const result =
-        await createTransaction({
-          items: cart,
-
-          paymentMethod:
-            method,
-
-          cashReceived:
-            method === "cash"
-              ? Number(
-                  cashReceived
-                )
-              : 0,
-        });
-
-      console.log(
-        "TRANSACTION SUCCESS:",
-        result
-      );
-
-      await Swal.fire({
-        icon: "success",
-        title:
-          "Pembayaran Berhasil!",
-        text:
-          "Transaksi berhasil disimpan.",
-        confirmButtonText:
-          "OK",
-      });
-
-      const transaction =
-        result.data;
-
-      setLastTransaction({
-        ...transaction,
-
-        items: cart,
-
-        method,
-
-        total,
-
-        cashReceived,
-
-        change,
-
-        date:
-          new Date().toLocaleString(
-            "id-ID"
-          ),
-
-        cashier:
-          user?.username ||
-          "Admin",
-      });
-
-      setPaymentOpen(false);
-
-      setReceiptOpen(true);
-
-      setCart([]);
-    } catch (error) {
-      console.error(
-        "PAYMENT ERROR:",
-        error
-      );
-
-      alert(
-        error.message ||
-          "Pembayaran gagal"
+      throw new Error(
+        "Keranjang masih kosong."
       );
     }
+
+    console.log(
+      "CART BEFORE PAYMENT:",
+      cart
+    );
+
+    console.log(
+      "IDEMPOTENCY KEY:",
+      idempotencyKey
+    );
+
+    // ====================================
+    // KIRIM TRANSAKSI KE BACKEND
+    // ====================================
+
+    const result =
+      await createTransaction({
+        items: cart,
+
+        paymentMethod:
+          method,
+
+        cashReceived:
+          method === "cash"
+            ? Number(cashReceived)
+            : 0,
+
+        idempotencyKey,
+      });
+
+    console.log(
+      "TRANSACTION SUCCESS:",
+      result
+    );
+
+    // ====================================
+    // VALIDASI RESPONSE
+    // ====================================
+
+    if (!result?.success) {
+      throw new Error(
+        result?.message ||
+        "Transaksi gagal diproses."
+      );
+    }
+
+    const transaction =
+      result.data;
+
+    // ====================================
+    // SIMPAN DATA STRUK
+    // ====================================
+
+    setLastTransaction({
+      ...transaction,
+
+      items: cart,
+
+      method,
+
+      total,
+
+      cashReceived,
+
+      change,
+
+      date:
+        new Date().toLocaleString(
+          "id-ID"
+        ),
+
+      cashier:
+        user?.username ||
+        "Admin",
+    });
+
+    // ====================================
+    // TUTUP PAYMENT MODAL
+    // ====================================
+
+    setPaymentOpen(false);
+
+    // ====================================
+    // BUKA RECEIPT
+    // ====================================
+
+    setReceiptOpen(true);
+
+    // ====================================
+    // KOSONGKAN CART
+    // ====================================
+
+    setCart([]);
+
+    // ====================================
+    // TOAST SUCCESS
+    // ====================================
+
+    toast.success(
+      "Pembayaran berhasil! Transaksi telah disimpan."
+    );
+
+    // Penting:
+    // return result agar PaymentModal
+    // mengetahui request benar-benar selesai
+    return result;
+
+  } catch (error) {
+    console.error(
+      "PAYMENT ERROR:",
+      error
+    );
+
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Pembayaran gagal";
+
+    toast.error(message);
+
+    // PENTING!
+    // Lempar kembali error ke PaymentModal
+    // supaya catch/finally di sana bekerja
+    throw error;
   }
+}
 
   // ========================================
   // LOGOUT
@@ -356,10 +431,18 @@ useEffect(() => {
       "user"
     );
 
+    toast.info(
+      "Anda telah logout."
+    );
+
     router.push(
       "/auth/login"
     );
   }
+
+  // ========================================
+  // RENDER
+  // ========================================
 
   return (
     <div className="app-shell">
@@ -470,15 +553,19 @@ useEffect(() => {
 
             <CartSidebar
               items={cart}
+
               onIncrease={
                 handleIncrease
               }
+
               onDecrease={
                 handleDecrease
               }
+
               onRemove={
                 handleRemove
               }
+
               onCheckout={
                 handleCheckout
               }
@@ -535,4 +622,3 @@ useEffect(() => {
     </div>
   );
 }
-

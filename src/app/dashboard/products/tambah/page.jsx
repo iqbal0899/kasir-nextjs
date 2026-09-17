@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Swal from "sweetalert2";
+import { toast } from "react-toastify";
 
 import { createProduct } from "@/frontend/services/productApi";
 import styles from "@/frontend/css/ProductForm.module.css";
@@ -19,7 +19,6 @@ export default function ProductsPage() {
   });
 
   const [preview, setPreview] = useState("");
-
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -41,35 +40,22 @@ export default function ProductsPage() {
       }));
 
       setPreview("");
-
       return;
     }
 
     // Validasi format
     if (!file.type.startsWith("image/")) {
-      Swal.fire({
-        title: "Format Tidak Valid",
-        text: "File harus berupa gambar.",
-        icon: "warning",
-        confirmButtonText: "OK",
-      });
+      toast.warning("File harus berupa gambar.");
 
       e.target.value = "";
-
       return;
     }
 
     // Validasi ukuran 2 MB
     if (file.size > 2 * 1024 * 1024) {
-      Swal.fire({
-        title: "File Terlalu Besar",
-        text: "Ukuran gambar maksimal 2 MB.",
-        icon: "warning",
-        confirmButtonText: "OK",
-      });
+      toast.warning("Ukuran gambar maksimal 2 MB.");
 
       e.target.value = "";
-
       return;
     }
 
@@ -84,120 +70,73 @@ export default function ProductsPage() {
     setPreview(imageUrl);
   };
 
-
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  if (!form.name.trim()) {
-    Swal.fire({
-      title: "Perhatian",
-      text: "Nama produk wajib diisi.",
-      icon: "warning",
-    });
-
-    return;
-  }
-
-  if (!form.price) {
-    Swal.fire({
-      title: "Perhatian",
-      text: "Harga produk wajib diisi.",
-      icon: "warning",
-    });
-
-    return;
-  }
-
-  setLoading(true);
-
-  try {
-    const formData = new FormData();
-
-    formData.append(
-      "name",
-      form.name
-    );
-
-    formData.append(
-      "price",
-      form.price
-    );
-
-    formData.append(
-      "stock",
-      form.stock
-    );
-
-    formData.append(
-      "category",
-      form.category
-    );
-
-    if (form.image) {
-      formData.append(
-        "image",
-        form.image
-      );
+    // Validasi nama
+    if (!form.name.trim()) {
+      toast.warning("Nama produk wajib diisi.");
+      return;
     }
 
-    await createProduct(formData);
+    // Validasi harga
+    if (!form.price) {
+      toast.warning("Harga produk wajib diisi.");
+      return;
+    }
 
-    await Swal.fire({
-      title: "Berhasil!",
-      text: "Produk berhasil ditambahkan.",
-      icon: "success",
-      confirmButtonText: "OK",
-    });
+    setLoading(true);
 
-    setForm({
-      name: "",
-      price: "",
-      stock: 0,
-      category: "",
-      image: null,
-    });
+    try {
+      const formData = new FormData();
 
-    setPreview("");
+      formData.append("name", form.name);
+      formData.append("price", form.price);
+      formData.append("stock", form.stock);
+      formData.append("category", form.category);
 
-    router.push(
-      "/dashboard/products"
-    );
+      if (form.image) {
+        formData.append("image", form.image);
+      }
 
-    router.refresh();
+      await createProduct(formData);
 
-  } catch (error) {
-    console.error(
-      "PRODUCT ERROR:",
-      error
-    );
+      toast.success("Produk berhasil ditambahkan.");
 
-    Swal.fire({
-      title: "Gagal!",
-      text:
-        error.message ||
-        "Terjadi kesalahan.",
-      icon: "error",
-      confirmButtonText: "OK",
-    });
+      setForm({
+        name: "",
+        price: "",
+        stock: 0,
+        category: "",
+        image: null,
+      });
 
-  } finally {
-    setLoading(false);
-  }
-};  
+      setPreview("");
+
+      // Beri waktu agar toast terlihat
+      setTimeout(() => {
+        router.push("/dashboard/products");
+        router.refresh();
+      }, 500);
+    } catch (error) {
+      console.error("PRODUCT ERROR:", error);
+
+      toast.error(
+        error.message || "Terjadi kesalahan saat menambahkan produk."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <main className={styles.container}>
-
       <div className={styles.card}>
-
         <div className={styles.header}>
-          <h1>
-            Tambah Produk
-          </h1>
+          <h1>Tambah Produk</h1>
 
           <p>
-            Tambahkan produk baru
-            ke dalam sistem kasir.
+            Tambahkan produk baru ke dalam sistem kasir.
           </p>
         </div>
 
@@ -205,7 +144,6 @@ export default function ProductsPage() {
           onSubmit={handleSubmit}
           className={styles.form}
         >
-
           {/* NAMA */}
 
           <div className={styles.formGroup}>
@@ -304,9 +242,7 @@ export default function ProductsPage() {
 
           {preview && (
             <div className={styles.preview}>
-              <p>
-                Preview Gambar:
-              </p>
+              <p>Preview Gambar:</p>
 
               <img
                 src={preview}
@@ -321,14 +257,11 @@ export default function ProductsPage() {
           {/* BUTTON */}
 
           <div className={styles.actions}>
-
             <button
               type="button"
               className={styles.cancelButton}
               onClick={() =>
-                router.push(
-                  "/dashboard/products"
-                )
+                router.push("/dashboard/products")
               }
               disabled={loading}
             >
@@ -344,12 +277,10 @@ export default function ProductsPage() {
                 ? "Menyimpan..."
                 : "Simpan Produk"}
             </button>
-
           </div>
-
         </form>
       </div>
-
     </main>
   );
 }
+

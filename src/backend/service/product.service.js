@@ -6,7 +6,6 @@ export async function getProducts({
   startDateProduct,
   endDateProduct,
 } = {}) {
-
   const currentPage = Math.max(
     Number(page) || 1,
     1
@@ -19,7 +18,6 @@ export async function getProducts({
 
   const skip =
     (currentPage - 1) * currentLimit;
-
 
   // =====================================================
   // FILTER TANGGAL TRANSAKSI
@@ -40,54 +38,88 @@ export async function getProducts({
   const hasDateFilter =
     Object.keys(transactionDateFilter).length > 0;
 
-
   // =====================================================
-  // QUERY
+  // QUERY PRODUK
   // =====================================================
 
-  const [products, total] =
-    await Promise.all([
-
-      prisma.product.findMany({
-        include: {
-          transactionItems: {
-            where: hasDateFilter
-              ? {
-                  transaction: {
-                    createdAt:
-                      transactionDateFilter,
-                  },
-                }
-              : undefined,
-
-            select: {
-              quantity: true,
+  const products =
+    await prisma.product.findMany({
+      include: {
+        transactionItems: {
+          select: {
+            quantity: true,
+            transaction: {
+              select: {
+                createdAt: true,
+              },
             },
           },
         },
+      },
 
-        orderBy: {
-          id: "asc",
-        },
+      orderBy: {
+        id: "asc",
+      },
 
-        skip,
-        take: currentLimit,
-      }),
+      skip,
+      take: currentLimit,
+    });
 
-
-      prisma.product.count(),
-    ]);
-
+  const total =
+    await prisma.product.count();
 
   // =====================================================
-  // HITUNG STOCK TERJUAL
+  // HITUNG DATA
   // =====================================================
 
   const data = products.map((product) => {
+    const currentStock =
+      Number(product.stock || 0);
+
+    // -----------------------------------------------------
+    // STOCK TERJUAL PADA PERIODE FILTER
+    // -----------------------------------------------------
 
     const soldStock =
       product.transactionItems.reduce(
         (totalSold, item) => {
+          const transactionDate =
+            new Date(
+              item.transaction.createdAt
+            );
+
+          let includeTransaction = true;
+
+          if (startDateProduct) {
+            const startDate =
+              new Date(
+                `${startDateProduct}T00:00:00`
+              );
+
+            if (
+              transactionDate < startDate
+            ) {
+              includeTransaction = false;
+            }
+          }
+
+          if (endDateProduct) {
+            const endDate =
+              new Date(
+                `${endDateProduct}T23:59:59.999`
+              );
+
+            if (
+              transactionDate > endDate
+            ) {
+              includeTransaction = false;
+            }
+          }
+
+          if (!includeTransaction) {
+            return totalSold;
+          }
+
           return (
             totalSold +
             Number(item.quantity || 0)
@@ -96,6 +128,55 @@ export async function getProducts({
         0
       );
 
+    // -----------------------------------------------------
+    // HITUNG STOK HISTORIS
+    // -----------------------------------------------------
+
+    let historicalStock =
+      currentStock;
+
+    // Jika ada tanggal akhir,
+    // cari transaksi SETELAH tanggal tersebut.
+    if (endDateProduct) {
+      const endDate =
+        new Date(
+          `${endDateProduct}T23:59:59.999`
+        );
+
+      const soldAfterDate =
+        product.transactionItems.reduce(
+          (totalSold, item) => {
+            const transactionDate =
+              new Date(
+                item.transaction.createdAt
+              );
+
+            if (
+              transactionDate > endDate
+            ) {
+              return (
+                totalSold +
+                Number(item.quantity || 0)
+              );
+            }
+
+            return totalSold;
+          },
+          0
+        );
+
+      historicalStock =
+        currentStock + soldAfterDate;
+    }
+
+    // -----------------------------------------------------
+    // TANPA FILTER TANGGAL
+    // -----------------------------------------------------
+
+    if (!hasDateFilter) {
+      historicalStock =
+        currentStock;
+    }
 
     return {
       id: product.id,
@@ -105,8 +186,9 @@ export async function getProducts({
       price:
         Number(product.price),
 
+      // Stok sesuai tanggal laporan
       stock:
-        Number(product.stock || 0),
+        historicalStock,
 
       category:
         product.category,
@@ -126,7 +208,6 @@ export async function getProducts({
       soldStock,
     };
   });
-
 
   // =====================================================
   // RESPONSE
