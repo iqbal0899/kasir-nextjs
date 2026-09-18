@@ -9,97 +9,61 @@ import Sidebar from "@/frontend/components/shared/Sidebar";
 import Navbar from "@/frontend/components/shared/Navbar";
 
 export default function ReportsPage() {
-  // =====================================================
-  // DATA
-  // =====================================================
+
 
   const [products, setProducts] = useState([]);
-  const [transactions, setTransactions] = useState([]);
-  const [user, setUser] = useState(null);
+const [transactions, setTransactions] = useState([]);
+const [user, setUser] = useState(null);
 
-  // =====================================================
-  // LOADING & ERROR
-  // =====================================================
+const [loadingProducts, setLoadingProducts] = useState(true);
+const [loadingTransactions, setLoadingTransactions] = useState(true);
 
-  const [loadingProducts, setLoadingProducts] = useState(true);
-  const [loadingTransactions, setLoadingTransactions] = useState(true);
+const [productError, setProductError] = useState("");
+const [transactionError, setTransactionError] = useState("");
 
-  const [productError, setProductError] = useState("");
-  const [transactionError, setTransactionError] = useState("");
+const [search, setSearch] = useState("");
 
-  // =====================================================
-  // SEARCH
-  // =====================================================
+const [productPage, setProductPage] = useState(1);
+const [productLimit, setProductLimit] = useState(10);
 
-  const [search, setSearch] = useState("");
+const [productPagination, setProductPagination] = useState({
+  page: 1,
+  limit: 10,
+  total: 0,
+  totalPages: 0,
+});
 
-  // =====================================================
-  // PAGINATION PRODUK
-  // =====================================================
+const [transactionPage, setTransactionPage] = useState(1);
+const [transactionLimit, setTransactionLimit] = useState(10);
 
-  const [productPage, setProductPage] = useState(1);
-  const [productLimit, setProductLimit] = useState(10);
+const [transactionPagination, setTransactionPagination] = useState({
+  page: 1,
+  limit: 10,
+  total: 0,
+  totalPages: 0,
+});
 
-  const [productPagination, setProductPagination] = useState({
-    page: 1,
-    limit: 10,
-    total: 0,
-    totalPages: 0,
-  });
+const [startDateProduct, setStartDateProduct] = useState("");
+const [endDateProduct, setEndDateProduct] = useState("");
 
-  // =====================================================
-  // PAGINATION TRANSAKSI
-  // =====================================================
+const [appliedStartDateProduct, setAppliedStartDateProduct] =
+  useState("");
 
-  const [transactionPage, setTransactionPage] = useState(1);
-  const [transactionLimit, setTransactionLimit] = useState(10);
+const [appliedEndDateProduct, setAppliedEndDateProduct] =
+  useState("");
 
-  const [transactionPagination, setTransactionPagination] = useState({
-    page: 1,
-    limit: 10,
-    total: 0,
-    totalPages: 0,
-  });
+const [startDateTransaction, setStartDateTransaction] =
+  useState("");
 
-  // =====================================================
-  // INPUT FILTER PRODUK
-  // Tetap menggunakan startDateProduct / endDateProduct
-  // =====================================================
+const [endDateTransaction, setEndDateTransaction] =
+  useState("");
 
-  const [startDateProduct, setStartDateProduct] = useState("");
-  const [endDateProduct, setEndDateProduct] = useState("");
+const [appliedStartDateTransaction, setAppliedStartDateTransaction] =
+  useState("");
 
-  // =====================================================
-  // FILTER PRODUK YANG SUDAH DITERAPKAN
-  // =====================================================
+const [appliedEndDateTransaction, setAppliedEndDateTransaction] =
+  useState("");
 
-  const [appliedStartDateProduct, setAppliedStartDateProduct] =
-    useState("");
-
-  const [appliedEndDateProduct, setAppliedEndDateProduct] =
-    useState("");
-
-  // =====================================================
-  // INPUT FILTER TRANSAKSI
-  // Tetap menggunakan startDateTransaction / endDateTransaction
-  // =====================================================
-
-  const [startDateTransaction, setStartDateTransaction] = useState("");
-  const [endDateTransaction, setEndDateTransaction] = useState("");
-
-  // =====================================================
-  // FILTER TRANSAKSI YANG SUDAH DITERAPKAN
-  // =====================================================
-
-  const [appliedStartDateTransaction, setAppliedStartDateTransaction] =
-    useState("");
-
-  const [appliedEndDateTransaction, setAppliedEndDateTransaction] =
-    useState("");
-
-  // =====================================================
-  // FETCH PRODUCTS
-  // =====================================================
 
   const fetchProducts = async () => {
     try {
@@ -111,7 +75,6 @@ export default function ReportsPage() {
         limit: String(productLimit),
       });
 
-      // Gunakan FILTER YANG SUDAH DITERAPKAN
       if (appliedStartDateProduct) {
         params.append(
           "startDateProduct",
@@ -184,9 +147,6 @@ export default function ReportsPage() {
     }
   };
 
-  // =====================================================
-  // FETCH PRODUCTS EFFECT
-  // =====================================================
 
   useEffect(() => {
     fetchProducts();
@@ -196,10 +156,6 @@ export default function ReportsPage() {
     appliedStartDateProduct,
     appliedEndDateProduct,
   ]);
-
-  // =====================================================
-  // FETCH TRANSACTIONS
-  // =====================================================
 
   const fetchTransactions = async () => {
     try {

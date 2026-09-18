@@ -367,35 +367,16 @@ export default function Home() {
         "Admin",
     });
 
-    // ====================================
-    // TUTUP PAYMENT MODAL
-    // ====================================
-
     setPaymentOpen(false);
-
-    // ====================================
-    // BUKA RECEIPT
-    // ====================================
 
     setReceiptOpen(true);
 
-    // ====================================
-    // KOSONGKAN CART
-    // ====================================
-
     setCart([]);
-
-    // ====================================
-    // TOAST SUCCESS
-    // ====================================
 
     toast.success(
       "Pembayaran berhasil! Transaksi telah disimpan."
     );
 
-    // Penting:
-    // return result agar PaymentModal
-    // mengetahui request benar-benar selesai
     return result;
 
   } catch (error) {
@@ -410,17 +391,11 @@ export default function Home() {
         : "Pembayaran gagal";
 
     toast.error(message);
-
-    // PENTING!
-    // Lempar kembali error ke PaymentModal
-    // supaya catch/finally di sana bekerja
+    
     throw error;
   }
 }
 
-  // ========================================
-  // LOGOUT
-  // ========================================
 
   function handleLogout() {
     localStorage.removeItem(
@@ -440,16 +415,10 @@ export default function Home() {
     );
   }
 
-  // ========================================
-  // RENDER
-  // ========================================
 
   return (
     <div className="app-shell">
 
-      {/* ========================================
-          SIDEBAR
-      ======================================== */}
 
       <Sidebar
         role={
@@ -458,15 +427,7 @@ export default function Home() {
         }
       />
 
-      {/* ========================================
-          MAIN
-      ======================================== */}
-
       <div className="app-main">
-
-        {/* ========================================
-            NAVBAR
-        ======================================== */}
 
         <Navbar
           storeName="Toko Iqbal"
@@ -483,10 +444,6 @@ export default function Home() {
           }
         />
 
-        {/* ========================================
-            CONTENT
-        ======================================== */}
-
         <div className="app-content">
 
           <Header
@@ -494,15 +451,8 @@ export default function Home() {
             subtitle="Pilih produk di bawah untuk mulai transaksi"
           />
 
-          {/* ========================================
-              PRODUCT + CART
-          ======================================== */}
 
           <div className="pos-layout">
-
-            {/* ========================================
-                PRODUCT GRID
-            ======================================== */}
 
             <div>
 
@@ -547,10 +497,6 @@ export default function Home() {
 
             </div>
 
-            {/* ========================================
-                CART
-            ======================================== */}
-
             <CartSidebar
               items={cart}
 
@@ -575,10 +521,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ========================================
-          PAYMENT MODAL
-      ======================================== */}
-
       <PaymentModal
         open={paymentOpen}
 
@@ -596,10 +538,6 @@ export default function Home() {
           handleConfirmPayment
         }
       />
-
-      {/* ========================================
-          RECEIPT MODAL
-      ======================================== */}
 
       <ReceiptModal
         open={receiptOpen}
