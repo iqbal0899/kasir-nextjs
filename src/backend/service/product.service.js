@@ -1,181 +1,190 @@
 import { prisma } from "@/lib/prisma";
 
+// =====================================================
+// GET PRODUCTS
+// =====================================================
+
 export async function getProducts({
   page = 1,
   limit = 10,
   startDateProduct,
   endDateProduct,
 } = {}) {
-  const currentPage = Math.max(
-    Number(page) || 1,
-    1
+  const currentPage = Math.max(Number(page) || 1, 1);
+
+  const currentLimit = Math.min(
+    Math.max(Number(limit) || 10, 1),
+    100
   );
 
-  const currentLimit = Math.max(
-    Number(limit) || 10,
-    1
-  );
-
-  const skip =
-    (currentPage - 1) * currentLimit;
+  const skip = (currentPage - 1) * currentLimit;
 
   // =====================================================
-  // FILTER TANGGAL TRANSAKSI
+  // DATE FILTER
   // =====================================================
+
+  const startDate = startDateProduct
+    ? new Date(`${startDateProduct}T00:00:00`)
+    : null;
+
+  const endDate = endDateProduct
+    ? new Date(`${endDateProduct}T23:59:59.999`)
+    : null;
+
+  const hasDateFilter = Boolean(startDate || endDate);
 
   const transactionDateFilter = {};
 
-  if (startDateProduct) {
-    transactionDateFilter.gte =
-      new Date(`${startDateProduct}T00:00:00`);
+  if (startDate) {
+    transactionDateFilter.gte = startDate;
   }
 
-  if (endDateProduct) {
-    transactionDateFilter.lte =
-      new Date(`${endDateProduct}T23:59:59.999`);
+  if (endDate) {
+    transactionDateFilter.lte = endDate;
   }
 
-  const hasDateFilter =
-    Object.keys(transactionDateFilter).length > 0;
-
   // =====================================================
-  // QUERY PRODUK
+  // PRODUCT QUERY
   // =====================================================
 
-  const products =
-    await prisma.product.findMany({
-      include: {
-        transactionItems: {
-          select: {
-            quantity: true,
-            transaction: {
-              select: {
-                createdAt: true,
-              },
+const startProducts = performance.now();
+
+const products = await prisma.product.findMany({
+  orderBy: {
+    id: "asc",
+  },
+  skip,
+  take: currentLimit,
+  select: {
+    id: true,
+    name: true,
+    price: true,
+    stock: true,
+    category: true,
+    image: true,
+    isActive: true,
+    createdAt: true,
+    updatedAt: true,
+  },
+});
+
+console.log(
+  `PRODUCT findMany: ${(performance.now() - startProducts).toFixed(2)} ms`
+);
+
+const startCount = performance.now();
+
+const total = await prisma.product.count();
+
+console.log(
+  `PRODUCT COUNT: ${(performance.now() - startCount).toFixed(2)} ms`
+);
+  // =====================================================
+  // PRODUCT IDS
+  // =====================================================
+
+  const productIds = products.map(
+    (product) => product.id
+  );
+
+  // =====================================================
+  // SOLD STOCK
+  // =====================================================
+  
+  const startSold = performance.now();
+
+  const soldStockMap = {};
+
+  if (productIds.length > 0) {
+    const soldItems =
+      await prisma.transactionItem.groupBy({
+        by: ["productId"],
+
+        where: {
+          productId: {
+            in: productIds,
+          },
+
+          ...(hasDateFilter
+            ? {
+                transaction: {
+                  createdAt: transactionDateFilter,
+                },
+              }
+            : {}),
+        },
+
+        _sum: {
+          quantity: true,
+        },
+      });
+
+    for (const item of soldItems) {
+      soldStockMap[item.productId] =
+        Number(item._sum.quantity || 0);
+    }
+  }
+  console.log(
+  `SOLD STOCK QUERY: ${(performance.now() - startSold).toFixed(2)} ms`
+);
+
+  // =====================================================
+  // HISTORICAL STOCK
+  // =====================================================
+
+  const startHistorical = performance.now();
+
+  const soldAfterDateMap = {};
+
+  if (endDate && productIds.length > 0) {
+    const soldAfterDate =
+      await prisma.transactionItem.groupBy({
+        by: ["productId"],
+
+        where: {
+          productId: {
+            in: productIds,
+          },
+
+          transaction: {
+            createdAt: {
+              gt: endDate,
             },
           },
         },
-      },
 
-      orderBy: {
-        id: "asc",
-      },
+        _sum: {
+          quantity: true,
+        },
+      });
 
-      skip,
-      take: currentLimit,
-    });
-
-  const total =
-    await prisma.product.count();
+    for (const item of soldAfterDate) {
+      soldAfterDateMap[item.productId] =
+        Number(item._sum.quantity || 0);
+    }
+  }
+  console.log(
+  `HISTORICAL QUERY: ${(performance.now() - startHistorical).toFixed(2)} ms`
+);
 
   // =====================================================
-  // HITUNG DATA
+  // RESPONSE DATA
   // =====================================================
 
   const data = products.map((product) => {
     const currentStock =
       Number(product.stock || 0);
 
-    // -----------------------------------------------------
-    // STOCK TERJUAL PADA PERIODE FILTER
-    // -----------------------------------------------------
-
     const soldStock =
-      product.transactionItems.reduce(
-        (totalSold, item) => {
-          const transactionDate =
-            new Date(
-              item.transaction.createdAt
-            );
-
-          let includeTransaction = true;
-
-          if (startDateProduct) {
-            const startDate =
-              new Date(
-                `${startDateProduct}T00:00:00`
-              );
-
-            if (
-              transactionDate < startDate
-            ) {
-              includeTransaction = false;
-            }
-          }
-
-          if (endDateProduct) {
-            const endDate =
-              new Date(
-                `${endDateProduct}T23:59:59.999`
-              );
-
-            if (
-              transactionDate > endDate
-            ) {
-              includeTransaction = false;
-            }
-          }
-
-          if (!includeTransaction) {
-            return totalSold;
-          }
-
-          return (
-            totalSold +
-            Number(item.quantity || 0)
-          );
-        },
-        0
-      );
-
-    // -----------------------------------------------------
-    // HITUNG STOK HISTORIS
-    // -----------------------------------------------------
+      soldStockMap[product.id] || 0;
 
     let historicalStock =
       currentStock;
 
-    // Jika ada tanggal akhir,
-    // cari transaksi SETELAH tanggal tersebut.
-    if (endDateProduct) {
-      const endDate =
-        new Date(
-          `${endDateProduct}T23:59:59.999`
-        );
-
-      const soldAfterDate =
-        product.transactionItems.reduce(
-          (totalSold, item) => {
-            const transactionDate =
-              new Date(
-                item.transaction.createdAt
-              );
-
-            if (
-              transactionDate > endDate
-            ) {
-              return (
-                totalSold +
-                Number(item.quantity || 0)
-              );
-            }
-
-            return totalSold;
-          },
-          0
-        );
-
+    if (endDate) {
       historicalStock =
-        currentStock + soldAfterDate;
-    }
-
-    // -----------------------------------------------------
-    // TANPA FILTER TANGGAL
-    // -----------------------------------------------------
-
-    if (!hasDateFilter) {
-      historicalStock =
-        currentStock;
+        currentStock +
+        (soldAfterDateMap[product.id] || 0);
     }
 
     return {
@@ -186,7 +195,6 @@ export async function getProducts({
       price:
         Number(product.price),
 
-      // Stok sesuai tanggal laporan
       stock:
         historicalStock,
 
@@ -212,153 +220,6 @@ export async function getProducts({
   // =====================================================
   // RESPONSE
   // =====================================================
-
-  return {
-    data,
-
-    pagination: {
-      page: currentPage,
-
-      limit: currentLimit,
-
-      total,
-
-      totalPages:
-        Math.ceil(
-          total / currentLimit
-        ),
-    },
-  };
-}
-
-
-// =====================================================
-// GET ACTIVE PRODUCTS
-// =====================================================
-
-export async function getActiveProducts({
-  page = 1,
-  limit = 10,
-  startDateProduct,
-  endDateProduct,
-} = {}) {
-
-  const currentPage = Math.max(
-    Number(page) || 1,
-    1
-  );
-
-  const currentLimit = Math.max(
-    Number(limit) || 10,
-    1
-  );
-
-  const skip =
-    (currentPage - 1) * currentLimit;
-
-
-  const transactionDateFilter = {};
-
-  if (startDateProduct) {
-    transactionDateFilter.gte =
-      new Date(`${startDateProduct}T00:00:00`);
-  }
-
-  if (endDateProduct) {
-    transactionDateFilter.lte =
-      new Date(`${endDateProduct}T23:59:59.999`);
-  }
-
-  const hasDateFilter =
-    Object.keys(transactionDateFilter).length > 0;
-
-
-  const where = {
-    isActive: true,
-  };
-
-
-  const [products, total] =
-    await Promise.all([
-
-      prisma.product.findMany({
-        where,
-
-        include: {
-          transactionItems: {
-            where: hasDateFilter
-              ? {
-                  transaction: {
-                    createdAt:
-                      transactionDateFilter,
-                  },
-                }
-              : undefined,
-
-            select: {
-              quantity: true,
-            },
-          },
-        },
-
-        orderBy: {
-          id: "asc",
-        },
-
-        skip,
-        take: currentLimit,
-      }),
-
-      prisma.product.count({
-        where,
-      }),
-    ]);
-
-
-  const data = products.map((product) => {
-
-    const soldStock =
-      product.transactionItems.reduce(
-        (totalSold, item) => {
-          return (
-            totalSold +
-            Number(item.quantity || 0)
-          );
-        },
-        0
-      );
-
-
-    return {
-      id: product.id,
-
-      name: product.name,
-
-      price:
-        Number(product.price),
-
-      stock:
-        Number(product.stock || 0),
-
-      category:
-        product.category,
-
-      image:
-        product.image,
-
-      isActive:
-        product.isActive,
-
-      createdAt:
-        product.createdAt,
-
-      updatedAt:
-        product.updatedAt,
-
-      soldStock,
-    };
-  });
-
 
   return {
     data,

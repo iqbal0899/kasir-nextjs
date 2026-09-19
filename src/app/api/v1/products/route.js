@@ -26,9 +26,12 @@ export async function GET(request) {
       1
     );
 
-    const limit = Math.max(
-      Number(searchParams.get("limit")) || 10,
-      1
+    const limit = Math.min(
+      Math.max(
+        Number(searchParams.get("limit")) || 10,
+        1
+      ),
+      100
     );
 
     const startDateProduct =
@@ -49,23 +52,18 @@ export async function GET(request) {
       data: result.data,
       pagination: result.pagination,
     });
-
   } catch (error) {
-    console.error(
-      "GET PRODUCTS ERROR:",
-      error
-    );
+    console.error("GET PRODUCTS ERROR:", error);
 
     return NextResponse.json(
       {
         success: false,
         message:
-          error.message ||
-          "Gagal mengambil data produk",
+          error instanceof Error
+            ? error.message
+            : "Gagal mengambil data produk",
       },
-      {
-        status: 500,
-      }
+      { status: 500 }
     );
   }
 }

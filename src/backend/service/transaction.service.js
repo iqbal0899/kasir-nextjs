@@ -53,31 +53,22 @@ export async function createTransaction({
   const transaction = await prisma.$transaction(
     async (tx) => {
 
+      
+
       // ==========================================
       // CEK IDEMPOTENCY KEY
       // ==========================================
 
       const existingTransaction =
-        await tx.transaction.findUnique({
-          where: {
-            idempotencyKey,
-          },
+  await tx.transaction.findUnique({
+    where: {
+      idempotencyKey,
+    },
 
-          include: {
-            cashier: {
-              select: {
-                id: true,
-                username: true,
-              },
-            },
-
-            items: {
-              include: {
-                product: true,
-              },
-            },
-          },
-        });
+    select: {
+      id: true,
+    },
+  });
 
       if (existingTransaction) {
         console.log(
@@ -168,31 +159,52 @@ export async function createTransaction({
       // CEK STOCK
       // ==========================================
 
-      for (
-        const item of transactionItems
-      ) {
-        const product =
-          await tx.product.findUnique({
-            where: {
-              id: item.productId,
-            },
-          });
+      // ==========================================
+// CEK STOCK
+// ==========================================
 
-        if (!product) {
-          throw new Error(
-            `Produk dengan ID ${item.productId} tidak ditemukan`
-          );
-        }
+const productIds = transactionItems.map(
+  (item) => item.productId
+);
 
-        if (
-          product.stock <
-          item.quantity
-        ) {
-          throw new Error(
-            `Stock ${product.name} tidak mencukupi`
-          );
-        }
-      }
+const products = await tx.product.findMany({
+  where: {
+    id: {
+      in: productIds,
+    },
+  },
+
+  select: {
+    id: true,
+    name: true,
+    stock: true,
+  },
+});
+
+const productMap = new Map(
+  products.map((product) => [
+    product.id,
+    product,
+  ])
+);
+
+for (const item of transactionItems) {
+  const product = productMap.get(
+    item.productId
+  );
+
+  if (!product) {
+    throw new Error(
+      `Produk dengan ID ${item.productId} tidak ditemukan`
+    );
+  }
+
+  if (product.stock < item.quantity) {
+    throw new Error(
+      `Stock ${product.name} tidak mencukupi`
+    );
+  }
+}
 
       // ==========================================
       // PEMBAYARAN
@@ -219,45 +231,41 @@ export async function createTransaction({
       // CREATE TRANSACTION
       // ==========================================
 
-      const transaction =
-        await tx.transaction.create({
-          data: {
-            idempotencyKey,
+const transaction =
+  await tx.transaction.create({
+    data: {
+      idempotencyKey,
 
-            totalAmount: total,
+      totalAmount: total,
 
-            paymentMethod,
+      paymentMethod,
 
-            cashReceived:
-              paymentMethod === "cash"
-                ? received
-                : 0,
+      cashReceived:
+        paymentMethod === "cash"
+          ? received
+          : 0,
 
-            change,
+      change,
 
-            cashierId:
-              Number(cashierId),
+      cashierId:
+        Number(cashierId),
 
-            items: {
-              create: transactionItems,
-            },
-          },
+      items: {
+        create: transactionItems,
+      },
+    },
 
-          include: {
-            cashier: {
-              select: {
-                id: true,
-                username: true,
-              },
-            },
-
-            items: {
-              include: {
-                product: true,
-              },
-            },
-          },
-        });
+    select: {
+      id: true,
+      idempotencyKey: true,
+      totalAmount: true,
+      paymentMethod: true,
+      cashReceived: true,
+      change: true,
+      cashierId: true,
+      createdAt: true,
+    },
+  });
 
       // ==========================================
       // KURANGI STOCK
@@ -293,6 +301,28 @@ export async function createTransaction({
     }
   );
 
+  const transactionDetail =
+  await prisma.transaction.findUnique({
+    where: {
+      id: transaction.id,
+    },
+
+    include: {
+      cashier: {
+        select: {
+          id: true,
+          username: true,
+        },
+      },
+
+      items: {
+        include: {
+          product: true,
+        },
+      },
+    },
+  });
+
   // ==========================================
   // PUSHER
   // ==========================================
@@ -317,7 +347,7 @@ export async function createTransaction({
     );
   }
 
-  return transaction;
+  return transactionDetail;
 }
 
 export async function getTransactions({
@@ -326,18 +356,14 @@ export async function getTransactions({
   startDateTransaction,
   endDateTransaction,
 } = {}) {
-  const currentPage = Math.max(
-    Number(page) || 1,
-    1
-  );
+  const currentPage = Math.max(Number(page) || 1, 1);
 
   const currentLimit = Math.min(
     Math.max(Number(limit) || 10, 1),
     100
   );
 
-  const skip =
-    (currentPage - 1) * currentLimit;
+  const skip = (currentPage - 1) * currentLimit;
 
   const where = {};
 
@@ -357,40 +383,67 @@ export async function getTransactions({
     }
   }
 
-  const [transactions, total] =
-    await Promise.all([
-      prisma.transaction.findMany({
-        where,
-        skip,
-        take: currentLimit,
+  const startTime = performance.now();
 
-        orderBy: {
-          createdAt: "desc",
+  const transactionsPromise = prisma.transaction.findMany({
+    where,
+    skip,
+    take: currentLimit,
+
+    orderBy: {
+      createdAt: "desc",
+    },
+
+    select: {
+      id: true,
+      totalAmount: true,
+      paymentMethod: true,
+      cashReceived: true,
+      change: true,
+      cashierId: true,
+      createdAt: true,
+
+      cashier: {
+        select: {
+          id: true,
+          username: true,
         },
+      },
 
-        include: {
-          cashier: {
+      items: {
+        select: {
+          id: true,
+          quantity: true,
+          price: true,
+          subtotal: true,
+          productId: true,
+
+          product: {
             select: {
               id: true,
-              username: true,
-            },
-          },
-
-          items: {
-            include: {
-              product: true,
+              name: true,
+              price: true,
+              category: true,
             },
           },
         },
-      }),
+      },
+    },
+  });
 
-      prisma.transaction.count({
-        where,
-      }),
-    ]);
+  const countPromise = prisma.transaction.count({
+    where,
+  });
 
-  const totalPages = Math.ceil(
-    total / currentLimit
+  const [transactions, total] = await Promise.all([
+    transactionsPromise,
+    countPromise,
+  ]);
+
+  const duration = performance.now() - startTime;
+
+  console.log(
+    `GET TRANSACTIONS DB: ${duration.toFixed(2)} ms`
   );
 
   return {
@@ -400,11 +453,10 @@ export async function getTransactions({
       page: currentPage,
       limit: currentLimit,
       total,
-      totalPages,
+      totalPages: Math.ceil(total / currentLimit),
     },
   };
 }
-
 export async function getTransactionById(id) {
   const transactionId = Number(id);
 
@@ -428,7 +480,14 @@ export async function getTransactionById(id) {
 
         items: {
           include: {
-            product: true,
+            product: {
+  select: {
+    id: true,
+    name: true,
+    price: true,
+    category: true,
+  },
+}
           },
         },
       },
