@@ -47,8 +47,6 @@ export async function getProducts({
   // PRODUCT QUERY
   // =====================================================
 
-const startProducts = performance.now();
-
 const products = await prisma.product.findMany({
   orderBy: {
     id: "asc",
@@ -68,17 +66,8 @@ const products = await prisma.product.findMany({
   },
 });
 
-console.log(
-  `PRODUCT findMany: ${(performance.now() - startProducts).toFixed(2)} ms`
-);
-
-const startCount = performance.now();
-
 const total = await prisma.product.count();
 
-console.log(
-  `PRODUCT COUNT: ${(performance.now() - startCount).toFixed(2)} ms`
-);
   // =====================================================
   // PRODUCT IDS
   // =====================================================
@@ -90,8 +79,6 @@ console.log(
   // =====================================================
   // SOLD STOCK
   // =====================================================
-  
-  const startSold = performance.now();
 
   const soldStockMap = {};
 
@@ -124,15 +111,10 @@ console.log(
         Number(item._sum.quantity || 0);
     }
   }
-  console.log(
-  `SOLD STOCK QUERY: ${(performance.now() - startSold).toFixed(2)} ms`
-);
 
   // =====================================================
   // HISTORICAL STOCK
   // =====================================================
-
-  const startHistorical = performance.now();
 
   const soldAfterDateMap = {};
 
@@ -163,9 +145,6 @@ console.log(
         Number(item._sum.quantity || 0);
     }
   }
-  console.log(
-  `HISTORICAL QUERY: ${(performance.now() - startHistorical).toFixed(2)} ms`
-);
 
   // =====================================================
   // RESPONSE DATA

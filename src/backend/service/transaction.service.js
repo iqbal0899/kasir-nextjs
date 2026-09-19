@@ -350,6 +350,10 @@ const transaction =
   return transactionDetail;
 }
 
+const dbStart = performance.now();
+
+const transactionStart = performance.now();
+
 export async function getTransactions({
   page = 1,
   limit = 10,
@@ -383,80 +387,76 @@ export async function getTransactions({
     }
   }
 
-  const startTime = performance.now();
+const dbStart = performance.now();
 
-  const transactionsPromise = prisma.transaction.findMany({
-    where,
-    skip,
-    take: currentLimit,
+const transactionStart = performance.now();
 
-    orderBy: {
-      createdAt: "desc",
-    },
-
-    select: {
-      id: true,
-      totalAmount: true,
-      paymentMethod: true,
-      cashReceived: true,
-      change: true,
-      cashierId: true,
-      createdAt: true,
-
-      cashier: {
-        select: {
-          id: true,
-          username: true,
-        },
-      },
-
-      items: {
-        select: {
-          id: true,
-          quantity: true,
-          price: true,
-          subtotal: true,
-          productId: true,
-
-          product: {
-            select: {
-              id: true,
-              name: true,
-              price: true,
-              category: true,
-            },
-          },
-        },
+const transactions = await prisma.transaction.findMany({
+  where,
+  skip,
+  take: currentLimit + 1,
+  orderBy: [
+    { createdAt: "desc" },
+    { id: "desc" },
+  ],
+  select: {
+    id: true,
+    totalAmount: true,
+    paymentMethod: true,
+    cashReceived: true,
+    change: true,
+    cashierId: true,
+    createdAt: true,
+    cashier: {
+      select: {
+        id: true,
+        username: true,
       },
     },
-  });
+  },
+});
 
-  const countPromise = prisma.transaction.count({
-    where,
-  });
+console.log(
+  `TRANSACTIONS FINDMANY: ${(
+    performance.now() - transactionStart
+  ).toFixed(2)} ms`
+);
 
-  const [transactions, total] = await Promise.all([
-    transactionsPromise,
-    countPromise,
-  ]);
+const countStart = performance.now();
 
-  const duration = performance.now() - startTime;
+const total = await prisma.transaction.count({
+  where,
+});
 
-  console.log(
-    `GET TRANSACTIONS DB: ${duration.toFixed(2)} ms`
-  );
+console.log(
+  `TRANSACTIONS COUNT: ${(
+    performance.now() - countStart
+  ).toFixed(2)} ms`
+);
 
-  return {
-    transactions,
+console.log(
+  `TRANSACTIONS DB TOTAL: ${(
+    performance.now() - dbStart
+  ).toFixed(2)} ms`
+);
 
-    pagination: {
-      page: currentPage,
-      limit: currentLimit,
-      total,
-      totalPages: Math.ceil(total / currentLimit),
-    },
-  };
+const hasNext = transactions.length > currentLimit;
+
+if (hasNext) {
+  transactions.pop();
 }
+
+return {
+  transactions,
+  pagination: {
+    page: currentPage,
+    limit: currentLimit,
+    hasNext,
+  },
+};
+}
+
+
 export async function getTransactionById(id) {
   const transactionId = Number(id);
 
@@ -556,6 +556,5 @@ export async function deleteTransaction(id) {
     return deletedTransaction;
   });
 }
-
 
 

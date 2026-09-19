@@ -1,53 +1,38 @@
 import { prisma } from "@/lib/prisma";
 
 export async function getDashboardAnalytics() {
+  const totalStart = performance.now();
+
   try {
-    const [
-      totalProducts,
-      totalStockResult,
-      totalTransactions,
-      revenueResult,
-      lowStock,
-    ] = await Promise.all([
-      // =========================
-      // TOTAL PRODUCTS
-      // =========================
-      prisma.product.count(),
+    // =========================
+    // DASHBOARD SUMMARY
+    // =========================
+    const summary = await prisma.$queryRaw`
+      SELECT
+        (SELECT COUNT(*) FROM "Product") AS "totalProducts",
 
-      // =========================
-      // TOTAL STOCK
-      // =========================
-      prisma.product.aggregate({
-        _sum: {
-          stock: true,
-        },
-      }),
+        (
+          SELECT COALESCE(SUM("stock"), 0)
+          FROM "Product"
+        ) AS "totalStock",
 
-      // =========================
-      // TOTAL TRANSACTIONS
-      // =========================
-      prisma.transaction.count(),
+        (
+          SELECT COUNT(*)
+          FROM "Transaction"
+        ) AS "totalTransactions",
 
-      // =========================
-      // TOTAL REVENUE
-      // =========================
-      prisma.transaction.aggregate({
-        _sum: {
-          totalAmount: true,
-        },
-      }),
+        (
+          SELECT COALESCE(SUM("totalAmount"), 0)
+          FROM "Transaction"
+        ) AS "totalRevenue",
 
-      // =========================
-      // LOW STOCK
-      // =========================
-      prisma.product.count({
-        where: {
-          stock: {
-            lte: 5,
-          },
-        },
-      }),
-    ]);
+        (
+          SELECT COUNT(*)
+          FROM "Product"
+          WHERE "stock" <= 5
+        ) AS "lowStock"
+    `;
+    const summaryData = summary[0];
 
     // =========================
     // SALES 7 DAYS
@@ -61,51 +46,43 @@ export async function getDashboardAnalytics() {
       startDate.getDate() - 6
     );
 
-    const transactions =
-      await prisma.transaction.findMany({
-        where: {
-          createdAt: {
-            gte: startDate,
-          },
-        },
+    const salesRaw = await prisma.$queryRaw`
+      SELECT
+        DATE("createdAt") AS date,
+        COALESCE(SUM("totalAmount"), 0) AS total
+      FROM "Transaction"
+      WHERE "createdAt" >= ${startDate}
+      GROUP BY DATE("createdAt")
+      ORDER BY DATE("createdAt") ASC
+    `;
 
-        select: {
-          totalAmount: true,
-          createdAt: true,
-        },
-
-        orderBy: {
-          createdAt: "asc",
-        },
-      });
+    // =========================
+    // SALES MAP
+    // =========================
 
     const salesMap = {};
 
-    transactions.forEach((transaction) => {
-      const date = new Date(
-        transaction.createdAt
-      );
+    salesRaw.forEach((row) => {
+      const date = new Date(row.date);
 
       const key = [
         date.getFullYear(),
-        String(date.getMonth() + 1).padStart(
-          2,
-          "0"
-        ),
-        String(date.getDate()).padStart(
-          2,
-          "0"
-        ),
+        String(
+          date.getMonth() + 1
+        ).padStart(2, "0"),
+        String(
+          date.getDate()
+        ).padStart(2, "0"),
       ].join("-");
 
-      if (!salesMap[key]) {
-        salesMap[key] = 0;
-      }
-
-      salesMap[key] += Number(
-        transaction.totalAmount || 0
+      salesMap[key] = Number(
+        row.total || 0
       );
     });
+
+    // =========================
+    // SALES CHART
+    // =========================
 
     const salesChart = [];
 
@@ -120,14 +97,12 @@ export async function getDashboardAnalytics() {
 
       const key = [
         date.getFullYear(),
-        String(date.getMonth() + 1).padStart(
-          2,
-          "0"
-        ),
-        String(date.getDate()).padStart(
-          2,
-          "0"
-        ),
+        String(
+          date.getMonth() + 1
+        ).padStart(2, "0"),
+        String(
+          date.getDate()
+        ).padStart(2, "0"),
       ].join("-");
 
       salesChart.push({
@@ -140,66 +115,33 @@ export async function getDashboardAnalytics() {
     // TOP PRODUCTS
     // =========================
 
-    const topProductsRaw =
-      await prisma.transactionItem.groupBy({
-        by: ["productId"],
+const topProductsRaw = await prisma.$queryRaw`
+  SELECT
+    ti."productId",
+    p."name",
+    SUM(ti."quantity") AS "quantity",
+    SUM(ti."subtotal") AS "revenue"
+  FROM "TransactionItem" ti
+  INNER JOIN "Product" p
+    ON p."id" = ti."productId"
+  GROUP BY
+    ti."productId",
+    p."name"
+  ORDER BY
+    SUM(ti."quantity") DESC
+  LIMIT 5
+`;
 
-        _sum: {
-          quantity: true,
-          subtotal: true,
-        },
+const topProducts = topProductsRaw.map(
+  (item) => ({
+    productId: item.productId,
+    name: item.name,
+    quantity: Number(item.quantity || 0),
+    revenue: Number(item.revenue || 0),
+  })
+);
 
-        orderBy: {
-          _sum: {
-            quantity: "desc",
-          },
-        },
-
-        take: 5,
-      });
-
-    const productIds =
-      topProductsRaw.map(
-        (item) => item.productId
-      );
-
-    const products =
-      await prisma.product.findMany({
-        where: {
-          id: {
-            in: productIds,
-          },
-        },
-
-        select: {
-          id: true,
-          name: true,
-        },
-      });
-
-    const productMap = new Map(
-      products.map((product) => [
-        product.id,
-        product.name,
-      ])
-    );
-
-    const topProducts =
-      topProductsRaw.map((item) => ({
-        productId: item.productId,
-
-        name:
-          productMap.get(
-            item.productId
-          ) || "Produk tidak ditemukan",
-
-        quantity:
-          item._sum.quantity || 0,
-
-        revenue: Number(
-          item._sum.subtotal || 0
-        ),
-      }));
+      
 
     // =========================
     // PAYMENT METHODS
@@ -261,18 +203,25 @@ export async function getDashboardAnalytics() {
 
     return {
       summary: {
-        totalProducts,
-
-        totalStock:
-          totalStockResult._sum.stock || 0,
-
-        totalTransactions,
-
-        totalRevenue: Number(
-          revenueResult._sum.totalAmount || 0
+        totalProducts: Number(
+          summaryData.totalProducts
         ),
 
-        lowStock,
+        totalStock: Number(
+          summaryData.totalStock
+        ),
+
+        totalTransactions: Number(
+          summaryData.totalTransactions
+        ),
+
+        totalRevenue: Number(
+          summaryData.totalRevenue
+        ),
+
+        lowStock: Number(
+          summaryData.lowStock
+        ),
       },
 
       salesChart,
