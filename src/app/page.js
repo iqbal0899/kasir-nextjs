@@ -1,6 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
+
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 
@@ -42,35 +47,24 @@ export default function Home() {
     useState("");
 
   // ========================================
-  // TOTAL
+  // FETCH PRODUCTS
   // ========================================
 
-  const total = cart.reduce(
-    (sum, item) =>
-      sum +
-      Number(item.price || 0) *
-        Number(item.qty || 0),
-    0
-  );
-
-  // ========================================
-  // AMBIL PRODUCTS AKTIF UNTUK KASIR
-  // ========================================
-
-  useEffect(() => {
-    const fetchProducts = async () => {
+  const fetchProducts = useCallback(
+    async () => {
       try {
         setLoadingProducts(true);
         setProductError("");
 
-        const response = await fetch(
-          "/api/v1/products",
-          {
-            method: "GET",
-            cache: "no-store",
-            credentials: "include",
-          }
-        );
+        const response =
+          await fetch(
+            "/api/v1/products",
+            {
+              method: "GET",
+              cache: "no-store",
+              credentials: "include",
+            }
+          );
 
         const result =
           await response.json();
@@ -87,15 +81,15 @@ export default function Home() {
           );
         }
 
-        // Hanya tampilkan produk yang aktif
-        const activeProducts = (
-          result.data || []
-        ).filter(
-          (product) =>
-            product.isActive === true
-        );
+        const activeProducts =
+          (result.data || []).filter(
+            (product) =>
+              product.isActive === true
+          );
 
-        setProducts(activeProducts);
+        setProducts(
+          activeProducts
+        );
       } catch (error) {
         console.error(
           "FETCH PRODUCTS ERROR:",
@@ -107,16 +101,27 @@ export default function Home() {
             ? error.message
             : "Gagal mengambil data produk";
 
-        setProductError(message);
+        setProductError(
+          message
+        );
 
         toast.error(message);
       } finally {
-        setLoadingProducts(false);
+        setLoadingProducts(
+          false
+        );
       }
-    };
+    },
+    []
+  );
 
+  // ========================================
+  // AMBIL PRODUCTS SAAT HALAMAN DIBUKA
+  // ========================================
+
+  useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [fetchProducts]);
 
   // ========================================
   // AMBIL USER LOGIN
@@ -129,7 +134,9 @@ export default function Home() {
     if (storedUser) {
       try {
         const parsedUser =
-          JSON.parse(storedUser);
+          JSON.parse(
+            storedUser
+          );
 
         console.log(
           "USER LOGIN:",
@@ -143,7 +150,9 @@ export default function Home() {
           error
         );
 
-        localStorage.removeItem("user");
+        localStorage.removeItem(
+          "user"
+        );
 
         toast.error(
           "Data pengguna tidak valid. Silakan login kembali."
@@ -153,10 +162,37 @@ export default function Home() {
   }, []);
 
   // ========================================
+  // TOTAL
+  // ========================================
+
+  const total = cart.reduce(
+    (sum, item) =>
+      sum +
+      Number(item.price || 0) *
+        Number(item.qty || 0),
+    0
+  );
+
+  // ========================================
   // ADD TO CART
   // ========================================
 
   function handleAddToCart(product) {
+    /*
+     * Jangan izinkan menambahkan produk
+     * yang stoknya 0.
+     */
+
+    if (
+      Number(product.stock) <= 0
+    ) {
+      toast.warning(
+        `${product.name} sedang habis.`
+      );
+
+      return;
+    }
+
     setCart((prev) => {
       const existing =
         prev.find(
@@ -164,7 +200,23 @@ export default function Home() {
             item.id === product.id
         );
 
+      /*
+       * Jika produk sudah ada di cart,
+       * jangan melebihi stok.
+       */
+
       if (existing) {
+        if (
+          existing.qty >=
+          Number(product.stock)
+        ) {
+          toast.warning(
+            `Stok ${product.name} hanya ${product.stock}.`
+          );
+
+          return prev;
+        }
+
         return prev.map(
           (item) =>
             item.id === product.id
@@ -197,15 +249,42 @@ export default function Home() {
 
   function handleIncrease(id) {
     setCart((prev) =>
-      prev.map((item) =>
-        item.id === id
-          ? {
-              ...item,
-              qty:
-                item.qty + 1,
-            }
-          : item
-      )
+      prev.map((item) => {
+        if (item.id !== id) {
+          return item;
+        }
+
+        /*
+         * Cari stok terbaru dari state products.
+         */
+
+        const product =
+          products.find(
+            (p) => p.id === id
+          );
+
+        const stock =
+          Number(
+            product?.stock ??
+              item.stock ??
+              0
+          );
+
+        if (
+          item.qty >= stock
+        ) {
+          toast.warning(
+            `Stok ${item.name} hanya ${stock}.`
+          );
+
+          return item;
+        }
+
+        return {
+          ...item,
+          qty: item.qty + 1,
+        };
+      })
     );
   }
 
@@ -226,7 +305,8 @@ export default function Home() {
             : item
         )
         .filter(
-          (item) => item.qty > 0
+          (item) =>
+            item.qty > 0
         )
     );
   }
@@ -238,7 +318,8 @@ export default function Home() {
   function handleRemove(id) {
     const product =
       cart.find(
-        (item) => item.id === id
+        (item) =>
+          item.id === id
       );
 
     setCart((prev) =>
@@ -276,126 +357,145 @@ export default function Home() {
   // ========================================
 
   async function handleConfirmPayment({
-  method,
-  cashReceived,
-  change,
-  idempotencyKey,
-}) {
-  try {
-    if (cart.length === 0) {
-      toast.warning(
-        "Keranjang masih kosong."
+    method,
+    cashReceived,
+    change,
+    idempotencyKey,
+  }) {
+    try {
+      if (cart.length === 0) {
+        toast.warning(
+          "Keranjang masih kosong."
+        );
+
+        throw new Error(
+          "Keranjang masih kosong."
+        );
+      }
+
+      console.log(
+        "CART BEFORE PAYMENT:",
+        cart
       );
 
-      throw new Error(
-        "Keranjang masih kosong."
+      console.log(
+        "IDEMPOTENCY KEY:",
+        idempotencyKey
       );
-    }
 
-    console.log(
-      "CART BEFORE PAYMENT:",
-      cart
-    );
+      // ====================================
+      // KIRIM TRANSAKSI
+      // ====================================
 
-    console.log(
-      "IDEMPOTENCY KEY:",
-      idempotencyKey
-    );
+      const result =
+        await createTransaction({
+          items: cart,
 
-    // ====================================
-    // KIRIM TRANSAKSI KE BACKEND
-    // ====================================
+          paymentMethod:
+            method,
 
-    const result =
-      await createTransaction({
+          cashReceived:
+            method === "cash"
+              ? Number(
+                  cashReceived
+                )
+              : 0,
+
+          idempotencyKey,
+        });
+
+      console.log(
+        "TRANSACTION SUCCESS:",
+        result
+      );
+
+      // ====================================
+      // VALIDASI RESPONSE
+      // ====================================
+
+      if (!result?.success) {
+        throw new Error(
+          result?.message ||
+            "Transaksi gagal diproses."
+        );
+      }
+
+      const transaction =
+        result.data;
+
+      // ====================================
+      // SIMPAN DATA STRUK
+      // ====================================
+
+      setLastTransaction({
+        ...transaction,
+
         items: cart,
 
-        paymentMethod:
-          method,
+        method,
 
-        cashReceived:
-          method === "cash"
-            ? Number(cashReceived)
-            : 0,
+        total,
 
-        idempotencyKey,
+        cashReceived,
+
+        change,
+
+        date:
+          new Date().toLocaleString(
+            "id-ID"
+          ),
+
+        cashier:
+          user?.username ||
+          "Admin",
       });
 
-    console.log(
-      "TRANSACTION SUCCESS:",
-      result
-    );
+      // ====================================
+      // RESET CART
+      // ====================================
 
-    // ====================================
-    // VALIDASI RESPONSE
-    // ====================================
+      setCart([]);
 
-    if (!result?.success) {
-      throw new Error(
-        result?.message ||
-        "Transaksi gagal diproses."
+      // ====================================
+      // UPDATE STOK DI KASIR
+      // ====================================
+
+      await fetchProducts();
+
+      // ====================================
+      // TUTUP PAYMENT
+      // BUKA RECEIPT
+      // ====================================
+
+      setPaymentOpen(false);
+
+      setReceiptOpen(true);
+
+      toast.success(
+        "Pembayaran berhasil! Transaksi telah disimpan."
       );
+
+      return result;
+    } catch (error) {
+      console.error(
+        "PAYMENT ERROR:",
+        error
+      );
+
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Pembayaran gagal";
+
+      toast.error(message);
+
+      throw error;
     }
-
-    const transaction =
-      result.data;
-
-    // ====================================
-    // SIMPAN DATA STRUK
-    // ====================================
-
-    setLastTransaction({
-      ...transaction,
-
-      items: cart,
-
-      method,
-
-      total,
-
-      cashReceived,
-
-      change,
-
-      date:
-        new Date().toLocaleString(
-          "id-ID"
-        ),
-
-      cashier:
-        user?.username ||
-        "Admin",
-    });
-
-    setPaymentOpen(false);
-
-    setReceiptOpen(true);
-
-    setCart([]);
-
-    toast.success(
-      "Pembayaran berhasil! Transaksi telah disimpan."
-    );
-
-    return result;
-
-  } catch (error) {
-    console.error(
-      "PAYMENT ERROR:",
-      error
-    );
-
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Pembayaran gagal";
-
-    toast.error(message);
-    
-    throw error;
   }
-}
 
+  // ========================================
+  // LOGOUT
+  // ========================================
 
   function handleLogout() {
     localStorage.removeItem(
@@ -415,11 +515,12 @@ export default function Home() {
     );
   }
 
+  // ========================================
+  // RENDER
+  // ========================================
 
   return (
     <div className="app-shell">
-
-
       <Sidebar
         role={
           user?.role ||
@@ -428,7 +529,6 @@ export default function Home() {
       />
 
       <div className="app-main">
-
         <Navbar
           storeName="Toko Iqbal"
           userName={
@@ -445,17 +545,13 @@ export default function Home() {
         />
 
         <div className="app-content">
-
           <Header
             title="Kasir"
             subtitle="Pilih produk di bawah untuk mulai transaksi"
           />
 
-
           <div className="pos-layout">
-
             <div>
-
               {loadingProducts && (
                 <p>
                   Memuat produk...
@@ -494,46 +590,36 @@ export default function Home() {
                     }
                   />
                 )}
-
             </div>
 
             <CartSidebar
               items={cart}
-
               onIncrease={
                 handleIncrease
               }
-
               onDecrease={
                 handleDecrease
               }
-
               onRemove={
                 handleRemove
               }
-
               onCheckout={
                 handleCheckout
               }
             />
-
           </div>
         </div>
       </div>
 
       <PaymentModal
         open={paymentOpen}
-
         onClose={() =>
           setPaymentOpen(
             false
           )
         }
-
         total={total}
-
         items={cart}
-
         onConfirm={
           handleConfirmPayment
         }
@@ -541,22 +627,19 @@ export default function Home() {
 
       <ReceiptModal
         open={receiptOpen}
-
         onClose={() =>
           setReceiptOpen(
             false
           )
         }
-
         transaction={
           lastTransaction
         }
-
         onPrint={() =>
           window.print()
         }
       />
-
     </div>
   );
 }
+

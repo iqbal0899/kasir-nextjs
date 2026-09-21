@@ -1,8 +1,6 @@
 import { prisma } from "@/lib/prisma";
 
 export async function getDashboardAnalytics() {
-  const totalStart = performance.now();
-
   try {
     // =========================
     // DASHBOARD SUMMARY

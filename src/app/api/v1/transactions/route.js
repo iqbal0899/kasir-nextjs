@@ -24,24 +24,23 @@ export async function GET(request) {
     const { searchParams } =
       new URL(request.url);
 
-    const page =
-      searchParams.get("page");
-
-    const limit =
-      searchParams.get("limit");
-
-    const startDateTransaction =
-      searchParams.get("startDateTransaction");
-
-    const endDateTransaction =
-      searchParams.get("endDateTransaction");
-
     const result =
       await getTransactions({
-        page,
-        limit,
-        startDateTransaction,
-        endDateTransaction,
+        page:
+          searchParams.get("page"),
+
+        limit:
+          searchParams.get("limit"),
+
+        startDateTransaction:
+          searchParams.get(
+            "startDateTransaction"
+          ),
+
+        endDateTransaction:
+          searchParams.get(
+            "endDateTransaction"
+          ),
       });
 
     return NextResponse.json({
@@ -60,8 +59,9 @@ export async function GET(request) {
       {
         success: false,
         message:
-          error.message ||
-          "Gagal mengambil transaksi",
+          error instanceof Error
+            ? error.message
+            : "Gagal mengambil transaksi",
       },
       {
         status: 500,
@@ -72,31 +72,32 @@ export async function GET(request) {
 
 
 // =====================================================
-// CREATE TRANSACTION
+// POST TRANSACTION
 // =====================================================
 
 export async function POST(request) {
   try {
-
     // =================================================
     // AUTHENTICATION
     // =================================================
 
     const token =
-      request.cookies.get("token")?.value;
+      request.cookies.get(
+        "token"
+      )?.value;
 
     if (!token) {
       return NextResponse.json(
         {
           success: false,
-          message: "Anda belum login",
+          message:
+            "Anda belum login",
         },
         {
           status: 401,
         }
       );
     }
-
 
     // =================================================
     // VERIFY JWT
@@ -105,13 +106,13 @@ export async function POST(request) {
     let user;
 
     try {
-      user = jwt.verify(
-        token,
-        process.env.JWT_SECRET
-      );
+      user =
+        jwt.verify(
+          token,
+          process.env.JWT_SECRET
+        );
 
     } catch (error) {
-
       console.error(
         "JWT VERIFY ERROR:",
         error
@@ -129,6 +130,25 @@ export async function POST(request) {
       );
     }
 
+    // =================================================
+    // VALIDATE USER
+    // =================================================
+
+    if (
+      !user ||
+      !user.id
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Data user tidak valid",
+        },
+        {
+          status: 401,
+        }
+      );
+    }
 
     // =================================================
     // IDEMPOTENCY KEY
@@ -138,11 +158,6 @@ export async function POST(request) {
       request.headers.get(
         "Idempotency-Key"
       );
-
-    console.log(
-      "IDEMPOTENCY KEY:",
-      idempotencyKey
-    );
 
     if (!idempotencyKey) {
       return NextResponse.json(
@@ -157,32 +172,34 @@ export async function POST(request) {
       );
     }
 
-
     // =================================================
     // REQUEST BODY
     // =================================================
 
-    const body =
-      await request.json();
+    let body;
+
+    try {
+      body =
+        await request.json();
+
+    } catch {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Request body tidak valid",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
 
     const {
       items,
       paymentMethod,
       cashReceived,
     } = body;
-
-
-    console.log(
-      "DATA TRANSAKSI:",
-      {
-        paymentMethod,
-        cashReceived,
-        cashierId: user.id,
-        items,
-        idempotencyKey,
-      }
-    );
-
 
     // =================================================
     // CREATE TRANSACTION
@@ -191,26 +208,16 @@ export async function POST(request) {
     const transaction =
       await createTransaction({
         items,
+
         paymentMethod,
+
         cashReceived,
-        cashierId: user.id,
+
+        cashierId:
+          user.id,
+
         idempotencyKey,
       });
-
-
-    // =================================================
-    // USER INFO
-    // =================================================
-
-    console.log(
-      "USER YANG MEMBUAT TRANSAKSI:",
-      {
-        id: user.id,
-        username: user.username,
-        role: user.role,
-      }
-    );
-
 
     // =================================================
     // AUDIT LOG
@@ -246,16 +253,17 @@ export async function POST(request) {
 
         cashReceived:
           Number(
-            transaction.cashReceived || 0
+            transaction.cashReceived ||
+              0
           ),
 
         change:
           Number(
-            transaction.change || 0
+            transaction.change ||
+              0
           ),
 
-        idempotencyKey:
-          idempotencyKey,
+        idempotencyKey,
 
         itemCount:
           Array.isArray(items)
@@ -264,16 +272,19 @@ export async function POST(request) {
 
         items:
           Array.isArray(items)
-            ? items.map((item) => ({
-                productId:
-                  item.productId,
+            ? items.map(
+                (item) => ({
+                  productId:
+                    Number(
+                      item.productId
+                    ),
 
-                quantity:
-                  item.quantity,
-
-                price:
-                  Number(item.price),
-              }))
+                  quantity:
+                    Number(
+                      item.quantity
+                    ),
+                })
+              )
             : [],
       },
 
@@ -285,7 +296,6 @@ export async function POST(request) {
           "user-agent"
         ) || null,
     });
-
 
     // =================================================
     // RESPONSE
@@ -307,19 +317,24 @@ export async function POST(request) {
     );
 
   } catch (error) {
-
     console.error(
       "CREATE TRANSACTION ERROR:",
       error
     );
 
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Gagal menyimpan transaksi";
+
+    /*
+     * Stok habis / validasi request
+     * menggunakan 400.
+     */
     return NextResponse.json(
       {
         success: false,
-
-        message:
-          error.message ||
-          "Gagal menyimpan transaksi",
+        message,
       },
       {
         status: 400,

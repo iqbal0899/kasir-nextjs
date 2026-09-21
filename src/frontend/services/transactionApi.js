@@ -1,16 +1,17 @@
-const API_URL = "/api/v1/transactions";
-
-const idempotencyKey = crypto.randomUUID();
+const API_URL =
+  "/api/v1/transactions";
 
 export async function getTransactions() {
   try {
-    const response = await fetch(API_URL, {
-      method: "GET",
-      credentials: "include",
-      cache: "no-store",
-    });
+    const response =
+      await fetch(API_URL, {
+        method: "GET",
+        credentials: "include",
+        cache: "no-store",
+      });
 
-    const data = await response.json();
+    const data =
+      await response.json();
 
     if (!response.ok) {
       throw new Error(
@@ -35,36 +36,46 @@ export async function createTransaction({
   paymentMethod,
   cashReceived,
 }) {
+  /*
+   * Buat idempotency key baru
+   * untuk setiap checkout.
+   */
+  const idempotencyKey =
+    crypto.randomUUID();
+
   console.log(
     "ITEM CART SEBELUM DIKIRIM:",
     items
   );
 
-  const formattedItems = items.map((item) => ({
-    productId: Number(
-      item.productId ?? item.id
-    ),
+  const formattedItems =
+    items.map((item) => ({
+      productId: Number(
+        item.productId ?? item.id
+      ),
 
-    quantity: Number(
-      item.quantity ?? item.qty
-    ),
+      quantity: Number(
+        item.quantity ?? item.qty
+      ),
 
-    price: Number(item.price),
-  }));
+      price: Number(item.price),
+    }));
 
   console.log(
     "ITEM TRANSAKSI YANG DIKIRIM:",
     formattedItems
   );
 
-  const response = await fetch(
-    API_URL,
-    {
+  const response =
+    await fetch(API_URL, {
       method: "POST",
 
       headers: {
-        "Content-Type": "application/json",
-        "Idempotency-Key": idempotencyKey,
+        "Content-Type":
+          "application/json",
+
+        "Idempotency-Key":
+          idempotencyKey,
       },
 
       credentials: "include",
@@ -77,10 +88,10 @@ export async function createTransaction({
         cashReceived:
           Number(cashReceived) || 0,
       }),
-    }
-  );
+    });
 
-  const data = await response.json();
+  const data =
+    await response.json();
 
   if (!response.ok) {
     throw new Error(
@@ -92,26 +103,36 @@ export async function createTransaction({
   return data;
 }
 
-export async function deleteTransaction(id) {
-  const response = await fetch(
-    `/api/v1/transactions/${id}`,
-    {
-      method: "DELETE",
-    }
-  );
+export async function deleteTransaction(
+  id
+) {
+  const response =
+    await fetch(
+      `/api/v1/transactions/${id}`,
+      {
+        method: "DELETE",
+        credentials: "include",
+      }
+    );
 
   const contentType =
-    response.headers.get("content-type");
+    response.headers.get(
+      "content-type"
+    );
 
   let data;
 
   if (
     contentType &&
-    contentType.includes("application/json")
+    contentType.includes(
+      "application/json"
+    )
   ) {
-    data = await response.json();
+    data =
+      await response.json();
   } else {
-    const text = await response.text();
+    const text =
+      await response.text();
 
     console.error(
       "DELETE RESPONSE BUKAN JSON:",
@@ -132,3 +153,4 @@ export async function deleteTransaction(id) {
 
   return data;
 }
+
