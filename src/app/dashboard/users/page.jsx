@@ -18,7 +18,7 @@ export default async function UsersPage() {
       process.env.JWT_SECRET
     );
 
-    if (user.role !== "admin") {
+    if (!["super_admin", "admin"].includes(user.role)) {
       redirect("/dashboard");
     }
 

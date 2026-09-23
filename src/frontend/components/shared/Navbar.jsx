@@ -26,7 +26,6 @@ export default function Navbar({
 
       // Refresh agar cookie/session benar-benar diperbarui
       router.refresh();
-
     } catch (error) {
       console.error("LOGOUT ERROR:", error);
     }
@@ -39,19 +38,21 @@ export default function Navbar({
       </div>
 
       <div className={styles.userInfo}>
-
         <div className={styles.userProfile}>
           <span className={styles.userName}>
             {userName}
           </span>
 
           <span className={styles.userRole}>
-            {userRole === "admin" ? "Admin" : "Kasir"}
+            {userRole === "super_admin"
+              ? "Super Admin"
+              : userRole === "admin"
+                ? "Admin"
+                : "Kasir"}
           </span>
         </div>
 
         <LogoutButton />
-
       </div>
     </nav>
   );

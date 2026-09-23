@@ -41,7 +41,7 @@ export async function POST(request) {
 
     const normalizedRole = role.toLowerCase();
 
-    if (!["admin", "cashier"].includes(normalizedRole)) {
+    if (!["super_admin","admin", "cashier"].includes(normalizedRole)) {
       return Response.json(
         {
           success: false,
