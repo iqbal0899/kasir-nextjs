@@ -1,38 +1,62 @@
-import {
-  getProductById,
-  updateProduct,
-} from "@/backend/actions/product.action";
+// =====================================================
+// DECREASE STOCK
+// =====================================================
 
-export async function reduceStock(
+export async function decreaseStock(
+  tx,
   productId,
-  quantity
+  quantity,
+  productName
 ) {
-  const product =
-    await getProductById(productId);
-
-  if (!product) {
-    throw new Error(
-      "Produk tidak ditemukan"
-    );
-  }
-
-  if (quantity <= 0) {
+  if (
+    !Number.isInteger(quantity) ||
+    quantity <= 0
+  ) {
     throw new Error(
       "Jumlah stok tidak valid"
     );
   }
 
-  if (product.stock < quantity) {
+  /*
+   * Atomic conditional update.
+   *
+   * Stok hanya akan dikurangi jika:
+   * - produk aktif
+   * - stock >= quantity
+   *
+   * PostgreSQL akan menangani concurrent update
+   * pada row yang sama secara aman.
+   */
+  const result =
+    await tx.product.updateMany({
+      where: {
+        id: productId,
+
+        isActive: true,
+
+        stock: {
+          gte: quantity,
+        },
+      },
+
+      data: {
+        stock: {
+          decrement: quantity,
+        },
+      },
+    });
+
+  /*
+   * count = 0 berarti:
+   * - produk tidak ada
+   * - produk tidak aktif
+   * - atau stok tidak mencukupi
+   */
+  if (result.count !== 1) {
     throw new Error(
-      `Stok ${product.name} tidak mencukupi`
+      `Stok produk "${productName}" tidak mencukupi`
     );
   }
 
-  return await updateProduct(
-    productId,
-    {
-      stock:
-        product.stock - quantity,
-    }
-  );
+  return result;
 }

@@ -1,7 +1,34 @@
 import { prisma } from "@/lib/prisma";
+import { requireRole } from "@/lib/auth";
 
-export async function GET() {
+export async function GET(request) {
   try {
+    // ========================================
+    // AUTHORIZATION
+    // ADMIN + SUPER ADMIN
+    // ========================================
+
+    const auth = requireRole(request, [
+      "admin",
+      "super_admin",
+    ]);
+
+    if (!auth.authorized) {
+      return Response.json(
+        {
+          success: false,
+          message: auth.message,
+        },
+        {
+          status: auth.status,
+        }
+      );
+    }
+
+    // ========================================
+    // GET USERS
+    // ========================================
+
     const users = await prisma.user.findMany({
       select: {
         id: true,
@@ -26,7 +53,6 @@ export async function GET() {
       {
         success: false,
         message: "Gagal mengambil data user",
-        error: error.message,
       },
       { status: 500 }
     );

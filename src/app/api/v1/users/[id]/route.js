@@ -103,7 +103,7 @@ export async function PUT(request, { params }) {
     role.toLowerCase();
 
   if (
-    !["admin", "cashier"].includes(
+    !["super_admin", "admin", "cashier"].includes(
       normalizedRole
     )
   ) {

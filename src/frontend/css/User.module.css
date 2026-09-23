@@ -378,6 +378,7 @@
 ======================================== */
 
 .adminBadge,
+.superAdminBadge,
 .kasirBadge {
   display: inline-flex;
 
@@ -392,6 +393,12 @@
   font-weight: 600;
 
   text-transform: capitalize;
+}
+
+/* SUPER ADMIN */
+.superAdminBadge {
+background:#ecfdf5;
+color: #b91c1c;
 }
 
 
@@ -409,6 +416,8 @@
   background: #ecfdf5;
   color: #047857;
 }
+
+
 
 
 /* ========================================

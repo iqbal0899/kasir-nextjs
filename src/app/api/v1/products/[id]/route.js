@@ -173,23 +173,25 @@ export async function PATCH(request, { params }) {
             body.isActive
           );
 
-          console.log(
-      "STATUS PRODUK DIUBAH:",
-      {
-        id: product.id,
-        name: product.name,
-        isActive: product.isActive,
-        Waktu: formatDate(new Date()),
-      }
-    );
-    console.log(
-      "USER YANG MENGUBAH STATUS:", {
-        id: user.id,
-        username: user.username,
-        role: user.role,
-        Waktu: formatDate(new Date()),
-      }
-    );
+console.log(
+  "STATUS PRODUK DIUBAH:",
+  {
+    id: product.id,
+    name: product.name,
+    isActive: product.isActive,
+    Waktu: new Date().toISOString(),
+  }
+);
+
+console.log(
+  "USER YANG MENGUBAH STATUS:",
+  {
+    id: user.id,
+    username: user.username,
+    role: user.role,
+    Waktu: new Date().toISOString(),
+  }
+);
 
         await createAuditLog({
           userId: user.id,

@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import styles from "../../../frontend/css/User.module.css";
 
-export default function UsersPageClient() {
+export default function UsersPageClient({role}) {
   const [form, setForm] = useState({
   username: "",
   password: "",
@@ -294,6 +294,10 @@ const handleDelete = async (id) => {
     <option value="admin">
       Admin
     </option>
+
+    <option value="super_admin">
+      Super Admin
+    </option>
   </select>
 </div>
 
@@ -359,17 +363,23 @@ const handleDelete = async (id) => {
                       <strong>{user.username}</strong>
                     </td>
 
-                    <td>
-                      <span
-                        className={
-                          user.role === "admin"
-                            ? styles.adminBadge
-                            : styles.kasirBadge
-                        }
-                      >
-                        {user.role}
-                      </span>
-                    </td>
+<td>
+  <span
+    className={
+      user.role === "super_admin"
+        ? styles.superAdminBadge
+        : user.role === "admin"
+          ? styles.adminBadge
+          : styles.kasirBadge
+    }
+  >
+    {user.role === "super_admin"
+      ? "Super Admin"
+      : user.role === "admin"
+        ? "Admin"
+        : "Kasir"}
+  </span>
+</td>
 
                     <td>
                       {user.createdAt

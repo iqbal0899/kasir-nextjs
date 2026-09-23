@@ -48,11 +48,11 @@ export async function GET(request) {
     // ADMIN ONLY
     // ==========================================
 
-    if (decoded.role !== "admin") {
+    if (decoded.role !== "super_admin") {
       return NextResponse.json(
         {
           success: false,
-          message: "Hanya admin yang dapat melihat audit log",
+          message: "Hanya super admin yang dapat melihat audit log",
         },
         {
           status: 403,

@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import jwt from "jsonwebtoken";
 
 import {
   getDashboardAnalytics,
@@ -6,6 +8,30 @@ import {
 
 export async function GET() {
   try {
+
+    // validasi sudah login
+
+    const cookieStore = await cookies();
+
+    const token = cookieStore.get("token")?.value;
+
+    if (!token) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Unauthorized",
+        },
+        {
+          status: 401,
+        }
+      );
+    }
+
+    const user = jwt.verify(
+      token,
+      process.env.JWT_SECRET
+    );
+
     const data = await getDashboardAnalytics();
 
     return NextResponse.json({

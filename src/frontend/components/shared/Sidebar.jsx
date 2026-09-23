@@ -13,6 +13,7 @@ import {
   Receipt,
   Users,
   FileText,
+  Activity
 } from "lucide-react";
 
 import styles from "../../css/Sidebar.module.css";
@@ -229,80 +230,84 @@ export default function Sidebar({ role }) {
                           </span>
                         </Link>
 
-                        {/* ========================================
-                            MENU KHUSUS ADMIN
-                        ======================================== */}
+{/* ========================================
+    MENU KHUSUS ADMIN DAN SUPER ADMIN
+======================================== */}
 
-                        {role ===
-                          "admin" && (
-                          <>
-                            {/* PRODUK */}
+{["admin", "super_admin"].includes(role) && (
+  <>
+    {/* PRODUK */}
 
-                            <Link
-                              href="/dashboard/products"
-                              className={
-                                styles.subMenuItem
-                              }
-                              onClick={
-                                closeSidebar
-                              }
-                            >
-                              <Package
-                                size={
-                                  17
-                                }
-                              />
+    <Link
+      href="/dashboard/products"
+      className={styles.subMenuItem}
+      onClick={closeSidebar}
+    >
+      <Package size={17} />
 
-                              <span>
-                                Produk
-                              </span>
-                            </Link>
+      <span>
+        Produk
+      </span>
+    </Link>
 
-                            {/* TRANSAKSI */}
+    {/* TRANSAKSI */}
 
-                            <Link
-                              href="/dashboard/transactions"
-                              className={
-                                styles.subMenuItem
-                              }
-                              onClick={
-                                closeSidebar
-                              }
-                            >
-                              <Receipt
-                                size={
-                                  17
-                                }
-                              />
+    <Link
+      href="/dashboard/transactions"
+      className={styles.subMenuItem}
+      onClick={closeSidebar}
+    >
+      <Receipt size={17} />
 
-                              <span>
-                                Transaksi
-                              </span>
-                            </Link>
+      <span>
+        Transaksi
+      </span>
+    </Link>
 
-                            {/* DAFTAR USER */}
+    {/* DAFTAR USER */}
 
-                            <Link
-                              href="/dashboard/users"
-                              className={
-                                styles.subMenuItem
-                              }
-                              onClick={
-                                closeSidebar
-                              }
-                            >
-                              <Users
-                                size={
-                                  17
-                                }
-                              />
+    {/* ========================================
+    MONITORING
+    HANYA SUPER ADMIN
+======================================== */}
 
-                              <span>
-                                Daftar User
-                              </span>
-                            </Link>
-                          </>
-                        )}
+{role === "super_admin" && (
+  <>
+    {/* MONITORING */}
+
+    <Link
+      href="/dashboard/monitoring"
+      className={styles.sidebarItem}
+      onClick={closeSidebar}
+    >
+      <span className={styles.sidebarIcon}>
+        <Activity size={18} />
+      </span>
+
+      <span className={styles.sidebarLabel}>
+        Monitoring
+      </span>
+    </Link>
+
+    {/* DAFTAR USER */}
+
+    <Link
+      href="/dashboard/users"
+      className={styles.sidebarItem}
+      onClick={closeSidebar}
+    >
+      <span className={styles.sidebarIcon}>
+        <Users size={18} />
+      </span>
+
+      <span className={styles.sidebarLabel}>
+        Daftar User
+      </span>
+    </Link>
+  </>
+)}
+  </>
+)}
                       </div>
                     )}
                   </div>
