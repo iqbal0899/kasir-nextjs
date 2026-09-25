@@ -3,14 +3,17 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
+
+import Loading from "@/frontend/components/ui/Loading";
+
 import styles from "../../../frontend/css/User.module.css";
 
-export default function UsersPageClient({role}) {
+export default function UsersPageClient({ role }) {
   const [form, setForm] = useState({
-  username: "",
-  password: "",
-  role: "cashier",
-});
+    username: "",
+    password: "",
+    role: "cashier",
+  });
 
   const [users, setUsers] = useState([]);
 
@@ -26,7 +29,9 @@ export default function UsersPageClient({role}) {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.message || "Gagal mengambil data user");
+      throw new Error(
+        data.message || "Gagal mengambil data user"
+      );
     }
 
     return data.data || [];
@@ -41,9 +46,15 @@ export default function UsersPageClient({role}) {
 
         setUsers(data);
       } catch (error) {
-        console.error("FETCH USERS ERROR:", error);
+        console.error(
+          "FETCH USERS ERROR:",
+          error
+        );
 
-        toast.error(error.message || "Gagal mengambil data user");
+        toast.error(
+          error.message ||
+            "Gagal mengambil data user"
+        );
       } finally {
         setLoadingUsers(false);
       }
@@ -55,6 +66,7 @@ export default function UsersPageClient({role}) {
   // =========================
   // INPUT
   // =========================
+
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -67,84 +79,107 @@ export default function UsersPageClient({role}) {
   // =========================
   // TAMBAH / EDIT USER
   // =========================
+
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  setLoading(true);
+    setLoading(true);
 
-  try {
-    let url = "/api/v1/users/register";
-    let method = "POST";
+    try {
+      let url = "/api/v1/users/register";
+      let method = "POST";
 
-    // EDIT USER
-    if (editingId) {
-      url = `/api/v1/users/${editingId}`;
-      method = "PUT";
-    }
+      // EDIT USER
+      if (editingId) {
+        url = `/api/v1/users/${editingId}`;
+        method = "PUT";
+      }
 
-    console.log("DATA YANG DIKIRIM:", form);
-
-    const response = await fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(form),
-    });
-
-    const contentType = response.headers.get("content-type");
-
-    let data;
-
-    if (contentType?.includes("application/json")) {
-      data = await response.json();
-    } else {
-      const text = await response.text();
-
-      console.error("SERVER RESPONSE:", text);
-
-      throw new Error(
-        `Server mengembalikan response bukan JSON (${response.status})`
+      console.log(
+        "DATA YANG DIKIRIM:",
+        form
       );
-    }
 
-    if (!response.ok) {
-      throw new Error(
-        data.message ||
-          (editingId
-            ? "Gagal mengubah user"
-            : "Gagal menambahkan user")
+      const response = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(form),
+      });
+
+      const contentType =
+        response.headers.get(
+          "content-type"
+        );
+
+      let data;
+
+      if (
+        contentType?.includes(
+          "application/json"
+        )
+      ) {
+        data = await response.json();
+      } else {
+        const text =
+          await response.text();
+
+        console.error(
+          "SERVER RESPONSE:",
+          text
+        );
+
+        throw new Error(
+          `Server mengembalikan response bukan JSON (${response.status})`
+        );
+      }
+
+      if (!response.ok) {
+        throw new Error(
+          data.message ||
+            (editingId
+              ? "Gagal mengubah user"
+              : "Gagal menambahkan user")
+        );
+      }
+
+      toast.success(
+        editingId
+          ? "User berhasil diubah!"
+          : "User berhasil ditambahkan!"
       );
+
+      setForm({
+        username: "",
+        password: "",
+        role: "cashier",
+      });
+
+      setEditingId(null);
+
+      const usersData =
+        await fetchUsers();
+
+      setUsers(usersData);
+    } catch (error) {
+      console.error(
+        "USER ERROR:",
+        error
+      );
+
+      toast.error(
+        error.message ||
+          "Terjadi kesalahan"
+      );
+    } finally {
+      setLoading(false);
     }
+  };
 
-    toast.success(
-      editingId
-        ? "User berhasil diubah!"
-        : "User berhasil ditambahkan!"
-    );
-
-    setForm({
-      username: "",
-      password: "",
-      role: "cashier",
-    });
-
-    setEditingId(null);
-
-    const usersData = await fetchUsers();
-    setUsers(usersData);
-
-  } catch (error) {
-    console.error("USER ERROR:", error);
-
-    toast.error(
-      error.message || "Terjadi kesalahan"
-    );
-
-  } finally {
-    setLoading(false);
-  }
-};
+  // =========================
+  // EDIT
+  // =========================
 
   const handleEdit = (user) => {
     setEditingId(user.id);
@@ -155,12 +190,15 @@ export default function UsersPageClient({role}) {
       role: user.role || "cashier",
     });
 
-    // Scroll ke form
     window.scrollTo({
       top: 0,
       behavior: "smooth",
     });
   };
+
+  // =========================
+  // CANCEL EDIT
+  // =========================
 
   const handleCancelEdit = () => {
     setEditingId(null);
@@ -172,67 +210,84 @@ export default function UsersPageClient({role}) {
     });
   };
 
+  // =========================
+  // DELETE
+  // =========================
 
-const handleDelete = async (id) => {
-  const result = await Swal.fire({
-    title: "Hapus User?",
-    text: "User yang dihapus tidak dapat dikembalikan.",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonText: "Ya, Hapus",
-    cancelButtonText: "Batal",
-    reverseButtons: true,
-  });
+  const handleDelete = async (id) => {
+    const result =
+      await Swal.fire({
+        title: "Hapus User?",
+        text:
+          "User yang dihapus tidak dapat dikembalikan.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText:
+          "Ya, Hapus",
+        cancelButtonText: "Batal",
+        reverseButtons: true,
+      });
 
-  if (!result.isConfirmed) {
-    return;
-  }
-
-  try {
-    setDeleting(true);
-
-    const response = await fetch(`/api/v1/users/${id}`, {
-      method: "DELETE",
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(
-        data.message || "Gagal menghapus user"
-      );
+    if (!result.isConfirmed) {
+      return;
     }
 
-    await Swal.fire({
-      title: "Berhasil!",
-      text: "User berhasil dihapus.",
-      icon: "success",
-      timer: 1200,
-      showConfirmButton: false,
-    });
+    try {
+      setDeleting(true);
 
-    window.location.reload();
+      const response = await fetch(
+        `/api/v1/users/${id}`,
+        {
+          method: "DELETE",
+        }
+      );
 
-  } catch (error) {
-    Swal.fire({
-      title: "Gagal!",
-      text: error.message,
-      icon: "error",
-      confirmButtonText: "OK",
-    });
-  } finally {
-    setDeleting(false);
-  }
-};
+      const data =
+        await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message ||
+            "Gagal menghapus user"
+        );
+      }
+
+      await Swal.fire({
+        title: "Berhasil!",
+        text: "User berhasil dihapus.",
+        icon: "success",
+        timer: 1200,
+        showConfirmButton: false,
+      });
+
+      window.location.reload();
+    } catch (error) {
+      Swal.fire({
+        title: "Gagal!",
+        text:
+          error.message ||
+          "Gagal menghapus user.",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   return (
     <main className={styles.container}>
       {/* =========================
           FORM TAMBAH / EDIT USER
       ========================= */}
+
       <div className={styles.card}>
         <div className={styles.header}>
-          <h1>{editingId ? "Edit User" : "Tambah User"}</h1>
+          <h1>
+            {editingId
+              ? "Edit User"
+              : "Tambah User"}
+          </h1>
 
           <p>
             {editingId
@@ -241,9 +296,14 @@ const handleDelete = async (id) => {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className={styles.form}>
+        <form
+          onSubmit={handleSubmit}
+          className={styles.form}
+        >
           <div className={styles.formGroup}>
-            <label htmlFor="username">Username</label>
+            <label htmlFor="username">
+              Username
+            </label>
 
             <input
               id="username"
@@ -253,11 +313,14 @@ const handleDelete = async (id) => {
               value={form.username}
               onChange={handleChange}
               required
+              disabled={loading}
             />
           </div>
 
           <div className={styles.formGroup}>
-            <label htmlFor="password">Password</label>
+            <label htmlFor="password">
+              Password
+            </label>
 
             <input
               id="password"
@@ -271,50 +334,74 @@ const handleDelete = async (id) => {
               value={form.password}
               onChange={handleChange}
               required={!editingId}
-              minLength={editingId ? undefined : 6}
+              minLength={
+                editingId
+                  ? undefined
+                  : 6
+              }
+              disabled={loading}
             />
           </div>
 
           <div className={styles.formGroup}>
-  <label htmlFor="role">
-    Role
-  </label>
+            <label htmlFor="role">
+              Role
+            </label>
 
-  <select
-    id="role"
-    name="role"
-    value={form.role}
-    onChange={handleChange}
-    required
-  >
-    <option value="cashier">
-      Kasir
-    </option>
+            <select
+              id="role"
+              name="role"
+              value={form.role}
+              onChange={handleChange}
+              required
+              disabled={loading}
+            >
+              <option value="cashier">
+                Kasir
+              </option>
 
-    <option value="admin">
-      Admin
-    </option>
+              <option value="admin">
+                Admin
+              </option>
 
-    <option value="super_admin">
-      Super Admin
-    </option>
-  </select>
-</div>
+              <option value="super_admin">
+                Super Admin
+              </option>
+            </select>
+          </div>
 
           <div className={styles.formActions}>
-            <button type="submit" className={styles.button} disabled={loading}>
-              {loading
-                ? "Procesing..."
-                : editingId
-                  ? "Simpan Perubahan"
-                  : "Tambah User"}
+            <button
+              type="submit"
+              className={styles.button}
+              disabled={loading}
+            >
+              {loading ? (
+                <Loading
+                  text={
+                    editingId
+                      ? "Menyimpan perubahan..."
+                      : "Menambahkan user..."
+                  }
+                  size="small"
+                />
+              ) : editingId ? (
+                "Simpan Perubahan"
+              ) : (
+                "Tambah User"
+              )}
             </button>
 
             {editingId && (
               <button
                 type="button"
-                className={styles.cancelButton}
-                onClick={handleCancelEdit}
+                className={
+                  styles.cancelButton
+                }
+                onClick={
+                  handleCancelEdit
+                }
+                disabled={loading}
               >
                 Batal
               </button>
@@ -323,24 +410,71 @@ const handleDelete = async (id) => {
         </form>
       </div>
 
-      <div className={styles.userTableCard}>
-        <div className={styles.tableHeader}>
-          <div>
-            <h2>Daftar User</h2>
+      {/* =========================
+          DAFTAR USER
+      ========================= */}
 
-            <p>Daftar user yang terdaftar dalam sistem kasir.</p>
+      <div
+        className={
+          styles.userTableCard
+        }
+      >
+        <div
+          className={
+            styles.tableHeader
+          }
+        >
+          <div>
+            <h2>
+              Daftar User
+            </h2>
+
+            <p>
+              Daftar user yang
+              terdaftar dalam sistem
+              kasir.
+            </p>
           </div>
 
-          <span className={styles.userCount}>{users.length} User</span>
+          <span
+            className={
+              styles.userCount
+            }
+          >
+            {users.length} User
+          </span>
         </div>
 
         {loadingUsers ? (
-          <div className={styles.loading}>Memuat data user...</div>
+          <div
+            className={
+              styles.loading
+            }
+          >
+            <Loading
+              text="Memuat data user..."
+              size="medium"
+            />
+          </div>
         ) : users.length === 0 ? (
-          <div className={styles.empty}>Belum ada user.</div>
+          <div
+            className={
+              styles.empty
+            }
+          >
+            Belum ada user.
+          </div>
         ) : (
-          <div className={styles.tableWrapper}>
-            <table className={styles.table}>
+          <div
+            className={
+              styles.tableWrapper
+            }
+          >
+            <table
+              className={
+                styles.table
+              }
+            >
               <thead>
                 <tr>
                   <th>No</th>
@@ -353,62 +487,112 @@ const handleDelete = async (id) => {
               </thead>
 
               <tbody>
-                {users.map((user, index) => (
-                  <tr key={user.id}>
-                    <td>{index + 1}</td>
+                {users.map(
+                  (user, index) => (
+                    <tr
+                      key={user.id}
+                    >
+                      <td>
+                        {index + 1}
+                      </td>
 
-                    <td>{user.id}</td>
+                      <td>
+                        {user.id}
+                      </td>
 
-                    <td>
-                      <strong>{user.username}</strong>
-                    </td>
+                      <td>
+                        <strong>
+                          {
+                            user.username
+                          }
+                        </strong>
+                      </td>
 
-<td>
-  <span
-    className={
-      user.role === "super_admin"
-        ? styles.superAdminBadge
-        : user.role === "admin"
-          ? styles.adminBadge
-          : styles.kasirBadge
-    }
-  >
-    {user.role === "super_admin"
-      ? "Super Admin"
-      : user.role === "admin"
-        ? "Admin"
-        : "Kasir"}
-  </span>
-</td>
-
-                    <td>
-                      {user.createdAt
-                        ? new Date(user.createdAt).toLocaleDateString("id-ID")
-                        : "-"}
-                    </td>
-
-                    <td>
-                      <div className={styles.actions}>
-                        <button
-                          type="button"
-                          className={styles.editButton}
-                          onClick={() => handleEdit(user)}
+                      <td>
+                        <span
+                          className={
+                            user.role ===
+                            "super_admin"
+                              ? styles.superAdminBadge
+                              : user.role ===
+                                "admin"
+                                ? styles.adminBadge
+                                : styles.kasirBadge
+                          }
                         >
-                          Edit
-                        </button>
+                          {user.role ===
+                          "super_admin"
+                            ? "Super Admin"
+                            : user.role ===
+                              "admin"
+                              ? "Admin"
+                              : "Kasir"}
+                        </span>
+                      </td>
 
-                        <button
-  type="button"
-  className={styles.deleteButton}
-  disabled={deleting}
-  onClick={() => handleDelete(user.id)}
->
-  {deleting ? "Prosecing..." : "Delete"}
-</button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      <td>
+                        {user.createdAt
+                          ? new Date(
+                              user.createdAt
+                            ).toLocaleDateString(
+                              "id-ID"
+                            )
+                          : "-"}
+                      </td>
+
+                      <td>
+                        <div
+                          className={
+                            styles.actions
+                          }
+                        >
+                          <button
+                            type="button"
+                            className={
+                              styles.editButton
+                            }
+                            onClick={() =>
+                              handleEdit(
+                                user
+                              )
+                            }
+                            disabled={
+                              deleting ||
+                              loading
+                            }
+                          >
+                            Edit
+                          </button>
+
+                          <button
+                            type="button"
+                            className={
+                              styles.deleteButton
+                            }
+                            disabled={
+                              deleting ||
+                              loading
+                            }
+                            onClick={() =>
+                              handleDelete(
+                                user.id
+                              )
+                            }
+                          >
+                            {deleting ? (
+                              <Loading
+                                text="Menghapus..."
+                                size="small"
+                              />
+                            ) : (
+                              "Delete"
+                            )}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                )}
               </tbody>
             </table>
           </div>

@@ -7,63 +7,87 @@ import styles from "@/frontend/css/report.module.css";
 
 import Sidebar from "@/frontend/components/shared/Sidebar";
 import Navbar from "@/frontend/components/shared/Navbar";
+import Loading from "@/frontend/components/ui/Loading";
 
 export default function ReportsPage() {
-
-
   const [products, setProducts] = useState([]);
-const [transactions, setTransactions] = useState([]);
-const [user, setUser] = useState(null);
+  const [transactions, setTransactions] = useState([]);
+  const [user, setUser] = useState(null);
 
-const [loadingProducts, setLoadingProducts] = useState(true);
-const [loadingTransactions, setLoadingTransactions] = useState(true);
+  const [loadingProducts, setLoadingProducts] = useState(true);
+  const [loadingTransactions, setLoadingTransactions] =
+    useState(true);
 
-const [productError, setProductError] = useState("");
-const [transactionError, setTransactionError] = useState("");
+  const [productError, setProductError] = useState("");
+  const [transactionError, setTransactionError] =
+    useState("");
 
-const [search, setSearch] = useState("");
+  const [search, setSearch] = useState("");
 
-const [productPage, setProductPage] = useState(1);
-const [productLimit, setProductLimit] = useState(10);
+  const [productPage, setProductPage] = useState(1);
+  const [productLimit, setProductLimit] = useState(10);
 
-const [productPagination, setProductPagination] = useState({
-  page: 1,
-  limit: 10,
-  total: 0,
-  totalPages: 0,
-});
+  const [productPagination, setProductPagination] =
+    useState({
+      page: 1,
+      limit: 10,
+      total: 0,
+      totalPages: 0,
+    });
 
-const [transactionPage, setTransactionPage] = useState(1);
-const [transactionLimit, setTransactionLimit] = useState(10);
+  const [transactionPage, setTransactionPage] =
+    useState(1);
 
-const [transactionPagination, setTransactionPagination] = useState({
-  page: 1,
-  limit: 10,
-  total: 0,
-  totalPages: 0,
-});
+  const [transactionLimit, setTransactionLimit] =
+    useState(10);
 
-const [startDateProduct, setStartDateProduct] = useState("");
-const [endDateProduct, setEndDateProduct] = useState("");
+  const [transactionPagination, setTransactionPagination] =
+    useState({
+      page: 1,
+      limit: 10,
+      total: 0,
+      totalPages: 0,
+    });
 
-const [appliedStartDateProduct, setAppliedStartDateProduct] =
-  useState("");
+  const [startDateProduct, setStartDateProduct] =
+    useState("");
 
-const [appliedEndDateProduct, setAppliedEndDateProduct] =
-  useState("");
+  const [endDateProduct, setEndDateProduct] =
+    useState("");
 
-const [startDateTransaction, setStartDateTransaction] =
-  useState("");
+  const [
+    appliedStartDateProduct,
+    setAppliedStartDateProduct,
+  ] = useState("");
 
-const [endDateTransaction, setEndDateTransaction] =
-  useState("");
+  const [
+    appliedEndDateProduct,
+    setAppliedEndDateProduct,
+  ] = useState("");
 
-const [appliedStartDateTransaction, setAppliedStartDateTransaction] =
-  useState("");
+  const [
+    startDateTransaction,
+    setStartDateTransaction,
+  ] = useState("");
 
-const [appliedEndDateTransaction, setAppliedEndDateTransaction] =
-  useState("");
+  const [
+    endDateTransaction,
+    setEndDateTransaction,
+  ] = useState("");
 
+  const [
+    appliedStartDateTransaction,
+    setAppliedStartDateTransaction,
+  ] = useState("");
+
+  const [
+    appliedEndDateTransaction,
+    setAppliedEndDateTransaction,
+  ] = useState("");
+
+  // =====================================================
+  // FETCH PRODUCTS
+  // =====================================================
 
   const fetchProducts = async () => {
     try {
@@ -108,7 +132,6 @@ const [appliedEndDateTransaction, setAppliedEndDateTransaction] =
         );
       }
 
-      // Jika API mengembalikan null, tetap menjadi array
       setProducts(
         Array.isArray(result.data)
           ? result.data
@@ -147,6 +170,9 @@ const [appliedEndDateTransaction, setAppliedEndDateTransaction] =
     }
   };
 
+  // =====================================================
+  // FETCH PRODUCTS EFFECT
+  // =====================================================
 
   useEffect(() => {
     fetchProducts();
@@ -156,6 +182,10 @@ const [appliedEndDateTransaction, setAppliedEndDateTransaction] =
     appliedStartDateProduct,
     appliedEndDateProduct,
   ]);
+
+  // =====================================================
+  // FETCH TRANSACTIONS
+  // =====================================================
 
   const fetchTransactions = async () => {
     try {
@@ -167,7 +197,6 @@ const [appliedEndDateTransaction, setAppliedEndDateTransaction] =
         limit: String(transactionLimit),
       });
 
-      // Gunakan FILTER YANG SUDAH DITERAPKAN
       if (appliedStartDateTransaction) {
         params.append(
           "startDateTransaction",
@@ -204,7 +233,6 @@ const [appliedEndDateTransaction, setAppliedEndDateTransaction] =
         );
       }
 
-      // Jika tidak ada data, paksa menjadi array kosong
       setTransactions(
         Array.isArray(result.data)
           ? result.data
@@ -261,14 +289,16 @@ const [appliedEndDateTransaction, setAppliedEndDateTransaction] =
   // =====================================================
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
+    const storedUser =
+      localStorage.getItem("user");
 
     if (!storedUser) {
       return;
     }
 
     try {
-      const parsedUser = JSON.parse(storedUser);
+      const parsedUser =
+        JSON.parse(storedUser);
 
       console.log(
         "USER LOGIN:",
@@ -291,16 +321,6 @@ const [appliedEndDateTransaction, setAppliedEndDateTransaction] =
   // =====================================================
 
   const handleFilterProduct = () => {
-    // Jika hanya salah satu tanggal yang diisi,
-    // tetap diperbolehkan.
-    //
-    // Contoh:
-    // startDateProduct = 2026-01-01
-    // endDateProduct   = ""
-    //
-    // Artinya dari 2026-01-01 sampai seterusnya.
-
-    // Validasi tanggal
     if (
       startDateProduct &&
       endDateProduct &&
@@ -317,10 +337,8 @@ const [appliedEndDateTransaction, setAppliedEndDateTransaction] =
 
     setProductError("");
 
-    // Reset halaman
     setProductPage(1);
 
-    // Terapkan filter
     setAppliedStartDateProduct(
       startDateProduct
     );
@@ -335,11 +353,11 @@ const [appliedEndDateTransaction, setAppliedEndDateTransaction] =
   // =====================================================
 
   const handleFilterTransaction = () => {
-    // Validasi tanggal
     if (
       startDateTransaction &&
       endDateTransaction &&
-      startDateTransaction > endDateTransaction
+      startDateTransaction >
+        endDateTransaction
     ) {
       setTransactionError(
         "Tanggal mulai tidak boleh lebih besar dari tanggal akhir."
@@ -352,10 +370,8 @@ const [appliedEndDateTransaction, setAppliedEndDateTransaction] =
 
     setTransactionError("");
 
-    // Reset halaman
     setTransactionPage(1);
 
-    // Terapkan filter
     setAppliedStartDateTransaction(
       startDateTransaction
     );
@@ -461,38 +477,28 @@ const [appliedEndDateTransaction, setAppliedEndDateTransaction] =
 
     params.set("type", type);
 
-    // FILTER PRODUK
-    if (
-      appliedStartDateProduct
-    ) {
+    if (appliedStartDateProduct) {
       params.set(
         "startDateProduct",
         appliedStartDateProduct
       );
     }
 
-    if (
-      appliedEndDateProduct
-    ) {
+    if (appliedEndDateProduct) {
       params.set(
         "endDateProduct",
         appliedEndDateProduct
       );
     }
 
-    // FILTER TRANSAKSI
-    if (
-      appliedStartDateTransaction
-    ) {
+    if (appliedStartDateTransaction) {
       params.set(
         "startDateTransaction",
         appliedStartDateTransaction
       );
     }
 
-    if (
-      appliedEndDateTransaction
-    ) {
+    if (appliedEndDateTransaction) {
       params.set(
         "endDateTransaction",
         appliedEndDateTransaction
@@ -528,6 +534,7 @@ const [appliedEndDateTransaction, setAppliedEndDateTransaction] =
   return (
     <div className="app-shell">
       {/* SIDEBAR */}
+
       <div className={styles.noPrint}>
         <Sidebar
           role={
@@ -538,6 +545,7 @@ const [appliedEndDateTransaction, setAppliedEndDateTransaction] =
 
       <div className="app-main">
         {/* NAVBAR */}
+
         <div className={styles.noPrint}>
           <Navbar
             storeName="Toko Iqbal"
@@ -742,9 +750,14 @@ const [appliedEndDateTransaction, setAppliedEndDateTransaction] =
                 </span>
 
                 <strong>
-                  {loadingProducts
-                    ? "..."
-                    : totalProducts}
+                  {loadingProducts ? (
+                    <Loading
+                      text=""
+                      size="small"
+                    />
+                  ) : (
+                    totalProducts
+                  )}
                 </strong>
               </div>
 
@@ -758,9 +771,14 @@ const [appliedEndDateTransaction, setAppliedEndDateTransaction] =
                 </span>
 
                 <strong>
-                  {loadingProducts
-                    ? "..."
-                    : totalStock}
+                  {loadingProducts ? (
+                    <Loading
+                      text=""
+                      size="small"
+                    />
+                  ) : (
+                    totalStock
+                  )}
                 </strong>
               </div>
 
@@ -774,9 +792,14 @@ const [appliedEndDateTransaction, setAppliedEndDateTransaction] =
                 </span>
 
                 <strong>
-                  {loadingProducts
-                    ? "..."
-                    : lowStock}
+                  {loadingProducts ? (
+                    <Loading
+                      text=""
+                      size="small"
+                    />
+                  ) : (
+                    lowStock
+                  )}
                 </strong>
               </div>
 
@@ -790,9 +813,14 @@ const [appliedEndDateTransaction, setAppliedEndDateTransaction] =
                 </span>
 
                 <strong>
-                  {loadingProducts
-                    ? "..."
-                    : emptyStock}
+                  {loadingProducts ? (
+                    <Loading
+                      text=""
+                      size="small"
+                    />
+                  ) : (
+                    emptyStock
+                  )}
                 </strong>
               </div>
             </div>
@@ -811,164 +839,157 @@ const [appliedEndDateTransaction, setAppliedEndDateTransaction] =
 
             {/* TABLE PRODUK */}
 
-            {!loadingProducts &&
-              !productError && (
-                <div
+            {loadingProducts ? (
+              <div
+                className={
+                  styles.message
+                }
+              >
+                <Loading
+                  text="Memuat data produk..."
+                  size="medium"
+                />
+              </div>
+            ) : !productError ? (
+              <div
+                className={
+                  styles.tableWrapper
+                }
+              >
+                <table
                   className={
-                    styles.tableWrapper
+                    styles.table
                   }
                 >
-                  <table
-                    className={
-                      styles.table
-                    }
-                  >
-                    <thead>
+                  <thead>
+                    <tr>
+                      <th>No.</th>
+                      <th>ID</th>
+                      <th>Produk</th>
+                      <th>Kategori</th>
+                      <th>Harga</th>
+                      <th>
+                        Stock Terjual
+                      </th>
+                      <th>
+                        Stock Tersisa
+                      </th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {products.length ===
+                    0 ? (
                       <tr>
-                        <th>
-                          No.
-                        </th>
-
-                        <th>
-                          ID
-                        </th>
-
-                        <th>
-                          Produk
-                        </th>
-
-                        <th>
-                          Kategori
-                        </th>
-
-                        <th>
-                          Harga
-                        </th>
-
-                        <th>
-                          Stock Terjual
-                        </th>
-
-                        <th>
-                          Stock Tersisa
-                        </th>
-
-                        <th>
-                          Status
-                        </th>
+                        <td
+                          colSpan="8"
+                          className={
+                            styles.empty
+                          }
+                        >
+                          Data produk tidak
+                          ada pada tanggal
+                          yang dipilih.
+                        </td>
                       </tr>
-                    </thead>
-
-                    <tbody>
-                      {products.length ===
-                      0 ? (
-                        <tr>
-                          <td
-                            colSpan="8"
-                            className={
-                              styles.empty
+                    ) : (
+                      products.map(
+                        (
+                          product,
+                          index
+                        ) => (
+                          <tr
+                            key={
+                              product.id
                             }
                           >
-                            Data produk tidak
-                            ada pada tanggal
-                            yang dipilih.
-                          </td>
-                        </tr>
-                      ) : (
-                        products.map(
-                          (
-                            product,
-                            index
-                          ) => (
-                            <tr
-                              key={
+                            <td>
+                              {(productPage -
+                                1) *
+                                productLimit +
+                                index +
+                                1}
+                            </td>
+
+                            <td>
+                              {
                                 product.id
                               }
-                            >
-                              <td>
-                                {(productPage -
-                                  1) *
-                                  productLimit +
-                                  index +
-                                  1}
-                              </td>
+                            </td>
 
-                              <td>
+                            <td>
+                              <strong>
                                 {
-                                  product.id
+                                  product.name
                                 }
-                              </td>
+                              </strong>
+                            </td>
 
-                              <td>
-                                <strong>
-                                  {
-                                    product.name
+                            <td>
+                              {product.category ||
+                                "Tanpa kategori"}
+                            </td>
+
+                            <td>
+                              Rp{" "}
+                              {formatPrice(
+                                product.price
+                              )}
+                            </td>
+
+                            <td>
+                              {product.soldStock ||
+                                0}
+                            </td>
+
+                            <td>
+                              {
+                                product.stock
+                              }
+                            </td>
+
+                            <td>
+                              {Number(
+                                product.stock
+                              ) ===
+                              0 ? (
+                                <span
+                                  className={
+                                    styles.danger
                                   }
-                                </strong>
-                              </td>
-
-                              <td>
-                                {product.category ||
-                                  "Tanpa kategori"}
-                              </td>
-
-                              <td>
-                                Rp{" "}
-                                {formatPrice(
-                                  product.price
-                                )}
-                              </td>
-
-                              <td>
-                                {product.soldStock ||
-                                  0}
-                              </td>
-
-                              <td>
-                                {
+                                >
+                                  Stok Habis
+                                </span>
+                              ) : Number(
                                   product.stock
-                                }
-                              </td>
-
-                              <td>
-                                {Number(
-                                  product.stock
-                                ) === 0 ? (
-                                  <span
-                                    className={
-                                      styles.danger
-                                    }
-                                  >
-                                    Stok Habis
-                                  </span>
-                                ) : Number(
-                                    product.stock
-                                  ) <= 30 ? (
-                                  <span
-                                    className={
-                                      styles.warning
-                                    }
-                                  >
-                                    Stok Menipis
-                                  </span>
-                                ) : (
-                                  <span
-                                    className={
-                                      styles.success
-                                    }
-                                  >
-                                    Tersedia
-                                  </span>
-                                )}
-                              </td>
-                            </tr>
-                          )
+                                ) <=
+                                30 ? (
+                                <span
+                                  className={
+                                    styles.warning
+                                  }
+                                >
+                                  Stok Menipis
+                                </span>
+                              ) : (
+                                <span
+                                  className={
+                                    styles.success
+                                  }
+                                >
+                                  Tersedia
+                                </span>
+                              )}
+                            </td>
+                          </tr>
                         )
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+                      )
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            ) : null}
 
             {/* PAGINATION PRODUK */}
 
@@ -989,8 +1010,7 @@ const [appliedEndDateTransaction, setAppliedEndDateTransaction] =
                   )
                 }
                 disabled={
-                  productPage ===
-                  1
+                  productPage === 1
                 }
               >
                 Previous
@@ -1004,7 +1024,7 @@ const [appliedEndDateTransaction, setAppliedEndDateTransaction] =
                 dari{" "}
                 {
                   productPagination.totalPages ||
-                    1
+                  1
                 }
               </span>
 
@@ -1181,9 +1201,14 @@ const [appliedEndDateTransaction, setAppliedEndDateTransaction] =
                 </span>
 
                 <strong>
-                  {loadingTransactions
-                    ? "..."
-                    : totalTransactions}
+                  {loadingTransactions ? (
+                    <Loading
+                      text=""
+                      size="small"
+                    />
+                  ) : (
+                    totalTransactions
+                  )}
                 </strong>
               </div>
 
@@ -1197,12 +1222,19 @@ const [appliedEndDateTransaction, setAppliedEndDateTransaction] =
                 </span>
 
                 <strong>
-                  Rp{" "}
-                  {loadingTransactions
-                    ? "..."
-                    : formatPrice(
+                  {loadingTransactions ? (
+                    <Loading
+                      text=""
+                      size="small"
+                    />
+                  ) : (
+                    <>
+                      Rp{" "}
+                      {formatPrice(
                         totalRevenue
                       )}
+                    </>
+                  )}
                 </strong>
               </div>
             </div>
@@ -1221,120 +1253,115 @@ const [appliedEndDateTransaction, setAppliedEndDateTransaction] =
 
             {/* TABLE TRANSAKSI */}
 
-            {!loadingTransactions &&
-              !transactionError && (
-                <div
+            {loadingTransactions ? (
+              <div
+                className={
+                  styles.message
+                }
+              >
+                <Loading
+                  text="Memuat data transaksi..."
+                  size="medium"
+                />
+              </div>
+            ) : !transactionError ? (
+              <div
+                className={
+                  styles.tableWrapper
+                }
+              >
+                <table
                   className={
-                    styles.tableWrapper
+                    styles.table
                   }
                 >
-                  <table
-                    className={
-                      styles.table
-                    }
-                  >
-                    <thead>
+                  <thead>
+                    <tr>
+                      <th>No.</th>
+                      <th>ID</th>
+                      <th>Tanggal</th>
+                      <th>Kasir</th>
+                      <th>Total</th>
+                      <th>Metode</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {transactions.length ===
+                    0 ? (
                       <tr>
-                        <th>
-                          No.
-                        </th>
-
-                        <th>
-                          ID
-                        </th>
-
-                        <th>
-                          Tanggal
-                        </th>
-
-                        <th>
-                          Kasir
-                        </th>
-
-                        <th>
-                          Total
-                        </th>
-
-                        <th>
-                          Metode
-                        </th>
+                        <td
+                          colSpan="6"
+                          className={
+                            styles.empty
+                          }
+                        >
+                          Data transaksi tidak
+                          ada pada tanggal
+                          yang dipilih.
+                        </td>
                       </tr>
-                    </thead>
-
-                    <tbody>
-                      {transactions.length ===
-                      0 ? (
-                        <tr>
-                          <td
-                            colSpan="6"
-                            className={
-                              styles.empty
+                    ) : (
+                      transactions.map(
+                        (
+                          transaction,
+                          index
+                        ) => (
+                          <tr
+                            key={
+                              transaction.id
                             }
                           >
-                            Data transaksi tidak
-                            ada pada tanggal
-                            yang dipilih.
-                          </td>
-                        </tr>
-                      ) : (
-                        transactions.map(
-                          (
-                            transaction,
-                            index
-                          ) => (
-                            <tr
-                              key={
+                            <td>
+                              {(transactionPage -
+                                1) *
+                                transactionLimit +
+                                index +
+                                1}
+                            </td>
+
+                            <td>
+                              {
                                 transaction.id
                               }
-                            >
-                              <td>
-                                {(transactionPage -
-                                  1) *
-                                  transactionLimit +
-                                  index +
-                                  1}
-                              </td>
+                            </td>
 
-                              <td>
-                                {
-                                  transaction.id
-                                }
-                              </td>
+                            <td>
+                              {formatDate(
+                                transaction.createdAt
+                              )}
+                            </td>
 
-                              <td>
-                                {formatDate(
-                                  transaction.createdAt
+                            <td>
+                              {transaction
+                                .cashier
+                                ?.username ||
+                                "-"}
+                            </td>
+
+                            <td>
+                              <strong>
+                                Rp{" "}
+                                {formatPrice(
+                                  transaction.totalAmount
                                 )}
-                              </td>
+                              </strong>
+                            </td>
 
-                              <td>
-                                {transaction
-                                  .cashier
-                                  ?.username ||
-                                  "-"}
-                              </td>
-
-                              <td>
-                                <strong>
-                                  Rp{" "}
-                                  {formatPrice(
-                                    transaction.totalAmount
-                                  )}
-                                </strong>
-                              </td>
-
-                              <td>
-                                {transaction.paymentMethod ||
-                                  "-"}
-                              </td>
-                            </tr>
-                          )
+                            <td>
+                              {
+                                transaction.paymentMethod ||
+                                "-"
+                              }
+                            </td>
+                          </tr>
                         )
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+                      )
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            ) : null}
 
             {/* PAGINATION TRANSAKSI */}
 
@@ -1370,7 +1397,7 @@ const [appliedEndDateTransaction, setAppliedEndDateTransaction] =
                 dari{" "}
                 {
                   transactionPagination.totalPages ||
-                    1
+                  1
                 }
               </span>
 
@@ -1398,4 +1425,3 @@ const [appliedEndDateTransaction, setAppliedEndDateTransaction] =
     </div>
   );
 }
-

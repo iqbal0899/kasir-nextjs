@@ -56,10 +56,10 @@ export async function PATCH(request, { params }) {
     }
 
     // ==========================================
-    // ADMIN ONLY
+    // ADMIN DAN SUPER ADMIN
     // ==========================================
 
-    if (user.role !== "admin") {
+    if (!["admin", "super_admin"].includes(user.role)) {
       return NextResponse.json(
         {
           success: false,

@@ -12,7 +12,9 @@ import {
 } from "recharts";
 
 import styles from "../../frontend/css/dashboard.module.css";
+import Loading from "@/frontend/components/ui/Loading";
 import { pusherClient } from "@/frontend/services/pusher";
+import { formatCurrency } from "@/shared/utils/formatCurrency";
 
 export default function DashboardPage() {
   const [dashboard, setDashboard] = useState(null);
@@ -23,44 +25,52 @@ export default function DashboardPage() {
   // FETCH DASHBOARD
   // ==========================================
 
-  const fetchDashboard = useCallback(
-  async () => {
+  const fetchDashboard = useCallback(async () => {
     try {
+      setLoading(true);
       setError("");
 
-const response = await fetch(
-  "/api/v1/dashboard/analytics",
-  {
-    method: "GET",
-    credentials: "include",
-    cache: "no-store",
-  }
-);
+      const response = await fetch(
+        "/api/v1/dashboard/analytics",
+        {
+          method: "GET",
+          credentials: "include",
+          cache: "no-store",
+        }
+      );
 
-console.log("PRODUCT STATUS:", response.status);
+      console.log(
+        "DASHBOARD STATUS:",
+        response.status
+      );
 
-const text = await response.text();
+      const text = await response.text();
 
-console.log("PRODUCT RESPONSE:", text);
+      console.log(
+        "DASHBOARD RESPONSE:",
+        text
+      );
 
-if (!response.ok) {
-  throw new Error(
-    `Products API error: ${response.status}`
-  );
-}
+      if (!response.ok) {
+        throw new Error(
+          `Dashboard API error: ${response.status}`
+        );
+      }
 
-if (!text.trim()) {
-  throw new Error(
-    "Products API mengembalikan response kosong"
-  );
-}
+      if (!text.trim()) {
+        throw new Error(
+          "Dashboard API mengembalikan response kosong"
+        );
+      }
 
-const result = JSON.parse(text);
+      const result = JSON.parse(text);
 
-console.log("PRODUCT RESULT:", result);
+      console.log(
+        "DASHBOARD RESULT:",
+        result
+      );
 
       setDashboard(result.data);
-
     } catch (error) {
       console.error(
         "FETCH DASHBOARD ANALYTICS ERROR:",
@@ -68,16 +78,14 @@ console.log("PRODUCT RESULT:", result);
       );
 
       setError(
-        error.message ||
-          "Gagal mengambil data dashboard"
+        error instanceof Error
+          ? error.message
+          : "Gagal mengambil data dashboard"
       );
-
     } finally {
       setLoading(false);
     }
-  },
-  []
-);
+  }, []);
 
   // ==========================================
   // INITIAL FETCH
@@ -91,69 +99,69 @@ console.log("PRODUCT RESULT:", result);
   // PUSHER REALTIME
   // ==========================================
 
-useEffect(() => {
-  const channel =
-    pusherClient.subscribe("dashboard");
+  useEffect(() => {
+    const channel =
+      pusherClient.subscribe("dashboard");
 
-  const handleTransactionCreated = (data) => {
-    console.log(
-      "TRANSAKSI BARU:",
+    const handleTransactionCreated = (
       data
-    );
+    ) => {
+      console.log(
+        "TRANSAKSI BARU:",
+        data
+      );
 
-    fetchDashboard();
-  };
+      fetchDashboard();
+    };
 
-  channel.bind(
-    "transaction-created",
-    handleTransactionCreated
-  );
-
-  return () => {
-    channel.unbind(
+    channel.bind(
       "transaction-created",
       handleTransactionCreated
     );
 
-    pusherClient.unsubscribe(
-      "dashboard"
-    );
-  };
-}, [fetchDashboard]);
+    return () => {
+      channel.unbind(
+        "transaction-created",
+        handleTransactionCreated
+      );
+
+      pusherClient.unsubscribe(
+        "dashboard"
+      );
+    };
+  }, [fetchDashboard]);
 
   // ==========================================
-  // FORMAT
+  // FORMAT DATE
   // ==========================================
-
-  const formatPrice = (price) => {
-    return Number(price || 0).toLocaleString(
-      "id-ID"
-    );
-  };
 
   const formatDate = (date) => {
-    return new Date(date).toLocaleDateString(
-      "id-ID",
-      {
-        day: "2-digit",
-        month: "short",
-      }
-    );
+    return new Date(
+      date
+    ).toLocaleDateString("id-ID", {
+      day: "2-digit",
+      month: "short",
+    });
   };
+
+  // ==========================================
+  // FORMAT DATE TIME
+  // ==========================================
 
   const formatDateTime = (date) => {
-    return new Date(date).toLocaleString(
-      "id-ID",
-      {
-        day: "2-digit",
-        month: "short",
-        hour: "2-digit",
-        minute: "2-digit",
-      }
-    );
+    return new Date(
+      date
+    ).toLocaleString("id-ID", {
+      day: "2-digit",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
-  // ... lanjutkan JSX kamu yang sekarang
+  // ==========================================
+  // LOADING
+  // ==========================================
 
   if (loading) {
     return (
@@ -171,11 +179,18 @@ useEffect(() => {
         </div>
 
         <div className={styles.message}>
-          Memuat data dashboard...
+          <Loading
+            text="Memuat data dashboard..."
+            size="medium"
+          />
         </div>
       </main>
     );
   }
+
+  // ==========================================
+  // ERROR
+  // ==========================================
 
   if (error) {
     return (
@@ -199,6 +214,10 @@ useEffect(() => {
     );
   }
 
+  // ==========================================
+  // EMPTY
+  // ==========================================
+
   if (!dashboard) {
     return null;
   }
@@ -211,9 +230,15 @@ useEffect(() => {
     recentTransactions,
   } = dashboard;
 
+  // ==========================================
+  // RENDER
+  // ==========================================
+
   return (
     <main className={styles.container}>
-      {/* HEADER */}
+      {/* ======================================
+          HEADER
+      ====================================== */}
 
       <div className={styles.header}>
         <div>
@@ -227,7 +252,9 @@ useEffect(() => {
         </div>
       </div>
 
-      {/* SUMMARY CARDS */}
+      {/* ======================================
+          SUMMARY CARDS
+      ====================================== */}
 
       <div className={styles.cards}>
         <div className={styles.card}>
@@ -258,25 +285,38 @@ useEffect(() => {
           <p>Total Pendapatan</p>
 
           <h2>
-            Rp {formatPrice(summary.totalRevenue)}
+            {formatCurrency(
+              summary.totalRevenue
+            )}
           </h2>
         </div>
       </div>
 
-      {/* ANALYTICS */}
+      {/* ======================================
+          ANALYTICS
+      ====================================== */}
 
       <div className={styles.analyticsGrid}>
         {/* SALES CHART */}
 
-        <section className={styles.analyticsCard}>
-          <div className={styles.sectionHeader}>
+        <section
+          className={
+            styles.analyticsCard
+          }
+        >
+          <div
+            className={
+              styles.sectionHeader
+            }
+          >
             <div>
               <h2>
                 Penjualan 7 Hari Terakhir
               </h2>
 
               <p>
-                Total pendapatan berdasarkan tanggal
+                Total pendapatan berdasarkan
+                tanggal
               </p>
             </div>
           </div>
@@ -286,23 +326,35 @@ useEffect(() => {
               width="100%"
               height={300}
             >
-              <LineChart data={salesChart}>
-                <CartesianGrid strokeDasharray="3 3" />
+              <LineChart
+                data={salesChart}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                />
 
                 <XAxis
                   dataKey="date"
-                  tickFormatter={formatDate}
+                  tickFormatter={
+                    formatDate
+                  }
                 />
 
                 <YAxis
-                  tickFormatter={(value) =>
-                    `Rp${formatPrice(value)}`
+                  tickFormatter={(
+                    value
+                  ) =>
+                    formatCurrency(
+                      value
+                    )
                   }
                 />
 
                 <Tooltip
                   formatter={(value) =>
-                    `Rp ${formatPrice(value)}`
+                    formatCurrency(
+                      value
+                    )
                   }
                   labelFormatter={(label) =>
                     formatDate(label)
@@ -322,8 +374,16 @@ useEffect(() => {
 
         {/* TOP PRODUCTS */}
 
-        <section className={styles.analyticsCard}>
-          <div className={styles.sectionHeader}>
+        <section
+          className={
+            styles.analyticsCard
+          }
+        >
+          <div
+            className={
+              styles.sectionHeader
+            }
+          >
             <div>
               <h2>
                 Produk Terlaris
@@ -336,16 +396,31 @@ useEffect(() => {
           </div>
 
           {topProducts.length === 0 ? (
-            <div className={styles.message}>
+            <div
+              className={
+                styles.message
+              }
+            >
               Belum ada data penjualan.
             </div>
           ) : (
-            <div className={styles.topProducts}>
+            <div
+              className={
+                styles.topProducts
+              }
+            >
               {topProducts.map(
-                (product, index) => (
+                (
+                  product,
+                  index
+                ) => (
                   <div
-                    className={styles.topProductItem}
-                    key={product.productId}
+                    className={
+                      styles.topProductItem
+                    }
+                    key={
+                      product.productId
+                    }
                   >
                     <div
                       className={
@@ -365,13 +440,15 @@ useEffect(() => {
                       </strong>
 
                       <span>
-                        {product.quantity} terjual
+                        {
+                          product.quantity
+                        }{" "}
+                        terjual
                       </span>
                     </div>
 
                     <strong>
-                      Rp{" "}
-                      {formatPrice(
+                      {formatCurrency(
                         product.revenue
                       )}
                     </strong>
@@ -383,53 +460,81 @@ useEffect(() => {
         </section>
       </div>
 
-      {/* SECOND ANALYTICS ROW */}
+      {/* ======================================
+          SECOND ANALYTICS ROW
+      ====================================== */}
 
       <div className={styles.analyticsGrid}>
         {/* PAYMENT METHODS */}
 
-        <section className={styles.analyticsCard}>
-          <div className={styles.sectionHeader}>
+        <section
+          className={
+            styles.analyticsCard
+          }
+        >
+          <div
+            className={
+              styles.sectionHeader
+            }
+          >
             <div>
               <h2>
                 Metode Pembayaran
               </h2>
 
               <p>
-                Ringkasan transaksi berdasarkan pembayaran
+                Ringkasan transaksi
+                berdasarkan pembayaran
               </p>
             </div>
           </div>
 
-          {paymentMethods.length === 0 ? (
-            <div className={styles.message}>
+          {paymentMethods.length ===
+          0 ? (
+            <div
+              className={
+                styles.message
+              }
+            >
               Belum ada transaksi.
             </div>
           ) : (
-            <div className={styles.paymentList}>
+            <div
+              className={
+                styles.paymentList
+              }
+            >
               {paymentMethods.map(
                 (payment) => (
                   <div
-                    className={styles.paymentItem}
-                    key={payment.method}
+                    className={
+                      styles.paymentItem
+                    }
+                    key={
+                      payment.method
+                    }
                   >
                     <div>
                       <strong>
-                        {payment.method === "cash"
+                        {payment.method ===
+                        "cash"
                           ? "Tunai"
-                          : payment.method === "qris"
+                          : payment.method ===
+                            "qris"
                           ? "QRIS"
                           : payment.method}
                       </strong>
 
                       <span>
-                        {payment.count} transaksi
+                        {
+                          payment.count
+                        }{" "}
+                        transaksi
                       </span>
                     </div>
 
                     <strong>
-                      Rp{" "}
-                      {formatPrice(
+                      {formatCurrency(
                         payment.total
                       )}
                     </strong>
@@ -442,8 +547,16 @@ useEffect(() => {
 
         {/* LOW STOCK */}
 
-        <section className={styles.analyticsCard}>
-          <div className={styles.sectionHeader}>
+        <section
+          className={
+            styles.analyticsCard
+          }
+        >
+          <div
+            className={
+              styles.sectionHeader
+            }
+          >
             <div>
               <h2>
                 Stok Menipis
@@ -455,8 +568,16 @@ useEffect(() => {
             </div>
           </div>
 
-          <div className={styles.lowStock}>
-            <div className={styles.lowStockNumber}>
+          <div
+            className={
+              styles.lowStock
+            }
+          >
+            <div
+              className={
+                styles.lowStockNumber
+              }
+            >
               {summary.lowStock}
             </div>
 
@@ -467,10 +588,20 @@ useEffect(() => {
         </section>
       </div>
 
-      {/* RECENT TRANSACTIONS */}
+      {/* ======================================
+          RECENT TRANSACTIONS
+      ====================================== */}
 
-      <section className={styles.analyticsCard}>
-        <div className={styles.sectionHeader}>
+      <section
+        className={
+          styles.analyticsCard
+        }
+      >
+        <div
+          className={
+            styles.sectionHeader
+          }
+        >
           <div>
             <h2>
               Transaksi Terbaru
@@ -482,56 +613,117 @@ useEffect(() => {
           </div>
         </div>
 
-        {recentTransactions.length === 0 ? (
-          <div className={styles.message}>
+        {recentTransactions.length ===
+        0 ? (
+          <div
+            className={
+              styles.message
+            }
+          >
             Belum ada transaksi.
           </div>
         ) : (
-<div className={styles.transactionList}>
+          <div
+            className={
+              styles.transactionList
+            }
+          >
+            {/* HEADER */}
 
-  {/* HEADER */}
-  <div className={styles.transactionHeader}>
-    <span>ID Transaksi</span>
-    <span>Kasir</span>
-    <span>Pembayaran</span>
-    <span>Total</span>
-    <span>Tanggal</span>
-  </div>
+            <div
+              className={
+                styles.transactionHeader
+              }
+            >
+              <span>
+                ID Transaksi
+              </span>
 
-  {/* DATA */}
-  {recentTransactions.map((transaction) => (
-    <div
-      className={styles.transactionItem}
-      key={transaction.id}
-    >
-      <span className={styles.transactionId}>
-        #{transaction.id}
-      </span>
+              <span>
+                Kasir
+              </span>
 
-      <span className={styles.transactionCashier}>
-        {transaction.cashier || "-"}
-      </span>
+              <span>
+                Pembayaran
+              </span>
 
-      <span className={styles.transactionMethod}>
-        {transaction.paymentMethod || "-"}
-      </span>
+              <span>
+                Total
+              </span>
 
-      <span className={styles.transactionTotal}>
-        Rp{" "}
-        {Number(transaction.total || 0).toLocaleString(
-          "id-ID"
-        )}
-      </span>
+              <span>
+                Tanggal
+              </span>
+            </div>
 
-      <span className={styles.transactionDate}>
-        {new Date(
-          transaction.createdAt
-        ).toLocaleString("id-ID")}
-      </span>
-    </div>
-  ))}
+            {/* DATA */}
 
-</div>
+            {recentTransactions.map(
+              (transaction) => (
+                <div
+                  className={
+                    styles.transactionItem
+                  }
+                  key={
+                    transaction.id
+                  }
+                >
+                  <span
+                    className={
+                      styles.transactionId
+                    }
+                  >
+                    #
+                    {
+                      transaction.id
+                    }
+                  </span>
+
+                  <span
+                    className={
+                      styles.transactionCashier
+                    }
+                  >
+                    {
+                      transaction.cashier ||
+                      "-"
+                    }
+                  </span>
+
+                  <span
+                    className={
+                      styles.transactionMethod
+                    }
+                  >
+                    {
+                      transaction.paymentMethod ||
+                      "-"
+                    }
+                  </span>
+
+                  <span
+                    className={
+                      styles.transactionTotal
+                    }
+                  >
+                    {formatCurrency(
+                      transaction.total
+                    )}
+                  </span>
+
+                  <span
+                    className={
+                      styles.transactionDate
+                    }
+                  >
+                    {formatDateTime(
+                      transaction.createdAt
+                    )}
+                  </span>
+                </div>
+              )
+            )}
+          </div>
         )}
       </section>
     </main>

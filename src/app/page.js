@@ -20,6 +20,7 @@ import ProductGrid from "../frontend/components/pos/ProductGrid";
 import CartSidebar from "../frontend/components/pos/CartSidebar";
 import PaymentModal from "../frontend/components/pos/PaymentModal";
 import ReceiptModal from "../frontend/components/pos/ReceiptModal";
+import Loading from "@/frontend/components/ui/Loading";
 
 export default function Home() {
   const router = useRouter();
@@ -552,11 +553,20 @@ export default function Home() {
 
           <div className="pos-layout">
             <div>
+              {/* ====================================
+                  LOADING PRODUCTS
+              ==================================== */}
+
               {loadingProducts && (
-                <p>
-                  Memuat produk...
-                </p>
+                <Loading
+                  text="Memuat produk..."
+                  size="medium"
+                />
               )}
+
+              {/* ====================================
+                  PRODUCT ERROR
+              ==================================== */}
 
               {productError && (
                 <p
@@ -568,6 +578,10 @@ export default function Home() {
                 </p>
               )}
 
+              {/* ====================================
+                  EMPTY PRODUCTS
+              ==================================== */}
+
               {!loadingProducts &&
                 !productError &&
                 products.length ===
@@ -576,6 +590,10 @@ export default function Home() {
                     Belum ada produk.
                   </p>
                 )}
+
+              {/* ====================================
+                  PRODUCT GRID
+              ==================================== */}
 
               {!loadingProducts &&
                 !productError &&
@@ -642,4 +660,3 @@ export default function Home() {
     </div>
   );
 }
-

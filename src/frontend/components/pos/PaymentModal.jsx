@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import Modal from "../ui/Modal";
 import Button from "../ui/Button";
 import Input from "../ui/Input";
+import formatCurrency from "@/shared/utils/formatCurrency";
 
 import "../../css/PaymentModal.css";
 
@@ -19,6 +20,8 @@ export default function PaymentModal({
   const [method, setMethod] = useState("cash");
   const [cashReceived, setCashReceived] = useState("");
   const [loading, setLoading] = useState(false);
+  const [qrCode, setQrCode] = useState("");
+const [qrLoading, setQrLoading] = useState(false);
 
   // =====================================================
   // RESET FORM KETIKA MODAL DITUTUP
@@ -60,6 +63,38 @@ export default function PaymentModal({
 
     onClose?.();
   }
+
+  const generateQRCode = async () => {
+  try {
+    setQrLoading(true);
+
+    const response = await fetch("/api/v1//transactions/payments/qr", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        transactionId: crypto.randomUUID(),
+        amount: Number(total),
+      }),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      throw new Error(
+        result.message || "Gagal membuat QR pembayaran"
+      );
+    }
+
+    setQrCode(result.data.qrCode);
+
+  } catch (error) {
+    console.error("QR ERROR:", error);
+  } finally {
+    setQrLoading(false);
+  }
+};
 
   // =====================================================
   // CONFIRM PAYMENT
@@ -189,127 +224,149 @@ export default function PaymentModal({
 
       <div className="payment-methods">
 
-        <button
-          type="button"
-          disabled={loading}
-          className={`payment-method ${
-            method === "cash"
-              ? "payment-method--active"
-              : ""
-          }`}
-          onClick={() => {
-            if (loading) return;
+  <button
+    type="button"
+    disabled={loading}
+    className={`payment-method ${
+      method === "cash"
+        ? "payment-method--active"
+        : ""
+    }`}
+    onClick={() => {
+      if (loading) return;
 
-            setMethod("cash");
-          }}
-        >
-          Tunai
-        </button>
+      setMethod("cash");
+      setQrCode("");
+    }}
+  >
+    Tunai
+  </button>
 
-        <button
-          type="button"
-          disabled={loading}
-          className={`payment-method ${
-            method === "qris"
-              ? "payment-method--active"
-              : ""
-          }`}
-          onClick={() => {
-            if (loading) return;
+  <button
+    type="button"
+    disabled={loading}
+    className={`payment-method ${
+      method === "qris"
+        ? "payment-method--active"
+        : ""
+    }`}
+    onClick={() => {
+      if (loading) return;
 
-            setMethod("qris");
-            setCashReceived("");
-          }}
-        >
-          QRIS
-        </button>
+      setMethod("qris");
+      setCashReceived("");
+      setQrCode("");
 
-      </div>
+      generateQRCode();
+    }}
+  >
+    QRIS
+  </button>
+
+</div>
 
       {/* =================================================
           CASH
       ================================================= */}
 
-      {method === "cash" ? (
+{method === "cash" ? (
+  /* =================================================
+     CASH
+  ================================================= */
 
-        <div className="payment-cash">
+  <div className="payment-cash">
 
-          <Input
-            label="Uang Diterima"
-            type="number"
-            placeholder="0"
-            value={cashReceived}
-            disabled={loading}
-            onChange={(e) =>
-              setCashReceived(
-                e.target.value
-              )
-            }
-          />
+    <Input
+      label="Uang Diterima"
+      type="number"
+      placeholder="0"
+      value={cashReceived}
+      disabled={loading}
+      onChange={(e) =>
+        setCashReceived(e.target.value)
+      }
+    />
 
-          <div className="payment-change-row">
+    <div className="payment-change-row">
 
-            <span>
-              Kembalian
-            </span>
+      <span>
+        Kembalian
+      </span>
 
-            <strong>
-              Rp{" "}
-              {(
-                change > 0
-                  ? change
-                  : 0
-              ).toLocaleString(
-                "id-ID"
-              )}
-            </strong>
+      <strong>
+        {formatCurrency(change > 0 ? change : 0)}
+      </strong>
 
-          </div>
+    </div>
 
-          {/* Uang kurang */}
+    {/* Uang kurang */}
 
-          {receivedAmount > 0 &&
-            receivedAmount < total && (
-              <p
-                style={{
-                  color: "#dc2626",
-                  fontSize: "13px",
-                  marginTop: "8px",
-                }}
-              >
-                Uang kurang Rp{" "}
-                {(
-                  total -
-                  receivedAmount
-                ).toLocaleString(
-                  "id-ID"
-                )}
-              </p>
-            )}
-
-        </div>
-
-      ) : (
-
-        /* =================================================
-           QRIS
-        ================================================= */
-
-        <div className="payment-qris">
-
-          <div className="payment-qris-box">
-            QR Code Placeholder
-          </div>
-
-          <p>
-            Scan kode QR di atas
-            untuk menyelesaikan
-            pembayaran.
-          </p>
-
-        </div>
-
+    {receivedAmount > 0 &&
+      receivedAmount < total && (
+        <p
+          style={{
+            color: "#dc2626",
+            fontSize: "13px",
+            marginTop: "8px",
+          }}
+        >
+          Uang kurang{" "}
+          {formatCurrency(total - receivedAmount)}
+        </p>
       )}
+
+  </div>
+
+) : (
+
+  /* =================================================
+     QRIS
+  ================================================= */
+
+  <div className="qris-payment">
+
+    {qrLoading ? (
+      <p>
+        Membuat QR pembayaran...
+      </p>
+    ) : qrCode ? (
+      <>
+        <img
+          src={qrCode}
+          alt="QR Pembayaran"
+          width={300}
+          height={300}
+        />
+
+        <p className="qris-payment__amount">
+          {formatCurrency(total)}
+        </p>
+
+        <p className="qris-payment__description">
+          Scan QR untuk melakukan pembayaran
+        </p>
+
+        <button
+          type="button"
+          onClick={generateQRCode}
+          disabled={qrLoading || loading}
+        >
+          Buat QR Baru
+        </button>
+      </>
+    ) : (
+      <button
+        type="button"
+        onClick={generateQRCode}
+        disabled={qrLoading || loading}
+      >
+        Buat QR Pembayaran
+      </button>
+    )}
+
+  </div>
+
+)}
 
       {/* =================================================
           CONFIRM BUTTON

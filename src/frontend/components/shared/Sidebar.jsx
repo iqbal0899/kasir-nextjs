@@ -13,7 +13,8 @@ import {
   Receipt,
   Users,
   FileText,
-  Activity
+  Activity,
+  FileClock
 } from "lucide-react";
 
 import styles from "../../css/Sidebar.module.css";
@@ -302,6 +303,20 @@ export default function Sidebar({ role }) {
 
       <span className={styles.sidebarLabel}>
         Daftar User
+      </span>
+    </Link>
+
+    <Link
+      href="/dashboard/audit-logs"
+      className={styles.sidebarItem}
+      onClick={closeSidebar}
+    >
+      <span className={styles.sidebarIcon}>
+        <FileClock size={18} />
+      </span>
+
+      <span className={styles.sidebarLabel}>
+        Audit Logs
       </span>
     </Link>
   </>

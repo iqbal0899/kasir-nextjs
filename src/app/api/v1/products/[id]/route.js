@@ -128,7 +128,7 @@ export async function PATCH(request, { params }) {
       );
     }
 
-    if (user.role !== "admin") {
+    if (!["admin", "super_admin"].includes(user.role)) {
       return NextResponse.json(
         {
           success: false,
@@ -438,7 +438,7 @@ export async function DELETE(
       );
     }
 
-    if (user.role !== "admin") {
+    if (!["admin", "super_admin"].includes(user.role)) {
       return NextResponse.json(
         {
           success: false,

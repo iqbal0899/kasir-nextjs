@@ -132,7 +132,7 @@ export async function POST(request) {
     // AUTHORIZATION
     // =================================================
 
-    if (user.role !== "admin") {
+    if (!["admin", "super_admin"].includes(user.role)) {
       return NextResponse.json(
         {
           success: false,

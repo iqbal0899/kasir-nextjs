@@ -104,11 +104,45 @@
   border-bottom: none;
 }
 
-.loading,
-.empty {
-  padding: 24px;
-  font-size: 16px;
-  color: #666;
+/* =====================================================
+   LOADING
+===================================================== */
+
+.loading {
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+/* Spinner saat initial loading */
+.loadingSpinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: monitoringSpin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+/* Spinner pada tombol refresh */
+.refreshSpinner {
+  animation: monitoringSpin 0.8s linear infinite;
+}
+
+/* Animasi spin */
+@keyframes monitoringSpin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* TABLET */
