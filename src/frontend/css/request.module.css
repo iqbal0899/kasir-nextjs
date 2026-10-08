@@ -1,0 +1,433 @@
+.container {
+  min-height: 100vh;
+  background: #f8fafc;
+  padding: 24px;
+}
+
+.wrapper {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.backButton:hover {
+  color: #2563eb;
+}
+
+.title {
+  margin: 0;
+  color: #111827;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.subtitle {
+  margin: 6px 0 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.form {
+  padding: 24px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 180px auto;
+  gap: 16px;
+  align-items: end;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+}
+
+.label {
+  margin-bottom: 8px;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.select,
+.input,
+.textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #111827;
+  font-size: 14px;
+  outline: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.select,
+.input {
+  height: 42px;
+  padding: 0 12px;
+}
+
+.textarea {
+  min-height: 110px;
+  padding: 12px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.select:focus,
+.input:focus,
+.textarea:focus {
+  border-color: #2563eb;
+  box-shadow:
+    0 0 0 3px
+    rgba(37, 99, 235, 0.1);
+}
+
+.select:disabled {
+  background: #f3f4f6;
+  cursor: not-allowed;
+}
+
+.addButton {
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 8px;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    transform 0.1s ease;
+}
+
+.addButton:hover {
+  background: #1d4ed8;
+}
+
+.addButton:active {
+  transform: scale(0.98);
+}
+
+.addButton:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.message {
+  margin-top: 16px;
+  padding: 12px 16px;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 14px;
+}
+
+.tableWrapper {
+  margin-top: 24px;
+  overflow-x: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tableHead {
+  background: #f9fafb;
+}
+
+.tableHeader,
+.tableHeaderCenter {
+  padding: 13px 16px;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.tableHeader {
+  text-align: left;
+}
+
+.tableHeaderCenter {
+  text-align: center;
+}
+
+.tableRow {
+  border-top: 1px solid #e5e7eb;
+}
+
+.tableRow:hover {
+  background: #f9fafb;
+}
+
+.tableCell,
+.tableCellCenter {
+  padding: 14px 16px;
+  color: #374151;
+  font-size: 14px;
+}
+
+.tableCellCenter {
+  text-align: center;
+}
+
+.productInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.productName {
+  color: #111827;
+  font-weight: 600;
+}
+
+.quantityInput {
+  width: 90px;
+  height: 38px;
+  padding: 0 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  color: #111827;
+  font-size: 14px;
+  text-align: center;
+  outline: none;
+}
+
+.quantityInput:focus {
+  border-color: #2563eb;
+  box-shadow:
+    0 0 0 3px
+    rgba(37, 99, 235, 0.1);
+}
+
+.deleteButton {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #ef4444;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.deleteButton:hover {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.empty {
+  padding: 48px 16px;
+  color: #6b7280;
+  font-size: 14px;
+  text-align: center;
+}
+
+.noteSection {
+  margin-top: 24px;
+}
+
+.summary {
+  display: flex;
+  justify-content: flex-end;
+  gap: 32px;
+  margin-top: 24px;
+  padding: 16px 0;
+  border-top: 1px solid #e5e7eb;
+}
+
+.summaryItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.summaryItem strong {
+  color: #111827;
+  font-size: 16px;
+}
+
+.submitSection {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.cancelButton,
+.submitButton {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.1s ease;
+}
+
+.cancelButton {
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  color: #374151;
+}
+
+.cancelButton:hover {
+  background: #f9fafb;
+}
+
+.submitButton {
+  border: none;
+  background: #16a34a;
+  color: #ffffff;
+}
+
+.submitButton:hover {
+  background: #15803d;
+}
+
+.cancelButton:active,
+.submitButton:active {
+  transform: scale(0.98);
+}
+
+.cancelButton:disabled,
+.submitButton:disabled {
+  background: #9ca3af;
+  border-color: #9ca3af;
+  color: #ffffff;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 16px;
+  }
+
+  .form {
+    padding: 18px;
+  }
+
+  .formRow {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .addButton {
+    width: 100%;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  .summary {
+    justify-content: space-between;
+  }
+
+  .submitSection {
+    justify-content: stretch;
+  }
+
+  .cancelButton,
+  .submitButton {
+    flex: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 12px;
+  }
+
+  .form {
+    padding: 14px;
+  }
+
+  .title {
+    font-size: 22px;
+  }
+
+  .tableHeader,
+  .tableHeaderCenter,
+  .tableCell,
+  .tableCellCenter {
+    padding: 10px;
+  }
+
+  .quantityInput {
+    width: 70px;
+  }
+
+  .summary {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .submitSection {
+    flex-direction: column-reverse;
+  }
+
+  .cancelButton,
+  .submitButton {
+    width: 100%;
+  }
+}

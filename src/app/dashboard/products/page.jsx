@@ -221,30 +221,43 @@ export default function ProductPage() {
           HEADER
       ================================================= */}
 
-      <div className={styles.header}>
-        <div>
-          <h1 className={styles.title}>
-            Products
-          </h1>
+<div className={styles.header}>
+  <div>
+    <h1 className={styles.title}>
+      Products
+    </h1>
 
-          <p className={styles.subtitle}>
-            Kelola semua produk yang tersedia
-          </p>
-        </div>
+    <p className={styles.subtitle}>
+      Kelola semua produk yang tersedia
+    </p>
+  </div>
 
-        <button
-          type="button"
-          className={styles.addButton}
-          onClick={() =>
-            router.push(
-              "/dashboard/products/tambah"
-            )
-          }
-          disabled={loading}
-        >
-          + Tambah Produk
-        </button>
-      </div>
+  <div className={styles.headerActions}>
+    <button
+      type="button"
+      className={styles.requestButton}
+      onClick={() =>
+        router.push("/dashboard/request")
+      }
+      disabled={loading}
+    >
+      Request Stok
+    </button>
+
+    <button
+      type="button"
+      className={styles.addButton}
+      onClick={() =>
+        router.push(
+          "/dashboard/products/tambah"
+        )
+      }
+      disabled={loading}
+    >
+      + Tambah Produk
+    </button>
+  </div>
+</div>
 
       {/* =================================================
           LOADING
@@ -403,39 +416,41 @@ export default function ProductPage() {
 
                     {/* ACTION */}
 
-                    <div
-                      className={
-                        styles.cardActions
-                      }
-                    >
-                      <button
-                        type="button"
-                        className={
-                          styles.editButton
-                        }
-                        onClick={() =>
-                          router.push(
-                            `/dashboard/products/edit/${product.id}`
-                          )
-                        }
-                      >
-                        Edit
-                      </button>
+<div className={styles.cardActions}>
+  <button
+    type="button"
+    className={styles.requestButton}
+    onClick={() =>
+      router.push(
+        `/dashboard/request?productId=${product.id}`
+      )
+    }
+  >
+    Request
+  </button>
 
-                      <button
-                        type="button"
-                        className={
-                          styles.deleteButton
-                        }
-                        onClick={() =>
-                          handleDelete(
-                            product.id
-                          )
-                        }
-                      >
-                        Hapus
-                      </button>
-                    </div>
+  <button
+    type="button"
+    className={styles.editButton}
+    onClick={() =>
+      router.push(
+        `/dashboard/products/edit/${product.id}`
+      )
+    }
+  >
+    Edit
+  </button>
+
+  <button
+    type="button"
+    className={styles.deleteButton}
+    onClick={() =>
+      handleDelete(product.id)
+    }
+  >
+    Hapus
+  </button>
+</div>
                   </div>
                 </div>
               )
