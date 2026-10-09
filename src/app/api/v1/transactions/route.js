@@ -27,7 +27,7 @@ export async function GET(request) {
 
     const cookieStore = await cookies();
 
-    const token = cookieStore.get("token")?.value;
+    const token = cookieStore.get("pos_token")?.value;
 
     if (!token) {
       return NextResponse.json(
@@ -108,7 +108,7 @@ export async function POST(request) {
 
     const token =
       request.cookies.get(
-        "token"
+        "pos_token"
       )?.value;
 
     if (!token) {

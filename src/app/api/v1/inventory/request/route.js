@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   return NextResponse.json({
@@ -11,7 +10,6 @@ export async function GET() {
 export async function POST(request) {
   try {
     const body = await request.json();
-
     const { items, note } = body;
 
     if (!Array.isArray(items) || items.length === 0) {
@@ -24,101 +22,131 @@ export async function POST(request) {
       );
     }
 
+    const normalizedItems = [];
+    const productIds = new Set();
+
     for (const item of items) {
-      if (!Number.isInteger(item.productId)) {
+      const productId = Number(item.productId);
+      const quantity = Number(item.quantity);
+
+      if (!Number.isSafeInteger(productId) || productId <= 0) {
         return NextResponse.json(
           {
             success: false,
-            message: "productId tidak valid",
+            message: "productId Inventory tidak valid",
           },
           { status: 400 }
         );
       }
 
-      if (
-        !Number.isInteger(item.quantity) ||
-        item.quantity <= 0
-      ) {
+      if (!Number.isSafeInteger(quantity) || quantity <= 0) {
         return NextResponse.json(
           {
             success: false,
-            message: "Quantity harus lebih dari 0",
+            message: "Quantity harus berupa bilangan bulat lebih dari 0",
           },
           { status: 400 }
         );
       }
+
+      if (productIds.has(productId)) {
+        return NextResponse.json(
+          {
+            success: false,
+            message:
+              "Produk yang sama tidak boleh ditambahkan lebih dari satu kali",
+          },
+          { status: 400 }
+        );
+      }
+
+      productIds.add(productId);
+      normalizedItems.push({ productId, quantity });
     }
 
-    const productIds = [
-      ...new Set(items.map((item) => item.productId)),
-    ];
+    const inventoryApiUrl = process.env.INVENTORY_API_URL;
+    const serviceSecret = process.env.POS_INVENTORY_API_SECRET;
 
-    const products = await prisma.product.findMany({
-      where: {
-        id: {
-          in: productIds,
+    if (!inventoryApiUrl) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "INVENTORY_API_URL belum dikonfigurasi",
         },
-        isActive: true,
-      },
-    });
+        { status: 500 }
+      );
+    }
 
-    if (products.length !== productIds.length) {
+    if (!serviceSecret) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "POS_INVENTORY_API_SECRET belum dikonfigurasi",
+        },
+        { status: 500 }
+      );
+    }
+
+    const baseUrl = inventoryApiUrl.replace(/\/+$/, "");
+
+    const inventoryResponse = await fetch(
+      `${baseUrl}/api/v1/requests`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-pos-inventory-secret": serviceSecret,
+        },
+        body: JSON.stringify({
+          items: normalizedItems,
+          note: typeof note === "string" ? note.trim() : "",
+        }),
+        cache: "no-store",
+        signal: AbortSignal.timeout(10000),
+      }
+    );
+
+    const result = await inventoryResponse.json().catch(() => null);
+
+    if (!inventoryResponse.ok || !result?.success) {
       return NextResponse.json(
         {
           success: false,
           message:
-            "Beberapa produk tidak ditemukan atau tidak aktif",
+            result?.message ||
+            `Inventory API gagal memproses request (HTTP ${inventoryResponse.status})`,
         },
-        { status: 400 }
+        {
+          status:
+            inventoryResponse.status >= 400 &&
+            inventoryResponse.status <= 599
+              ? inventoryResponse.status
+              : 502,
+        }
       );
     }
-
-    const requestId = `REQ-${Date.now()}`;
-
-    const result = await prisma.inventoryRequest.create({
-      data: {
-        requestId,
-        status: "PENDING",
-        note: note?.trim() || null,
-        items: {
-          create: items.map((item) => ({
-            productId: item.productId,
-            quantity: item.quantity,
-          })),
-        },
-      },
-      include: {
-        items: {
-          include: {
-            product: true,
-          },
-        },
-      },
-    });
 
     return NextResponse.json(
       {
         success: true,
-        message: "Permintaan stok berhasil dibuat",
-        data: result,
+        message: "Permintaan stok berhasil dikirim ke Inventory",
+        data: result.data,
       },
       { status: 201 }
     );
   } catch (error) {
-    console.error(
-      "CREATE INVENTORY REQUEST ERROR:",
-      error
-    );
+    console.error("CREATE INVENTORY REQUEST ERROR:", error);
 
     return NextResponse.json(
       {
         success: false,
         message:
-          error instanceof Error
-            ? error.message
-            : "Gagal membuat permintaan stok",
+          error.name === "TimeoutError"
+            ? "Inventory tidak merespons dalam waktu yang ditentukan"
+            : "Gagal menghubungi server Inventory",
       },
-      { status: 500 }
+      { status: 502 }
     );
   }
 }
+

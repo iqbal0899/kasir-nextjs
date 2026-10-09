@@ -1,6 +1,11 @@
 "use client";
 
 import {
+  getMe,
+  logoutUser,
+} from "@/frontend/services/authApi";
+
+import {
   useCallback,
   useEffect,
   useState,
@@ -128,39 +133,51 @@ export default function Home() {
   // AMBIL USER LOGIN
   // ========================================
 
-  useEffect(() => {
-    const storedUser =
-      localStorage.getItem("user");
 
-    if (storedUser) {
-      try {
-        const parsedUser =
-          JSON.parse(
-            storedUser
-          );
+useEffect(() => {
+  let active = true;
 
-        console.log(
-          "USER LOGIN:",
-          parsedUser
+  async function checkSession() {
+    try {
+      const result = await getMe();
+      const currentUser = result?.user ?? result?.data?.user;
+
+      if (!currentUser) {
+        throw Object.assign(
+          new Error("Sesi login tidak valid."),
+          { status: 401 }
         );
+      }
 
-        setUser(parsedUser);
-      } catch (error) {
-        console.error(
-          "USER DATA ERROR:",
-          error
-        );
+      if (active) {
+        setUser(currentUser);
+      }
+    } catch (error) {
+      if (!active) return;
 
-        localStorage.removeItem(
-          "user"
-        );
+      console.error("CHECK SESSION ERROR:", error);
 
+      const status =
+        error.status ?? error.response?.status;
+
+      if (status === 401) {
+        setUser(null);
+        localStorage.removeItem("user");
+        router.replace("/auth/login");
+      } else {
         toast.error(
-          "Data pengguna tidak valid. Silakan login kembali."
+          "Gagal memeriksa sesi. Periksa koneksi server."
         );
       }
     }
-  }, []);
+  }
+
+  checkSession();
+
+  return () => {
+    active = false;
+  };
+}, [router]);
 
   // ========================================
   // TOTAL
@@ -498,23 +515,25 @@ export default function Home() {
   // LOGOUT
   // ========================================
 
-  function handleLogout() {
-    localStorage.removeItem(
-      "token"
-    );
+  async function handleLogout() {
+  try {
+    await logoutUser();
 
-    localStorage.removeItem(
-      "user"
-    );
+    setUser(null);
+    setCart([]);
 
-    toast.info(
-      "Anda telah logout."
-    );
+    toast.info("Anda telah logout.");
+    router.replace("/auth/login");
+  } catch (error) {
+    console.error("LOGOUT ERROR:", error);
 
-    router.push(
-      "/auth/login"
+    toast.error(
+      error instanceof Error
+        ? error.message
+        : "Gagal logout"
     );
   }
+}
 
   // ========================================
   // RENDER

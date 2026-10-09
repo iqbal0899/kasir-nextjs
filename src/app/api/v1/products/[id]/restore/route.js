@@ -17,7 +17,7 @@ export async function PATCH(request, { params }) {
     const cookieStore = await cookies();
 
     const token =
-      cookieStore.get("token")?.value;
+      cookieStore.get("pos_token")?.value;
 
     if (!token) {
       return NextResponse.json(

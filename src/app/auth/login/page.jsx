@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { loginUser } from "@/frontend/services/authApi";
 import styles from "@/frontend/css/Login.module.css";
 
+
 export default function LoginPage() {
   const router = useRouter();
 
@@ -25,45 +26,33 @@ export default function LoginPage() {
     }));
   };
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
 
-    setError("");
+const handleLogin = async (e) => {
+  e.preventDefault();
+  setError("");
 
-    if (!form.username || !form.password) {
-      setError(
-        "Username dan password wajib diisi"
-      );
+  if (!form.username.trim() || !form.password) {
+    setError("Username dan password wajib diisi.");
+    return;
+  }
 
-      return;
-    }
+  setLoading(true);
 
-    setLoading(true);
+  try {
+    await loginUser(form.username.trim(), form.password);
 
-    try {
+    router.replace("/");
+    router.refresh();
+  } catch (error) {
+    console.error("LOGIN ERROR:", error);
 
-      const result = await loginUser(
-        form.username,
-        form.password
-      );
-
-      router.push("/");
-
-    } catch (error) {
-      console.error(
-        "Login gagal:",
-        error
-      );
-
-      setError(
-        error.message ||
-          "Username atau password salah"
-      );
-
-    } finally {
-      setLoading(false);
-    }
-  };
+    setError(
+      error.message || "Username atau password salah."
+    );
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <main className={styles.container}>
