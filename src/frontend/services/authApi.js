@@ -38,9 +38,9 @@ export async function getMe() {
   }
 
   if (!result.success || !result.user) {
-    const error = new Error("Sesi login tidak valid.");
-    error.status = 401;
-    throw error;
+    throw new Error(
+      result.message || "Data pengguna tidak ditemukan"
+    );
   }
 
   return result.user;

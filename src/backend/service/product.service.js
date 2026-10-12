@@ -1,133 +1,136 @@
+import { prisma } from "@/lib/prisma";
+
 const INVENTORY_API_URL =
   process.env.INVENTORY_API_URL;
+
+  const transfers = await prisma.inventoryTransfer.findMany({
+  select: {
+    requestId: true,
+    status: true,
+    items: {
+      select: {
+        productId: true,
+        quantity: true,
+      },
+    },
+  },
+});
+
+console.dir(transfers, { depth: null });
 
 export async function getProducts({
   page = 1,
   limit = 10,
+  startDateProduct,
+  endDateProduct,
 } = {}) {
-  if (!INVENTORY_API_URL) {
-    throw new Error(
-      "INVENTORY_API_URL belum dikonfigurasi"
-    );
-  }
-
-  const response = await fetch(
-    `${INVENTORY_API_URL}/api/v1/products`,
-    {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      cache: "no-store",
-    }
-  );
-
-  if (!response.ok) {
-    const errorText = await response.text();
-
-    throw new Error(
-      `Gagal mengambil produk dari inventory-system: ${response.status} ${errorText}`
-    );
-  }
-
-  const result = await response.json();
-
-  if (!result.success) {
-    throw new Error(
-      result.message ||
-        "Gagal mengambil produk dari inventory-system"
-    );
-  }
-
-  const products = Array.isArray(result.data)
-    ? result.data
-    : [];
-
-  const currentPage = Math.max(
-    Number(page) || 1,
-    1
-  );
-
+  const currentPage = Math.max(Number(page) || 1, 1);
   const currentLimit = Math.min(
     Math.max(Number(limit) || 10, 1),
     100
   );
 
-  const total = products.length;
+  const where = {
+    isActive: true,
+    inventoryTransfers: {
+      some: {
+        transfer: {
+          status: "COMPLETED",
+        },
+      },
+    },
+  };
 
-  const start =
-    (currentPage - 1) * currentLimit;
+  if (startDateProduct || endDateProduct) {
+    where.createdAt = {};
 
-  const end =
-    start + currentLimit;
+    if (startDateProduct) {
+      const startDate = new Date(startDateProduct);
 
-  const paginatedProducts =
-    products.slice(start, end);
+      if (Number.isNaN(startDate.getTime())) {
+        throw new Error("Tanggal awal tidak valid");
+      }
 
-  const data = paginatedProducts.map(
-    (product) => ({
-      id: product.id,
+      where.createdAt.gte = startDate;
+    }
 
-      inventoryCode:
-        product.code ||
-        product.inventoryCode ||
-        null,
+    if (endDateProduct) {
+      const endDate = new Date(endDateProduct);
 
-      name: product.name,
+      if (Number.isNaN(endDate.getTime())) {
+        throw new Error("Tanggal akhir tidak valid");
+      }
 
-      price: Number(
-        product.price || 0
-      ),
+      endDate.setHours(23, 59, 59, 999);
+      where.createdAt.lte = endDate;
+    }
+  }
 
-      stock: Number(
-        product.stock || 0
-      ),
+  const [products, total] = await prisma.$transaction([
+    prisma.product.findMany({
+      where,
+      skip: (currentPage - 1) * currentLimit,
+      take: currentLimit,
+      orderBy: {
+        createdAt: "desc",
+      },
+      include: {
+        inventoryMappings: {
+          select: {
+            inventoryCode: true,
+          },
+        },
+      },
+    }),
+    prisma.product.count({ where }),
+  ]);
 
-      category:
-        product.category?.name ||
-        product.category ||
-        null,
+  const [totalProducts, completedTransfers] = await Promise.all([
+  prisma.product.count(),
+  prisma.inventoryTransfer.findMany({
+    select: {
+      requestId: true,
+      status: true,
+      items: {
+        select: {
+          productId: true,
+          quantity: true,
+        },
+      },
+    },
+  }),
+]);
 
-      image:
-        product.image || null,
+console.log("TOTAL PRODUK POS:", totalProducts);
+console.dir(completedTransfers, { depth: null });
 
-      isActive:
-        product.isActive ??
-        product.status === "ACTIVE",
-
-      status:
-        product.status || null,
-
-      unit:
-        product.unit || "pcs",
-
-      createdAt:
-        product.createdAt || null,
-
-      updatedAt:
-        product.updatedAt || null,
-
-      soldStock: 0,
-    })
-  );
+  const data = products.map((product) => ({
+    id: product.id,
+    inventoryCode:
+      product.inventoryMappings[0]?.inventoryCode || null,
+    name: product.name,
+    price: Number(product.price),
+    stock: product.stock,
+    category: product.category || null,
+    image: product.image || null,
+    isActive: product.isActive,
+    status: "ACTIVE",
+    createdAt: product.createdAt,
+    updatedAt: product.updatedAt,
+    soldStock: 0,
+  }));
 
   return {
     data,
-
     pagination: {
       page: currentPage,
-
       limit: currentLimit,
-
       total,
-
-      totalPages:
-        Math.ceil(
-          total / currentLimit
-        ),
+      totalPages: Math.ceil(total / currentLimit),
     },
   };
 }
+
 
 export async function getProductById(id) {
   if (!INVENTORY_API_URL) {

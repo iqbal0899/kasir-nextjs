@@ -2,199 +2,312 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(request) {
-try {
-const secret = process.env.INVENTORY_TRANSFER_SECRET;
-const receivedSecret = request.headers.get("x-inventory-transfer-secret");
+  let requestId;
 
-if (!secret || receivedSecret !== secret) {
-  return NextResponse.json(
-    {
-      success: false,
-      message: "Akses tidak diizinkan",
-    },
-    { status: 401 }
-  );
-}
-
-const body = await request.json();
-const requestId = body.requestId?.trim();
-const items = body.items;
-
-if (!requestId) {
-  return NextResponse.json(
-    { success: false, message: "requestId wajib diisi" },
-    { status: 400 }
-  );
-}
-
-if (!Array.isArray(items) || items.length === 0) {
-  return NextResponse.json(
-    { success: false, message: "Items wajib diisi" },
-    { status: 400 }
-  );
-}
-
-const normalizedItems = new Map();
-
-for (const item of items) {
-  const productCode = item.productCode?.trim();
-  const quantity = item.quantity;
-
-  if (!productCode) {
-    return NextResponse.json(
-      { success: false, message: "productCode wajib diisi" },
-      { status: 400 }
+  try {
+    const secret = process.env.INVENTORY_TRANSFER_SECRET;
+    const receivedSecret = request.headers.get(
+      "x-inventory-transfer-secret"
     );
-  }
 
-  if (!Number.isSafeInteger(quantity) || quantity <= 0) {
-    return NextResponse.json(
-      {
-        success: false,
-        message: "quantity harus berupa bilangan bulat lebih dari 0",
-      },
-      { status: 400 }
-    );
-  }
-
-  if (normalizedItems.has(productCode)) {
-    return NextResponse.json(
-      {
-        success: false,
-        message: `Produk ${productCode} tercatat lebih dari satu kali`,
-      },
-      { status: 400 }
-    );
-  }
-
-  normalizedItems.set(productCode, quantity);
-}
-
-const transferItems = Array.from(
-  normalizedItems,
-  ([productCode, quantity]) => ({ productCode, quantity })
-);
-
-const existingTransfer = await prisma.inventoryTransfer.findUnique({
-  where: { requestId },
-  include: { items: { include: { product: true } } },
-});
-
-if (existingTransfer) {
-  return NextResponse.json({
-    success: true,
-    message: "Transfer sudah pernah diproses",
-    data: existingTransfer,
-  });
-}
-
-const result = await prisma.$transaction(async (tx) => {
-  const transfer = await tx.inventoryTransfer.create({
-    data: {
-      requestId,
-      status: "PROCESSING",
-    },
-  });
-
-  const processedItems = [];
-
-  for (const item of transferItems) {
-    const mapping = await tx.inventoryProductMapping.findUnique({
-      where: { inventoryCode: item.productCode },
-      include: { product: true },
-    });
-
-    if (!mapping?.product) {
-      throw new Error(
-        `Produk Inventory ${item.productCode} belum memiliki mapping produk POS`
+    if (!secret || receivedSecret !== secret) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Akses tidak diizinkan",
+        },
+        { status: 401 }
       );
     }
 
-    const product = mapping.product;
+    const body = await request.json();
 
-    if (!product.isActive) {
-      throw new Error(`Produk POS ${product.name} tidak aktif`);
+    requestId =
+      typeof body.requestId === "string"
+        ? body.requestId.trim()
+        : "";
+
+    if (!requestId) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "requestId wajib diisi",
+        },
+        { status: 400 }
+      );
     }
 
-    const stockBefore = product.stock;
-    const stockAfter = stockBefore + item.quantity;
-
-    if (!Number.isSafeInteger(stockAfter)) {
-      throw new Error(`Jumlah stok produk ${product.name} tidak valid`);
+    if (!Array.isArray(body.items) || body.items.length === 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Items wajib diisi",
+        },
+        { status: 400 }
+      );
     }
 
-    const updatedProduct = await tx.product.update({
-      where: { id: product.id },
-      data: { stock: { increment: item.quantity } },
-    });
+    const normalizedItems = new Map();
 
-    await tx.stockHistory.create({
-      data: {
-        productId: product.id,
-        type: "RESTOCK",
-        quantity: item.quantity,
-        stockBefore,
-        stockAfter: updatedProduct.stock,
+    for (const item of body.items) {
+      const productCode =
+        typeof item.productCode === "string"
+          ? item.productCode.trim()
+          : "";
+
+      const name =
+        typeof item.name === "string"
+          ? item.name.trim()
+          : "";
+
+      const price = Number(item.price);
+      const quantity = item.quantity;
+
+      if (!productCode || !name) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Kode dan nama produk wajib diisi",
+          },
+          { status: 400 }
+        );
+      }
+
+      if (!Number.isFinite(price) || price < 0) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: `Harga produk ${productCode} tidak valid`,
+          },
+          { status: 400 }
+        );
+      }
+
+      if (!Number.isSafeInteger(quantity) || quantity <= 0) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: `Jumlah produk ${productCode} tidak valid`,
+          },
+          { status: 400 }
+        );
+      }
+
+      if (normalizedItems.has(productCode)) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: `Produk ${productCode} tercatat lebih dari satu kali`,
+          },
+          { status: 400 }
+        );
+      }
+
+      normalizedItems.set(productCode, {
+        productCode,
+        name,
+        price,
+        category:
+          typeof item.category === "string"
+            ? item.category.trim() || null
+            : null,
+        image:
+          typeof item.image === "string"
+            ? item.image.trim() || null
+            : null,
+        quantity,
+      });
+    }
+
+    const transferItems = Array.from(normalizedItems.values());
+
+    const existingTransfer = await prisma.inventoryTransfer.findUnique({
+      where: { requestId },
+      include: {
+        items: {
+          include: {
+            product: true,
+          },
+        },
       },
     });
 
-    processedItems.push({
-      transferId: transfer.id,
-      productId: product.id,
-      quantity: item.quantity,
+    if (existingTransfer) {
+      if (existingTransfer.status === "COMPLETED") {
+        return NextResponse.json({
+          success: true,
+          message: "Transfer sudah pernah diproses",
+          data: existingTransfer,
+        });
+      }
+
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Transfer sudah tercatat tetapi belum selesai",
+        },
+        { status: 409 }
+      );
+    }
+
+    const result = await prisma.$transaction(async (tx) => {
+      const transfer = await tx.inventoryTransfer.create({
+        data: {
+          requestId,
+          status: "PROCESSING",
+        },
+      });
+
+      const processedItems = [];
+
+      for (const item of transferItems) {
+        let mapping = await tx.inventoryProductMapping.findUnique({
+          where: {
+            inventoryCode: item.productCode,
+          },
+          include: {
+            product: true,
+          },
+        });
+
+        let product;
+
+        if (!mapping) {
+          product = await tx.product.create({
+            data: {
+              name: item.name,
+              price: item.price,
+              stock: 0,
+              category: item.category,
+              image: item.image,
+              isActive: true,
+            },
+          });
+
+          mapping = await tx.inventoryProductMapping.create({
+            data: {
+              inventoryCode: item.productCode,
+              productId: product.id,
+            },
+            include: {
+              product: true,
+            },
+          });
+
+          product = mapping.product;
+        } else {
+          product = mapping.product;
+
+          if (!product) {
+            throw new Error(
+              `Mapping produk ${item.productCode} tidak valid`
+            );
+          }
+
+          if (!product.isActive) {
+            throw new Error(
+              `Produk POS ${product.name} tidak aktif`
+            );
+          }
+        }
+
+        const stockBefore = product.stock;
+        const stockAfter = stockBefore + item.quantity;
+
+        if (!Number.isSafeInteger(stockAfter)) {
+          throw new Error(
+            `Jumlah stok produk ${product.name} tidak valid`
+          );
+        }
+
+        const updatedProduct = await tx.product.update({
+          where: {
+            id: product.id,
+          },
+          data: {
+            stock: {
+              increment: item.quantity,
+            },
+          },
+        });
+
+        await tx.stockHistory.create({
+          data: {
+            productId: product.id,
+            type: "RESTOCK",
+            quantity: item.quantity,
+            stockBefore,
+            stockAfter: updatedProduct.stock,
+          },
+        });
+
+        processedItems.push({
+          transferId: transfer.id,
+          productId: product.id,
+          quantity: item.quantity,
+        });
+      }
+
+      await tx.inventoryTransferItem.createMany({
+        data: processedItems,
+      });
+
+      return tx.inventoryTransfer.update({
+        where: {
+          id: transfer.id,
+        },
+        data: {
+          status: "COMPLETED",
+        },
+        include: {
+          items: {
+            include: {
+              product: true,
+            },
+          },
+        },
+      });
     });
-  }
 
-  await tx.inventoryTransferItem.createMany({
-    data: processedItems,
-  });
-
-  return tx.inventoryTransfer.update({
-    where: { id: transfer.id },
-    data: { status: "COMPLETED" },
-    include: {
-      items: {
-        include: { product: true },
+    return NextResponse.json(
+      {
+        success: true,
+        message: "Transfer berhasil diproses dan stok POS diperbarui",
+        data: result,
       },
-    },
-  });
-});
+      { status: 201 }
+    );
+  } catch (error) {
+    if (error.code === "P2002" && requestId) {
+      const existingTransfer = await prisma.inventoryTransfer.findUnique({
+        where: { requestId },
+        include: {
+          items: {
+            include: {
+              product: true,
+            },
+          },
+        },
+      });
 
-return NextResponse.json(
-  {
-    success: true,
-    message: "Stok berhasil diterima dari Inventory",
-    data: result,
-  },
-  { status: 201 }
-);
+      if (existingTransfer?.status === "COMPLETED") {
+        return NextResponse.json({
+          success: true,
+          message: "Transfer sudah pernah diproses",
+          data: existingTransfer,
+        });
+      }
+    }
 
-} catch (error) {
-if (error.code === "P2002") {
-const requestId = error.meta?.target?.includes?.("requestId")
-? null
-: undefined;
+    console.error("Inventory stock receive error:", error);
 
-  if (requestId !== undefined) {
     return NextResponse.json(
       {
         success: false,
-        message: "Transfer dengan requestId tersebut sudah diproses",
+        message:
+          error.message || "Gagal menerima stok dari Inventory",
       },
-      { status: 409 }
+      { status: 500 }
     );
   }
-}
-
-console.error("Inventory stock receive error:", error);
-
-return NextResponse.json(
-  {
-    success: false,
-    message: error.message || "Gagal menerima stok dari Inventory",
-  },
-  { status: 500 }
-);
-
-}
 }

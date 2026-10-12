@@ -39,42 +39,65 @@ export default function InventoryRequestPage() {
     }
   }, [productId, products]);
 
-  async function fetchProducts() {
-    try {
-      setLoadingProducts(true);
-      setMessage("");
+  
+async function fetchProducts() {
+  try {
+    setLoadingProducts(true);
+    setMessage("");
 
-      const response = await fetch(
-        "/api/v1/products"
-      );
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          result.message ||
-            "Gagal mengambil data produk"
-        );
+    const response = await fetch(
+      "/api/v1/inventory/products",
+      {
+        method: "GET",
+        cache: "no-store",
       }
+    );
 
-      setProducts(result.data || []);
-    } catch (error) {
-      console.error(
-        "FETCH PRODUCTS ERROR:",
-        error
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      throw new Error(
+        result.message ||
+          "Gagal mengambil data produk Inventory"
       );
-
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Gagal mengambil data produk";
-
-      setMessage(errorMessage);
-      toast.error(errorMessage);
-    } finally {
-      setLoadingProducts(false);
     }
+
+    const inventoryProducts = Array.isArray(result.data)
+      ? result.data
+      : [];
+
+    setProducts(
+      inventoryProducts
+        .filter((product) => product.status === "ACTIVE")
+        .map((product) => ({
+          id: Number(product.id),
+          code: product.code,
+          name: product.name,
+          stock: Number(product.stock ?? 0),
+          price: Number(product.price ?? 0),
+          category: product.category ?? null,
+          image: product.image ?? null,
+        }))
+    );
+  } catch (error) {
+    console.error(
+      "FETCH INVENTORY PRODUCTS ERROR:",
+      error
+    );
+
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : "Gagal mengambil data produk Inventory";
+
+    setProducts([]);
+    setMessage(errorMessage);
+    toast.error(errorMessage);
+  } finally {
+    setLoadingProducts(false);
   }
+}
+
 
   function handleAddItem() {
     setMessage("");
@@ -338,16 +361,11 @@ export default function InventoryRequestPage() {
                     : "Pilih produk"}
                 </option>
 
-                {products.map(
-                  (product) => (
-                    <option
-                      key={product.id}
-                      value={product.id}
-                    >
-                      {product.name}
-                    </option>
-                  )
-                )}
+{products.map((product) => (
+  <option key={product.id} value={product.id}>
+    {product.code} - {product.name} (Stok: {product.stock})
+  </option>
+))}
               </select>
             </div>
 

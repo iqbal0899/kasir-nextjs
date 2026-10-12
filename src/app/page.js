@@ -139,15 +139,7 @@ useEffect(() => {
 
   async function checkSession() {
     try {
-      const result = await getMe();
-      const currentUser = result?.user ?? result?.data?.user;
-
-      if (!currentUser) {
-        throw Object.assign(
-          new Error("Sesi login tidak valid."),
-          { status: 401 }
-        );
-      }
+      const currentUser = await getMe();
 
       if (active) {
         setUser(currentUser);
@@ -157,17 +149,12 @@ useEffect(() => {
 
       console.error("CHECK SESSION ERROR:", error);
 
-      const status =
-        error.status ?? error.response?.status;
-
-      if (status === 401) {
+      if (error.status === 401) {
         setUser(null);
         localStorage.removeItem("user");
         router.replace("/auth/login");
       } else {
-        toast.error(
-          "Gagal memeriksa sesi. Periksa koneksi server."
-        );
+        toast.error("Gagal memeriksa sesi login.");
       }
     }
   }

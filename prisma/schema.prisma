@@ -8,13 +8,17 @@ datasource db {
 }
 
 model User {
-  id           Int           @id @default(autoincrement())
-  username     String        @unique
-  password     String
-  createdAt    DateTime      @default(now())
-  role         Role          @default(cashier)
-  transactions Transaction[]
-  auditLogs    AuditLog[]
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  email     String   @unique
+  password  String
+  role      Role     @default(cashier)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  transactions  Transaction[]
+  auditLogs     AuditLog[]
+  notifications Notification[]
 }
 
 enum StockMovementType {
@@ -25,19 +29,19 @@ enum StockMovementType {
 }
 
 model Product {
-  id       Int     @id @default(autoincrement())
-  name     String
-  price    Decimal @db.Decimal(12, 2)
-  stock    Int     @default(0)
-  category String?
-  image    String? @db.VarChar(255)
-  isActive Boolean @default(true)
+  id        Int      @id @default(autoincrement())
+  name      String
+  price     Decimal  @db.Decimal(12, 2)
+  stock     Int      @default(0)
+  category  String?
+  image     String?  @db.VarChar(255)
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  transactionItems TransactionItem[]
-  stockHistories StockHistory[]
-  inventoryMappings InventoryProductMapping[]
+  transactionItems   TransactionItem[]
+  stockHistories     StockHistory[]
+  inventoryMappings  InventoryProductMapping[]
   inventoryTransfers InventoryTransferItem[]
 
   inventoryRequestItems InventoryRequestItem[]
@@ -157,12 +161,12 @@ model InventoryProductMapping {
 }
 
 model InventoryRequest {
-  id          Int      @id @default(autoincrement())
-  requestId   String   @unique
-  status      String   @default("PENDING")
-  note        String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        Int      @id @default(autoincrement())
+  requestId String   @unique
+  status    String   @default("PENDING")
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   items InventoryRequestItem[]
 
@@ -177,8 +181,24 @@ model InventoryRequestItem {
   quantity  Int
 
   request InventoryRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  product Product          @relation(fields: [productId], references: [id], onDelete: Restrict)
 
   @@index([requestId])
   @@index([productId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  title     String
+  message   String
+  href      String?
+  isRead    Boolean  @default(false)
+  sessionId String
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, sessionId, isRead, createdAt])
+  @@map("notifications")
 }
