@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Bell,
@@ -16,6 +15,7 @@ import styles from "../../css/Navbar.module.css";
 import LogoutButton from "./LogoutButton";
 
 const NOTIFICATION_API = "/api/v1/notifications";
+const POLLING_INTERVAL = 15000;
 
 export default function Navbar({ storeName, userName, userRole }) {
   const router = useRouter();
@@ -31,9 +31,10 @@ export default function Navbar({ storeName, userName, userRole }) {
     (notification) => !notification.isRead
   ).length;
 
-  const fetchNotifications = async () => {
-    setLoading(true);
-    setError("");
+  const fetchNotifications = useCallback(async (showLoading = false) => {
+    if (showLoading) {
+      setLoading(true);
+    }
 
     try {
       const response = await fetch(NOTIFICATION_API, {
@@ -55,23 +56,70 @@ export default function Navbar({ storeName, userName, userRole }) {
           result.data ??
           [];
 
-      setNotifications(Array.isArray(data) ? data : []);
+      if (!Array.isArray(data)) {
+        throw new Error("Format data notifikasi tidak valid.");
+      }
+
+      setNotifications(data);
+      setError("");
     } catch (err) {
-      setError(err.message || "Terjadi kesalahan saat mengambil notifikasi.");
+      if (showLoading) {
+        setError(
+          err.message || "Terjadi kesalahan saat mengambil notifikasi."
+        );
+      }
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
     }
-  };
+  }, []);
 
   useEffect(() => {
-    if (isOpen) {
-      fetchNotifications();
+    if (!isOpen) {
+      return;
     }
-  }, [isOpen]);
+
+    fetchNotifications(true);
+  }, [isOpen, fetchNotifications]);
+
+  useEffect(() => {
+    fetchNotifications();
+
+    const interval = window.setInterval(() => {
+      if (document.visibilityState === "visible") {
+        fetchNotifications();
+      }
+    }, POLLING_INTERVAL);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        fetchNotifications();
+      }
+    };
+
+    window.addEventListener("focus", handleVisibilityChange);
+    document.addEventListener(
+      "visibilitychange",
+      handleVisibilityChange
+    );
+
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("focus", handleVisibilityChange);
+      document.removeEventListener(
+        "visibilitychange",
+        handleVisibilityChange
+      );
+    };
+  }, [fetchNotifications]);
 
   useEffect(() => {
     const handleOutsideClick = (event) => {
-      if (panelRef.current && !panelRef.current.contains(event.target)) {
+      if (
+        panelRef.current &&
+        !panelRef.current.contains(event.target)
+      ) {
         setIsOpen(false);
       }
     };
@@ -92,7 +140,9 @@ export default function Navbar({ storeName, userName, userRole }) {
   }, []);
 
   const handleMarkAsRead = async (notification) => {
-    if (notification.isRead) return;
+    if (notification.isRead) {
+      return;
+    }
 
     setMarkingId(notification.id);
 
@@ -162,11 +212,15 @@ export default function Navbar({ storeName, userName, userRole }) {
   };
 
   const formatDate = (date) => {
-    if (!date) return "-";
+    if (!date) {
+      return "-";
+    }
 
     const parsedDate = new Date(date);
 
-    if (Number.isNaN(parsedDate.getTime())) return "-";
+    if (Number.isNaN(parsedDate.getTime())) {
+      return "-";
+    }
 
     return new Intl.DateTimeFormat("id-ID", {
       day: "2-digit",
@@ -242,7 +296,10 @@ export default function Navbar({ storeName, userName, userRole }) {
               <div className={styles.notificationList}>
                 {loading ? (
                   <div className={styles.notificationState}>
-                    <LoaderCircle className={styles.spinner} size={24} />
+                    <LoaderCircle
+                      className={styles.spinner}
+                      size={24}
+                    />
                     <p>Memuat notifikasi...</p>
                   </div>
                 ) : error ? (
@@ -250,7 +307,7 @@ export default function Navbar({ storeName, userName, userRole }) {
                     <p>{error}</p>
                     <button
                       type="button"
-                      onClick={fetchNotifications}
+                      onClick={() => fetchNotifications(true)}
                     >
                       Coba lagi
                     </button>
@@ -259,7 +316,9 @@ export default function Navbar({ storeName, userName, userRole }) {
                   <div className={styles.notificationState}>
                     <Bell size={30} />
                     <p>Belum ada notifikasi</p>
-                    <span>Notifikasi terbaru akan muncul di sini.</span>
+                    <span>
+                      Notifikasi terbaru akan muncul di sini.
+                    </span>
                   </div>
                 ) : (
                   notifications.map((notification) => (
@@ -289,7 +348,9 @@ export default function Navbar({ storeName, userName, userRole }) {
                         </span>
 
                         <span className={styles.notificationMessage}>
-                          {notification.message || notification.body || ""}
+                          {notification.message ||
+                            notification.body ||
+                            ""}
                         </span>
 
                         <span className={styles.notificationDate}>

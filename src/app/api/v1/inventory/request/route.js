@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { getNotificationSession } from "@/lib/notification-auth";
 
 export async function GET() {
   return NextResponse.json({
@@ -9,6 +11,18 @@ export async function GET() {
 
 export async function POST(request) {
   try {
+    const session = await getNotificationSession();
+
+    if (!session?.userId) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Sesi login kasir tidak valid",
+        },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const { items, note } = body;
 
@@ -67,27 +81,18 @@ export async function POST(request) {
     const inventoryApiUrl = process.env.INVENTORY_API_URL;
     const serviceSecret = process.env.POS_INVENTORY_API_SECRET;
 
-    if (!inventoryApiUrl) {
+    if (!inventoryApiUrl || !serviceSecret) {
       return NextResponse.json(
         {
           success: false,
-          message: "INVENTORY_API_URL belum dikonfigurasi",
-        },
-        { status: 500 }
-      );
-    }
-
-    if (!serviceSecret) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "POS_INVENTORY_API_SECRET belum dikonfigurasi",
+          message: "Konfigurasi API Inventory belum lengkap",
         },
         { status: 500 }
       );
     }
 
     const baseUrl = inventoryApiUrl.replace(/\/+$/, "");
+    const normalizedNote = typeof note === "string" ? note.trim() : "";
 
     const inventoryResponse = await fetch(
       `${baseUrl}/api/v1/requests`,
@@ -99,7 +104,7 @@ export async function POST(request) {
         },
         body: JSON.stringify({
           items: normalizedItems,
-          note: typeof note === "string" ? note.trim() : "",
+          note: normalizedNote,
         }),
         cache: "no-store",
         signal: AbortSignal.timeout(10000),
@@ -126,11 +131,61 @@ export async function POST(request) {
       );
     }
 
+    const requestNumber =
+      typeof result.data?.requestNumber === "string"
+        ? result.data.requestNumber.trim()
+        : "";
+
+    if (!requestNumber) {
+      console.error(
+        "INVENTORY REQUEST NUMBER MISSING:",
+        JSON.stringify(result)
+      );
+
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Request sudah diterima Inventory, tetapi nomor request tidak ditemukan pada respons. Periksa data Inventory sebelum mencoba mengirim ulang.",
+        },
+        { status: 502 }
+      );
+    }
+
+    try {
+      await prisma.inventoryRequest.create({
+        data: {
+          requestId: requestNumber,
+          userId: session.userId,
+          status: "PENDING",
+          note: normalizedNote || null,
+        },
+      });
+    } catch (mappingError) {
+      console.error("SAVE INVENTORY REQUEST MAPPING ERROR:", mappingError);
+
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Request sudah dibuat di Inventory, tetapi pemetaan akun kasir gagal disimpan di POS. Jangan kirim ulang sebelum memeriksa data request.",
+          data: {
+            requestNumber,
+            mappingSaved: false,
+          },
+        },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json(
       {
         success: true,
         message: "Permintaan stok berhasil dikirim ke Inventory",
-        data: result.data,
+        data: {
+          ...result.data,
+          requestNumber,
+        },
       },
       { status: 201 }
     );
@@ -142,8 +197,8 @@ export async function POST(request) {
         success: false,
         message:
           error.name === "TimeoutError"
-            ? "Inventory tidak merespons dalam waktu yang ditentukan"
-            : "Gagal menghubungi server Inventory",
+            ? "Inventory tidak merespons dalam waktu yang ditentukan. Periksa status request sebelum mencoba ulang."
+            : "Gagal memproses permintaan stok",
       },
       { status: 502 }
     );

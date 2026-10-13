@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import {prisma} from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { getNotificationSession } from "@/lib/notification-auth";
 
 export async function GET() {
@@ -20,20 +20,24 @@ export async function GET() {
       );
     }
 
+    const notificationWhere = {
+      userId: session.userId,
+      OR: [
+        { sessionId: session.sessionId },
+        { sessionId: null },
+      ],
+    };
+
     const [notifications, unreadCount] = await Promise.all([
       prisma.notification.findMany({
-        where: {
-          userId: session.userId,
-          sessionId: session.sessionId,
-        },
+        where: notificationWhere,
         orderBy: {
           createdAt: "desc",
         },
       }),
       prisma.notification.count({
         where: {
-          userId: session.userId,
-          sessionId: session.sessionId,
+          ...notificationWhere,
           isRead: false,
         },
       }),
@@ -50,7 +54,10 @@ export async function GET() {
     console.error("GET NOTIFICATIONS ERROR:", error);
 
     return NextResponse.json(
-      { success: false, message: "Gagal mengambil notifikasi." },
+      {
+        success: false,
+        message: "Gagal mengambil notifikasi.",
+      },
       { status: 500 }
     );
   }
