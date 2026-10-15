@@ -6,6 +6,7 @@ import Swal from "sweetalert2";
 import { toast } from "react-toastify";
 
 import styles from "@/frontend/css/ProductForm.module.css";
+import Loading from "@/frontend/components/ui/Loading";
 
 export default function EditProductPage() {
   const router = useRouter();
@@ -95,15 +96,13 @@ export default function EditProductPage() {
           error
         );
 
-        setError(
-          error.message ||
-            "Gagal mengambil data produk"
-        );
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Gagal mengambil data produk";
 
-        toast.error(
-          error.message ||
-            "Gagal mengambil data produk"
-        );
+        setError(message);
+        toast.error(message);
       } finally {
         setLoading(false);
       }
@@ -151,7 +150,10 @@ export default function EditProductPage() {
       "image/webp",
     ];
 
-    // Validasi format
+    // ===================================================
+    // VALIDASI FORMAT
+    // ===================================================
+
     if (!allowedTypes.includes(file.type)) {
       toast.warning(
         "Format gambar harus JPG, PNG, atau WEBP."
@@ -161,7 +163,10 @@ export default function EditProductPage() {
       return;
     }
 
-    // Validasi ukuran
+    // ===================================================
+    // VALIDASI UKURAN
+    // ===================================================
+
     if (file.size > 2 * 1024 * 1024) {
       toast.warning(
         "Ukuran gambar maksimal 2 MB."
@@ -246,7 +251,6 @@ export default function EditProductPage() {
 
         router.refresh();
       }, 500);
-
     } catch (error) {
       console.error(
         "DELETE PRODUCT ERROR:",
@@ -428,7 +432,6 @@ export default function EditProductPage() {
         "Produk berhasil diperbarui."
       );
 
-      // Beri waktu agar toast terlihat
       setTimeout(() => {
         router.push(
           "/dashboard/products"
@@ -436,7 +439,6 @@ export default function EditProductPage() {
 
         router.refresh();
       }, 500);
-
     } catch (error) {
       console.error(
         "UPDATE PRODUCT ERROR:",
@@ -464,9 +466,10 @@ export default function EditProductPage() {
     return (
       <main className={styles.container}>
         <div className={styles.card}>
-          <p>
-            Memuat data produk...
-          </p>
+          <Loading
+            text="Memuat data produk..."
+            size="medium"
+          />
         </div>
       </main>
     );
@@ -714,6 +717,8 @@ export default function EditProductPage() {
               styles.actions
             }
           >
+            {/* BATAL */}
+
             <button
               type="button"
               className={
@@ -729,6 +734,8 @@ export default function EditProductPage() {
               Batal
             </button>
 
+            {/* HAPUS */}
+
             <button
               type="button"
               className={
@@ -742,6 +749,8 @@ export default function EditProductPage() {
                 : "Hapus"}
             </button>
 
+            {/* SIMPAN */}
+
             <button
               type="submit"
               className={
@@ -754,7 +763,6 @@ export default function EditProductPage() {
                 : "Simpan Perubahan"}
             </button>
           </div>
-
         </form>
       </div>
     </main>

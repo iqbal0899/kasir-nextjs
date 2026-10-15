@@ -7,7 +7,7 @@ import Navbar from "@/frontend/components/shared/Navbar";
 export default async function DashboardLayout({ children }) {
   const cookieStore = await cookies();
 
-  const token = cookieStore.get("token")?.value;
+  const token = cookieStore.get("pos_token")?.value;
 
   let user = null;
 

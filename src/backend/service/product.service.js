@@ -1,8 +1,23 @@
 import { prisma } from "@/lib/prisma";
 
-// =====================================================
-// GET PRODUCTS
-// =====================================================
+const INVENTORY_API_URL =
+  process.env.INVENTORY_API_URL;
+
+  const transfers = await prisma.inventoryTransfer.findMany({
+  select: {
+    requestId: true,
+    status: true,
+    items: {
+      select: {
+        productId: true,
+        quantity: true,
+      },
+    },
+  },
+});
+
+console.dir(transfers, { depth: null });
+
 
 export async function getProducts({
   page = 1,
@@ -11,339 +26,171 @@ export async function getProducts({
   endDateProduct,
 } = {}) {
   const currentPage = Math.max(Number(page) || 1, 1);
-
   const currentLimit = Math.min(
     Math.max(Number(limit) || 10, 1),
     100
   );
 
-  const skip = (currentPage - 1) * currentLimit;
-
-  // =====================================================
-  // DATE FILTER
-  // =====================================================
-
-  const startDate = startDateProduct
-    ? new Date(`${startDateProduct}T00:00:00`)
-    : null;
-
-  const endDate = endDateProduct
-    ? new Date(`${endDateProduct}T23:59:59.999`)
-    : null;
-
-  const hasDateFilter = Boolean(startDate || endDate);
-
-  const transactionDateFilter = {};
-
-  if (startDate) {
-    transactionDateFilter.gte = startDate;
-  }
-
-  if (endDate) {
-    transactionDateFilter.lte = endDate;
-  }
-
-  // =====================================================
-  // PRODUCT QUERY
-  // =====================================================
-
-const products = await prisma.product.findMany({
-  orderBy: {
-    id: "asc",
-  },
-  skip,
-  take: currentLimit,
-  select: {
-    id: true,
-    name: true,
-    price: true,
-    stock: true,
-    category: true,
-    image: true,
+  const where = {
     isActive: true,
-    createdAt: true,
-    updatedAt: true,
-  },
-});
+  };
 
-const total = await prisma.product.count();
+  if (startDateProduct || endDateProduct) {
+    where.createdAt = {};
 
-  // =====================================================
-  // PRODUCT IDS
-  // =====================================================
+    if (startDateProduct) {
+      const startDate = new Date(startDateProduct);
 
-  const productIds = products.map(
-    (product) => product.id
+      if (Number.isNaN(startDate.getTime())) {
+        throw new Error("Tanggal awal tidak valid");
+      }
+
+      where.createdAt.gte = startDate;
+    }
+
+    if (endDateProduct) {
+      const endDate = new Date(endDateProduct);
+
+      if (Number.isNaN(endDate.getTime())) {
+        throw new Error("Tanggal akhir tidak valid");
+      }
+
+      endDate.setHours(23, 59, 59, 999);
+      where.createdAt.lte = endDate;
+    }
+  }
+
+  const [products, total, soldItems] = await Promise.all([
+    prisma.product.findMany({
+      where,
+      skip: (currentPage - 1) * currentLimit,
+      take: currentLimit,
+      orderBy: {
+        createdAt: "desc",
+      },
+      include: {
+        inventoryMappings: {
+          select: {
+            inventoryCode: true,
+          },
+        },
+      },
+    }),
+
+    prisma.product.count({
+      where,
+    }),
+
+    prisma.transactionItem.groupBy({
+      by: ["productId"],
+      _sum: {
+        quantity: true,
+      },
+    }),
+  ]);
+
+  const soldStockMap = new Map(
+    soldItems.map((item) => [
+      item.productId,
+      item._sum.quantity ?? 0,
+    ])
   );
 
-  // =====================================================
-  // SOLD STOCK
-  // =====================================================
-
-  const soldStockMap = {};
-
-  if (productIds.length > 0) {
-    const soldItems =
-      await prisma.transactionItem.groupBy({
-        by: ["productId"],
-
-        where: {
-          productId: {
-            in: productIds,
-          },
-
-          ...(hasDateFilter
-            ? {
-                transaction: {
-                  createdAt: transactionDateFilter,
-                },
-              }
-            : {}),
-        },
-
-        _sum: {
-          quantity: true,
-        },
-      });
-
-    for (const item of soldItems) {
-      soldStockMap[item.productId] =
-        Number(item._sum.quantity || 0);
-    }
-  }
-
-  // =====================================================
-  // HISTORICAL STOCK
-  // =====================================================
-
-  const soldAfterDateMap = {};
-
-  if (endDate && productIds.length > 0) {
-    const soldAfterDate =
-      await prisma.transactionItem.groupBy({
-        by: ["productId"],
-
-        where: {
-          productId: {
-            in: productIds,
-          },
-
-          transaction: {
-            createdAt: {
-              gt: endDate,
-            },
-          },
-        },
-
-        _sum: {
-          quantity: true,
-        },
-      });
-
-    for (const item of soldAfterDate) {
-      soldAfterDateMap[item.productId] =
-        Number(item._sum.quantity || 0);
-    }
-  }
-
-  // =====================================================
-  // RESPONSE DATA
-  // =====================================================
-
-  const data = products.map((product) => {
-    const currentStock =
-      Number(product.stock || 0);
-
-    const soldStock =
-      soldStockMap[product.id] || 0;
-
-    let historicalStock =
-      currentStock;
-
-    if (endDate) {
-      historicalStock =
-        currentStock +
-        (soldAfterDateMap[product.id] || 0);
-    }
-
-    return {
-      id: product.id,
-
-      name: product.name,
-
-      price:
-        Number(product.price),
-
-      stock:
-        historicalStock,
-
-      category:
-        product.category,
-
-      image:
-        product.image,
-
-      isActive:
-        product.isActive,
-
-      createdAt:
-        product.createdAt,
-
-      updatedAt:
-        product.updatedAt,
-
-      soldStock,
-    };
-  });
-
-  // =====================================================
-  // RESPONSE
-  // =====================================================
+  const data = products.map((product) => ({
+    id: product.id,
+    inventoryCode:
+      product.inventoryMappings[0]?.inventoryCode ?? null,
+    name: product.name,
+    price: Number(product.price),
+    stock: product.stock,
+    category: product.category ?? null,
+    image: product.image ?? null,
+    isActive: product.isActive,
+    status: "ACTIVE",
+    createdAt: product.createdAt,
+    updatedAt: product.updatedAt,
+    soldStock: soldStockMap.get(product.id) ?? 0,
+  }));
 
   return {
     data,
-
     pagination: {
       page: currentPage,
-
       limit: currentLimit,
-
       total,
-
-      totalPages:
-        Math.ceil(
-          total / currentLimit
-        ),
+      totalPages: Math.ceil(total / currentLimit),
     },
   };
 }
 
 
-// =====================================================
-// GET PRODUCT BY ID
-// =====================================================
 
 export async function getProductById(id) {
-  return await prisma.product.findUnique({
-    where: {
-      id: Number(id),
-    },
-  });
-}
-
-
-// =====================================================
-// CREATE PRODUCT
-// =====================================================
-
-export async function createProduct(data) {
-  return await prisma.product.create({
-    data: {
-      name: data.name,
-      price: data.price,
-      stock: data.stock,
-      category: data.category,
-      image: data.image,
-      isActive: true,
-    },
-  });
-}
-
-
-// =====================================================
-// UPDATE PRODUCT
-// =====================================================
-
-export async function updateProduct(id, data) {
-  return await prisma.product.update({
-    where: {
-      id: Number(id),
-    },
-    data,
-  });
-}
-
-
-// =====================================================
-// AKTIF / NONAKTIF PRODUK
-// =====================================================
-
-export async function toggleProductStatus(
-  id,
-  isActive
-) {
-  return await prisma.product.update({
-    where: {
-      id: Number(id),
-    },
-    data: {
-      isActive: Boolean(isActive),
-    },
-  });
-}
-
-
-// =====================================================
-// SOFT DELETE
-// =====================================================
-
-export async function deleteProduct(id) {
-  return await prisma.product.update({
-    where: {
-      id: Number(id),
-    },
-    data: {
-      isActive: false,
-    },
-  });
-}
-
-
-// =====================================================
-// RESTORE PRODUCT
-// =====================================================
-
-export async function restoreProduct(id) {
-
-  const productId = Number(id);
-
-  if (
-    !productId ||
-    Number.isNaN(productId)
-  ) {
+  if (!INVENTORY_API_URL) {
     throw new Error(
-      "ID produk tidak valid"
+      "INVENTORY_API_URL belum dikonfigurasi"
     );
   }
 
-
-  const product =
-    await prisma.product.findUnique({
-      where: {
-        id: productId,
+  const response = await fetch(
+    `${INVENTORY_API_URL}/api/v1/products/${id}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
       },
-    });
+      cache: "no-store",
+    }
+  );
 
+  if (!response.ok) {
+    const errorText =
+      await response.text();
 
-  if (!product) {
     throw new Error(
-      "Produk tidak ditemukan"
+      `Produk tidak ditemukan di inventory-system: ${response.status} ${errorText}`
     );
   }
 
+  const result =
+    await response.json();
 
-  const restoredProduct =
-    await prisma.product.update({
-      where: {
-        id: productId,
-      },
+  if (!result.success) {
+    throw new Error(
+      result.message ||
+        "Gagal mengambil produk"
+    );
+  }
 
-      data: {
-        isActive: true,
-      },
-    });
-
-
-  return restoredProduct;
+  return result.data;
 }
 
+export async function createProduct() {
+  throw new Error(
+    "Produk harus dibuat melalui inventory-system"
+  );
+}
+
+export async function updateProduct() {
+  throw new Error(
+    "Produk harus diperbarui melalui inventory-system"
+  );
+}
+
+export async function toggleProductStatus() {
+  throw new Error(
+    "Status produk harus diperbarui melalui inventory-system"
+  );
+}
+
+export async function deleteProduct() {
+  throw new Error(
+    "Produk harus dihapus melalui inventory-system"
+  );
+}
+
+export async function restoreProduct() {
+  throw new Error(
+    "Produk harus direstore melalui inventory-system"
+  );
+}

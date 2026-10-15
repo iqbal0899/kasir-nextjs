@@ -17,7 +17,7 @@ export async function GET(request) {
     // AUTHENTICATION
     // =====================================================
 
-    const token = request.cookies.get("token")?.value;
+    const token = request.cookies.get("pos_token")?.value;
 
     if (!token) {
       return NextResponse.json(

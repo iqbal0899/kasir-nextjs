@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 
 export function proxy(request) {
-  const token = request.cookies.get("token")?.value;
+  const token = request.cookies.get("pos_token")?.value;
 
   const { pathname } = request.nextUrl;
 

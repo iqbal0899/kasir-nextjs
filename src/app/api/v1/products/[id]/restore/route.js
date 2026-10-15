@@ -17,7 +17,7 @@ export async function PATCH(request, { params }) {
     const cookieStore = await cookies();
 
     const token =
-      cookieStore.get("token")?.value;
+      cookieStore.get("pos_token")?.value;
 
     if (!token) {
       return NextResponse.json(
@@ -56,10 +56,10 @@ export async function PATCH(request, { params }) {
     }
 
     // ==========================================
-    // ADMIN ONLY
+    // ADMIN DAN SUPER ADMIN
     // ==========================================
 
-    if (user.role !== "admin") {
+    if (!["admin", "super_admin"].includes(user.role)) {
       return NextResponse.json(
         {
           success: false,

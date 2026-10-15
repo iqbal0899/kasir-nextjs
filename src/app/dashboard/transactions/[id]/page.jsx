@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 
 import ReceiptModal from "@/frontend/components/pos/ReceiptModal";
+import Loading from "@/frontend/components/ui/Loading";
 
 import styles from "@/frontend/css/TransactionDetail.module.css";
 
@@ -11,10 +12,18 @@ export default function TransactionDetailPage() {
   const router = useRouter();
   const params = useParams();
 
-  const [transaction, setTransaction] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [transaction, setTransaction] =
+    useState(null);
 
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState("");
+
+  // =====================================================
+  // GET TRANSACTION DETAIL
+  // =====================================================
 
   useEffect(() => {
     if (!params?.id) return;
@@ -32,18 +41,33 @@ export default function TransactionDetailPage() {
           }
         );
 
-        const text = await response.text();
+        const text =
+          await response.text();
 
         let result;
 
+        // =================================================
+        // PARSE RESPONSE
+        // =================================================
+
         try {
-          result = text ? JSON.parse(text) : null;
+          result = text
+            ? JSON.parse(text)
+            : null;
         } catch (jsonError) {
-          console.error("JSON ERROR:", jsonError);
+          console.error(
+            "JSON ERROR:",
+            jsonError
+          );
+
           throw new Error(
             "Response API transaksi tidak valid"
           );
         }
+
+        // =================================================
+        // RESPONSE ERROR
+        // =================================================
 
         if (!response.ok) {
           throw new Error(
@@ -60,12 +84,17 @@ export default function TransactionDetailPage() {
 
         const data = result.data;
 
+        // =================================================
+        // SET TRANSACTION
+        // =================================================
 
         setTransaction({
           id: data.id,
 
           date: data.createdAt
-            ? new Date(data.createdAt).toLocaleString(
+            ? new Date(
+                data.createdAt
+              ).toLocaleString(
                 "id-ID"
               )
             : "-",
@@ -118,10 +147,12 @@ export default function TransactionDetailPage() {
           error
         );
 
-        setError(
-          error.message ||
-            "Gagal mengambil detail transaksi"
-        );
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Gagal mengambil detail transaksi";
+
+        setError(message);
       } finally {
         setLoading(false);
       }
@@ -130,23 +161,32 @@ export default function TransactionDetailPage() {
     fetchTransaction();
   }, [params?.id]);
 
+  // =====================================================
+  // LOADING
+  // =====================================================
 
   if (loading) {
     return (
       <div className={styles.container}>
-        <div className={styles.loading}>
-          Memuat struk transaksi...
-        </div>
+        <Loading
+          text="Memuat struk transaksi..."
+          size="medium"
+        />
       </div>
     );
   }
 
+  // =====================================================
+  // ERROR
+  // =====================================================
 
   if (error) {
     return (
       <div className={styles.container}>
         <div className={styles.error}>
-          <h2>Gagal Memuat Transaksi</h2>
+          <h2>
+            Gagal Memuat Transaksi
+          </h2>
 
           <p>{error}</p>
 
@@ -157,7 +197,9 @@ export default function TransactionDetailPage() {
                 "/dashboard/transactions"
               )
             }
-            className={styles.backButton}
+            className={
+              styles.backButton
+            }
           >
             Kembali ke Transaksi
           </button>
@@ -165,6 +207,10 @@ export default function TransactionDetailPage() {
       </div>
     );
   }
+
+  // =====================================================
+  // RECEIPT
+  // =====================================================
 
   return (
     <div className={styles.container}>
@@ -181,4 +227,3 @@ export default function TransactionDetailPage() {
     </div>
   );
 }
-

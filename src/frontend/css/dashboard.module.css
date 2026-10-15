@@ -649,6 +649,48 @@
     grid-template-columns: 1fr;
     gap: 8px;
   }
+
+  /* ==========================================
+   LOADING
+========================================== */
+
+.loading {
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.loading p {
+  margin: 0;
+}
+
+/* Spinner */
+
+.loadingSpinner {
+  width: 32px;
+  height: 32px;
+  border: 4px solid #e5e7eb;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: dashboardSpin 0.8s linear infinite;
+}
+
+/* Animasi */
+
+@keyframes dashboardSpin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
 }
 
 

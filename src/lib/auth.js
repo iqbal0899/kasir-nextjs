@@ -7,7 +7,7 @@ const ROLE_LEVEL = {
 };
 
 export function getTokenFromRequest(request) {
-  const token = request.cookies.get("token")?.value;
+  const token = request.cookies.get("pos_token")?.value;
 
   if (!token) {
     return null;
@@ -24,9 +24,14 @@ export function verifyToken(request) {
       return null;
     }
 
+    if (!process.env.JWT_SECRET) {
+      console.error("JWT_SECRET belum dikonfigurasi");
+      return null;
+    }
+
     return jwt.verify(token, process.env.JWT_SECRET);
   } catch (error) {
-    console.error("VERIFY TOKEN ERROR:", error);
+    console.error("VERIFY TOKEN ERROR:", error.message);
     return null;
   }
 }

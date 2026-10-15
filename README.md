@@ -1,613 +1,416 @@
-# 🛒 POS Kasir — Toko Iqbal
+# 🛒 Toko Iqbal — Point of Sale (POS)
 
-Aplikasi **Point of Sale (POS)** berbasis web untuk membantu pengelolaan penjualan, produk, stok, pengguna, transaksi, dashboard analytics, dan laporan.
+Aplikasi **Point of Sale (POS)** berbasis web untuk membantu pengelolaan produk, transaksi penjualan, stok, pengguna, laporan, monitoring, dan aktivitas sistem pada **Toko Iqbal**.
 
-Project ini dibangun menggunakan **Next.js App Router** dengan pendekatan full-stack, sehingga frontend dan backend API berada dalam satu aplikasi.
-
----
-
-## 📌 Overview
-
-**POS Kasir — Toko Iqbal** menyediakan sistem kasir dengan fitur:
-
-* 🔐 Authentication & Authorization
-* 👥 Role-based Access Control
-* 📦 Product Management
-* 🛒 Point of Sale
-* 💳 Multiple Payment Methods
-* 📊 Dashboard Analytics
-* 🧾 Transaction Management
-* 📄 PDF Reports
-* 🔍 Product Search
-* 📑 Pagination
-* 🛡️ Rate Limiting
-* 🔑 JWT Authentication
-* 📝 Audit Log
-* 🔄 Idempotency untuk mencegah transaksi ganda
-* ⚡ Real-time update menggunakan Pusher
-* 📱 Responsive UI
-* 📲 Progressive Web App (PWA)
-* 🧮 Server-side transaction calculation
+Aplikasi dibangun menggunakan **Next.js App Router** dengan arsitektur full-stack, **PostgreSQL + Prisma** sebagai database layer, serta beberapa fitur pendukung seperti **JWT Authentication, Role-Based Access Control, Pusher, Swagger, PDF Report, PWA, dan Rate Limiting**.
 
 ---
 
-# ✨ Features
+## ✨ Features
 
-## 🔐 Authentication & Authorization
+### 🔐 Authentication & Authorization
 
-Sistem authentication menggunakan JWT.
-
-Features:
-
-* Login
-* Logout
-* JWT Authentication
-* HTTP Cookie Authentication
+* Login menggunakan username dan password
 * Password hashing menggunakan bcrypt
-* Role-based authorization
-* Protected API endpoint
-* Protected dashboard
-* Admin role
-* Cashier role
-* Automatic session expiration
-* Rate limiting pada login
-* reCAPTCHA protection
+* JWT authentication
+* JWT disimpan menggunakan HTTP-only cookie
+* Session expiration
+* Role-Based Access Control (RBAC)
+* reCAPTCHA v3 pada login
+* Login rate limiting
+* Logout
+* Audit log aktivitas pengguna
 
-### Role
+### 👥 User Roles
 
-| Role    | Access                   |
-| ------- | ------------------------ |
-| Admin   | Full management access   |
-| Cashier | POS & transaction access |
+Aplikasi memiliki tiga role:
 
----
+| Role            | Deskripsi                                                                         |
+| --------------- | --------------------------------------------------------------------------------- |
+| **Super Admin** | Memiliki akses penuh terhadap sistem                                              |
+| **Admin**       | Mengelola operasional toko tetapi tidak dapat mengakses Monitoring dan Semua User |
+| **Cashier**     | Berfokus pada proses transaksi/POS                                                |
 
-# 👥 User Management
+### 🔑 Role Permissions
 
-Admin dapat mengelola pengguna aplikasi.
+| Fitur           | Super Admin |       Admin       |      Cashier      |
+| --------------- | :---------: | :---------------: | :---------------: |
+| Login           |      ✅      |         ✅         |         ✅         |
+| Dashboard       |      ✅      |         ✅         |         ✅         |
+| POS             |      ✅      |         ✅         |         ✅         |
+| Produk          |      ✅      |         ✅         |         ❌         |
+| Transaksi       |      ✅      |         ✅         | Sesuai permission |
+| Laporan         |      ✅      |         ✅         |         ❌         |
+| Monitoring      |      ✅      |         ❌         |         ❌         |
+| Semua User      |      ✅      |         ❌         |         ❌         |
+| Audit Log       |      ✅      | Sesuai permission |         ❌         |
+| User Management |      ✅      |      Terbatas     |         ❌         |
 
-Features:
-
-* Menampilkan user
-* Membuat user
-* Mengubah user
-* Mengubah role
-* Menghapus user
-* Password hashing
-* Role management
-* Audit log aktivitas user
+> Authorization diterapkan pada sisi server/API. Hak akses pada UI bukan satu-satunya lapisan keamanan.
 
 ---
 
 # 📦 Product Management
 
-Admin dapat mengelola seluruh data produk.
+Admin yang memiliki permission dapat melakukan:
 
-Features:
-
-* Tambah produk
-* Edit produk
-* Hapus produk
+* Menampilkan produk
+* Menambahkan produk
+* Mengedit produk
+* Menghapus/deaktivasi produk
 * Restore produk
-* Soft delete
-* Product search
+* Mengelola harga
+* Mengelola stok
+* Mengelola kategori
+* Menampilkan gambar produk
 * Pagination
-* Kategori produk
-* Harga produk
-* Stok produk
-* Upload gambar produk
-* Product status
-* Validasi harga
-* Validasi stok
-* Validasi image
+* Filter produk
+* Stock status
 
-### Product Status
+### Stock Status
 
-|  Stock | Status       |
-| -----: | ------------ |
-|   > 30 | Tersedia     |
-| 1 - 30 | Stok Menipis |
-|      0 | Stok Habis   |
-
-Product menggunakan **soft delete**, sehingga produk yang dihapus tidak langsung hilang dari database dan dapat dipulihkan.
+|    Stock | Status   |
+| -------: | -------- |
+|   `> 30` | Tersedia |
+| `1 - 30` | Menipis  |
+|      `0` | Habis    |
 
 ---
 
-# 🛒 Point of Sale
+# 💳 Point of Sale
 
-POS digunakan oleh kasir untuk melakukan transaksi.
+Halaman POS digunakan untuk melakukan transaksi penjualan.
 
-Features:
-
-* Menampilkan produk aktif
-* Product search
-* Menambahkan produk ke cart
-* Mengubah quantity
-* Menghapus item dari cart
-* Perhitungan subtotal
-* Perhitungan total
-* Input pembayaran
-* Perhitungan kembalian
-* Cash payment
-* QRIS payment
-* Validasi stok
-* Update stok otomatis
-* Receipt / struk transaksi
-
-### Transaction Calculation
+Flow transaksi:
 
 ```text
-Subtotal = Product Price × Quantity
-
-Total = Σ Subtotal
-
-Change = Cash Received - Total
+Select Product
+      ↓
+Add to Cart
+      ↓
+Set Quantity
+      ↓
+Calculate Total
+      ↓
+Payment
+      ↓
+Validate Payment
+      ↓
+Create Transaction
+      ↓
+Decrease Stock
+      ↓
+Create Stock History
+      ↓
+Create Audit Log
+      ↓
+Send Realtime Event
+      ↓
+Receipt
 ```
 
-Perhitungan transaksi dilakukan kembali di server untuk mencegah manipulasi harga atau total dari client.
+### Payment Method
 
----
+Saat ini mendukung:
 
-# 💳 Payment Method
+* Cash
+* QRIS
 
-Saat ini sistem mendukung:
+Untuk pembayaran cash, sistem menghitung:
 
-* 💵 Cash
-* 📱 QRIS
+```text
+Change = Cash Received - Total Amount
+```
 
-Payment method disimpan pada database bersama informasi transaksi.
+Sistem akan menolak pembayaran apabila uang cash yang diterima kurang dari total transaksi.
 
 ---
 
 # 🧾 Transaction Management
 
-Admin dapat melihat dan mengelola transaksi.
-
-Features:
+Fitur transaksi meliputi:
 
 * Membuat transaksi
-* Transaction history
-* Transaction detail
-* Transaction pagination
-* Filter berdasarkan tanggal
-* Informasi kasir
-* Transaction items
-* Product information
+* Melihat daftar transaksi
+* Melihat detail transaksi
+* Menampilkan item transaksi
 * Total transaksi
 * Payment method
 * Cash received
 * Change
-* Update stock
-* Receipt
+* Cashier
+* Transaction history
 
----
+## Idempotency
 
-# 🔐 Idempotency
-
-Transaction API menggunakan **idempotency key** untuk mencegah transaksi yang sama diproses lebih dari satu kali.
-
-Contoh kasus:
+Transaksi menggunakan:
 
 ```text
-User klik "Bayar"
-        ↓
-Request dikirim
-        ↓
-Network lambat
-        ↓
-User klik "Bayar" lagi
-        ↓
-Request kedua masuk
+idempotencyKey
 ```
 
-Tanpa idempotency:
+dengan constraint unique pada database.
+
+Tujuannya untuk mencegah transaksi yang sama diproses lebih dari satu kali ketika terjadi:
+
+* Double click
+* Retry request
+* Network issue
+* Request duplication
+
+Contoh flow:
 
 ```text
-Transaction #1
-Transaction #2
-```
-
-Dengan idempotency:
-
-```text
-Request #1 → Transaction created
-
-Request #2 → Existing transaction returned
-```
-
-Hal ini membantu mencegah **double transaction**.
-
----
-
-# 📝 Audit Log
-
-Aktivitas penting user dicatat menggunakan audit log.
-
-Contoh aktivitas:
-
-```text
-CREATE_PRODUCT
-UPDATE_PRODUCT
-DELETE_PRODUCT
-ACTIVATE_PRODUCT
-DEACTIVATE_PRODUCT
-CREATE_TRANSACTION
-LOGIN
-LOGOUT
-```
-
-Informasi yang dapat dicatat:
-
-* User ID
-* Username
-* Role
-* Action
-* Entity
-* Entity ID
-* Detail aktivitas
-* IP Address
-* User Agent
-* Timestamp
-
-Contoh:
-
-```text
-USER YANG MEMBUAT:
-{
-  id: 1,
-  username: "admin",
-  role: "admin"
-}
-
-PRODUK YANG DIBUAT:
-{
-  id: 10,
-  name: "Indomie Goreng",
-  price: 3500,
-  stock: 50
-}
+Client
+  ↓
+Generate UUID
+  ↓
+Send idempotencyKey
+  ↓
+Server
+  ↓
+Check existing transaction
+  ↓
+Already exists?
+ ┌───────────────┐
+ │ Yes           │ No
+ ↓               ↓
+Return existing  Create transaction
+                 ↓
+                 Commit
 ```
 
 ---
 
-# ⚡ Real-time Update
+# 📊 Dashboard
 
-Dashboard menggunakan **Pusher** untuk menerima event secara real-time.
+Dashboard menampilkan informasi utama toko seperti:
 
-Flow:
+* Total transaksi
+* Total pendapatan
+* Jumlah produk
+* Produk dengan stok rendah
+* Statistik penjualan
+* Grafik transaksi
+* Ringkasan penjualan
+
+Dashboard menggunakan data dari API:
 
 ```text
-Cashier
-   │
-   │ Create Transaction
-   ▼
-Transaction API
-   │
-   ▼
-PostgreSQL
-   │
-   │ Transaction Success
-   ▼
-Pusher
-   │
-   │ transaction-created
-   ▼
-Dashboard
-   │
-   ▼
-Refresh Analytics
+/api/v1/dashboard/analytics
 ```
 
-Pusher digunakan sebagai **notification/event layer**, bukan sebagai database.
+---
+
+# 📡 Realtime Monitoring
+
+Aplikasi menggunakan **Pusher** untuk komunikasi realtime.
 
 Contoh event:
 
 ```text
+Channel:
+dashboard
+
+Event:
 transaction-created
 ```
 
-Dashboard kemudian melakukan request ulang ke API analytics untuk mendapatkan data terbaru.
+Ketika transaksi baru berhasil dibuat:
+
+```text
+POS
+ ↓
+Create Transaction
+ ↓
+Database
+ ↓
+Pusher Event
+ ↓
+Dashboard
+ ↓
+Refresh Analytics
+```
+
+Dengan demikian dashboard dapat memperbarui data tanpa harus selalu melakukan refresh halaman secara manual.
 
 ---
 
-# 📊 Dashboard Analytics
+# 🖥️ Monitoring
 
-Dashboard menyediakan informasi statistik penjualan.
+Monitoring digunakan untuk memantau aktivitas sistem secara realtime.
 
-Contoh informasi:
+Akses Monitoring dibatasi untuk:
 
-* Total transaksi
-* Total revenue
-* Total produk
-* Total stok
-* Produk terlaris
-* Penjualan berdasarkan periode
-* Grafik penjualan
+```text
+Super Admin
+```
 
-Visualisasi menggunakan **Recharts**.
+Admin dan Cashier tidak dapat membuka halaman Monitoring.
+
+Route:
+
+```text
+/dashboard/monitoring
+```
+
+API:
+
+```text
+/api/v1/dashboard/monitoring
+```
 
 ---
 
-# 📄 Reports
+# 📈 Reports
 
-Aplikasi menyediakan laporan dalam format PDF.
-
-Jenis laporan:
-
-### Product Report
-
-Berisi:
-
-* Product ID
-* Product name
-* Category
-* Price
-* Stock
-* Product status
-
-### Transaction Report
-
-Berisi:
-
-* Transaction ID
-* Cashier
-* Total
-* Payment method
-* Cash received
-* Change
-* Transaction date
-
-### Combined Report
-
-Menggabungkan:
+Aplikasi menyediakan laporan:
 
 * Product report
 * Transaction report
-* Summary
+* Combined report
 
-Endpoint:
+Laporan dapat menggunakan filter tanggal:
 
 ```text
-GET /api/v1/reports/pdf
+Start Date
+End Date
+```
+
+PDF report tersedia melalui:
+
+```text
+/api/v1/reports/pdf
 ```
 
 Parameter:
 
 ```text
+type=all
 type=product
 type=transaction
-type=all
-```
-
-Filter tanggal:
-
-```text
-startDate=2026-01-01
-endDate=2026-01-31
 ```
 
 Contoh:
 
 ```text
-/api/v1/reports/pdf?type=transaction&startDate=2026-01-01&endDate=2026-01-31
+/api/v1/reports/pdf?type=transaction
 ```
+
+PDF dibuat menggunakan **PDFKit**.
 
 ---
 
-# 🧾 Receipt / Thermal Printer
+# 🖨️ Receipt & Thermal Printer
 
-Sistem menyediakan tampilan receipt setelah transaksi selesai.
+Aplikasi menyediakan receipt setelah transaksi berhasil.
 
 Receipt dapat digunakan untuk kebutuhan printer thermal.
+
+Utility printer:
+
+```text
+src/backend/utils/escpos.js
+```
 
 Flow:
 
 ```text
-Transaction
-     ↓
+Transaction Success
+       ↓
 Receipt Modal
-     ↓
-Print
-     ↓
+       ↓
+Generate Receipt
+       ↓
 Thermal Printer
 ```
 
 ---
 
-# 📱 Responsive UI
+# 📝 Audit Log
 
-Interface dibuat responsive untuk:
+Sistem mencatat aktivitas penting pengguna melalui Audit Log.
 
-* Desktop
-* Laptop
-* Tablet
-* Smartphone
+Contoh aktivitas:
 
-Komponen utama:
+* Login
+* Logout
+* Create product
+* Update product
+* Delete/restore product
+* Create transaction
+* User management
+* Aktivitas administratif lainnya
 
-* Navbar
-* Sidebar
-* Dashboard
-* Product Grid
-* Cart Sidebar
-* Payment Modal
-* Receipt Modal
-* Product Management
-* Transaction Management
-* User Management
-* Reports
+API:
+
+```text
+/api/v1/audit-logs
+```
+
+Test endpoint:
+
+```text
+/api/v1/audit-logs/test
+```
+
+Audit log membantu administrator melakukan tracking terhadap aktivitas sistem.
 
 ---
 
-# 📲 Progressive Web App
+# 🛡️ Security
 
-Project juga memiliki konfigurasi PWA.
+Aplikasi menerapkan beberapa mekanisme keamanan.
 
-Komponen PWA:
+### Password Hashing
 
-```text
-public/
-├── manifest.webmanifest
-├── sw.js
-└── icons/
-    ├── icon-192.png
-    └── icon-512.png
-```
+Password tidak disimpan dalam bentuk plaintext.
 
-PWA memungkinkan aplikasi memiliki pengalaman seperti aplikasi mobile.
-
----
-
-# 🧱 Architecture
-
-Project menggunakan arsitektur full-stack menggunakan Next.js.
+Digunakan:
 
 ```text
-┌──────────────────────────────────┐
-│            Frontend              │
-│                                  │
-│ React + Next.js                  │
-│ Dashboard                        │
-│ POS                              │
-│ Products                         │
-│ Transactions                     │
-│ Reports                          │
-└────────────────┬─────────────────┘
-                 │
-                 │ HTTP Request
-                 ▼
-┌──────────────────────────────────┐
-│             Backend              │
-│                                  │
-│ Next.js API Routes               │
-│ Authentication                   │
-│ Authorization                    │
-│ Business Logic                   │
-│ Validation                       │
-│ Rate Limiting                    │
-│ Audit Log                        │
-└────────────────┬─────────────────┘
-                 │
-                 │ Prisma ORM
-                 ▼
-┌──────────────────────────────────┐
-│            Database              │
-│                                  │
-│ PostgreSQL / Neon                │
-└──────────────────────────────────┘
+bcrypt
 ```
 
-Real-time communication:
+### JWT Authentication
 
-```text
-Backend
-   │
-   ▼
- Pusher
-   │
-   ▼
-Frontend Dashboard
-```
+Authentication menggunakan JWT.
 
----
+Token digunakan untuk memvalidasi session user pada request yang membutuhkan authentication.
 
-# 📂 Project Structure
+### HTTP-Only Cookie
 
-```text
-kasir-nextjs/
-│
-├── prisma/
-│   ├── schema.prisma
-│   └── migrations/
-│
-├── public/
-│   ├── icons/
-│   │   ├── icon-192.png
-│   │   └── icon-512.png
-│   ├── manifest.webmanifest
-│   └── sw.js
-│
-├── src/
-│   │
-│   ├── app/
-│   │   ├── api/
-│   │   │   └── v1/
-│   │   │       ├── dashboard/
-│   │   │       │   └── analytics/
-│   │   │       ├── products/
-│   │   │       │   ├── route.js
-│   │   │       │   └── [id]/
-│   │   │       │       ├── route.js
-│   │   │       │       └── restore/
-│   │   │       ├── transactions/
-│   │   │       │   ├── route.js
-│   │   │       │   └── [id]/
-│   │   │       ├── users/
-│   │   │       └── reports/
-│   │   │           └── pdf/
-│   │   │
-│   │   ├── auth/
-│   │   │   └── login/
-│   │   │
-│   │   ├── dashboard/
-│   │   │   ├── products/
-│   │   │   ├── transactions/
-│   │   │   ├── users/
-│   │   │   └── page.jsx
-│   │   │
-│   │   ├── reports/
-│   │   │   └── page.jsx
-│   │   │
-│   │   └── page.jsx
-│   │
-│   ├── backend/
-│   │   ├── service/
-│   │   │   ├── auth.service.js
-│   │   │   ├── product.service.js
-│   │   │   ├── transaction.service.js
-│   │   │   ├── user.service.js
-│   │   │   └── audit.service.js
-│   │   │
-│   │   └── utils/
-│   │       ├── rateLimit.js
-│   │       ├── getClientIp.js
-│   │       └── pdfGenerator.js
-│   │
-│   ├── frontend/
-│   │   ├── components/
-│   │   │   ├── Navbar/
-│   │   │   ├── Sidebar/
-│   │   │   ├── ProductGrid/
-│   │   │   ├── CartSidebar/
-│   │   │   ├── PaymentModal/
-│   │   │   └── ReceiptModal/
-│   │   │
-│   │   ├── services/
-│   │   │   ├── authApi.js
-│   │   │   ├── productApi.js
-│   │   │   ├── transactionApi.js
-│   │   │   └── pusher.js
-│   │   │
-│   │   └── css/
-│   │
-│   ├── lib/
-│   │   ├── prisma.js
-│   │   └── pusher.js
-│   │
-│   ├── generated/
-│   │   └── prisma/
-│   │
-│   └── shared/
-│       └── utils/
-│           ├── formatCurrency.js
-│           └── formatDate.js
-│
-├── .env
-├── .gitignore
-├── next.config.js
-├── package.json
-└── README.md
-```
+JWT disimpan menggunakan cookie sehingga token tidak perlu diakses langsung oleh JavaScript client.
+
+### Role-Based Authorization
+
+Setiap role memiliki permission yang berbeda.
+
+Authorization harus tetap diverifikasi di server/API.
+
+### Rate Limiting
+
+Endpoint login memiliki rate limiting untuk mengurangi risiko:
+
+* Brute force
+* Credential attack
+* Excessive request
+
+### reCAPTCHA
+
+Login menggunakan reCAPTCHA v3 untuk membantu mendeteksi automated/bot requests.
+
+### Session Expiration
+
+Session memiliki masa berlaku dan mekanisme logout ketika session sudah tidak valid.
+
+### SQL Injection Protection
+
+Database access menggunakan Prisma sehingga query tidak dibuat dengan string concatenation SQL secara manual.
+
+### Security Headers
+
+Aplikasi menggunakan beberapa security headers, termasuk Content Security Policy (CSP).
 
 ---
 
@@ -615,516 +418,442 @@ kasir-nextjs/
 
 Database menggunakan:
 
-* PostgreSQL
-* Neon PostgreSQL
-* Prisma ORM
+```text
+PostgreSQL
+```
 
-Relasi utama:
+ORM:
+
+```text
+Prisma
+```
+
+Database adapter menggunakan PostgreSQL adapter.
+
+Konfigurasi database menggunakan:
+
+```env
+DATABASE_URL="postgresql://..."
+```
+
+## Main Models
+
+```text
+User
+Product
+StockHistory
+Transaction
+TransactionItem
+AuditLog
+```
+
+### Relationship Overview
 
 ```text
 User
  │
- └── Transaction
-        │
-        └── TransactionItem
-                │
-                └── Product
+ ├── Transactions
+ │
+ └── AuditLogs
+
+Product
+ │
+ ├── TransactionItems
+ │
+ └── StockHistories
+
+Transaction
+ │
+ ├── User / Cashier
+ │
+ └── TransactionItems
+
+TransactionItem
+ │
+ └── Product
 ```
 
 ---
 
-## User
+# 🧱 Project Architecture
 
-Menyimpan data pengguna.
+Project menggunakan struktur full-stack di dalam Next.js.
 
 ```text
-id
-username
-password
-role
-createdAt
-updatedAt
+src/
+├── app/
+│   ├── api/
+│   ├── auth/
+│   ├── dashboard/
+│   ├── pos/
+│   ├── reports/
+│   └── api-doc/
+│
+├── backend/
+│   ├── actions/
+│   ├── service/
+│   └── utils/
+│
+├── frontend/
+│   ├── components/
+│   ├── css/
+│   ├── data/
+│   ├── services/
+│   └── ...
+│
+├── generated/
+│   └── prisma/
+│
+├── lib/
+│
+├── shared/
+│   ├── constants/
+│   └── utils/
+│
+└── proxy.js
 ```
 
-Role:
+---
+
+# 📁 Project Structure
 
 ```text
-admin
-cashier
+src/
+│
+├── app/
+│   │
+│   ├── api/
+│   │   └── v1/
+│   │       ├── audit-logs/
+│   │       ├── dashboard/
+│   │       ├── products/
+│   │       ├── reports/
+│   │       ├── test-api/
+│   │       ├── transactions/
+│   │       └── users/
+│   │
+│   ├── api-doc/
+│   │   ├── page.jsx
+│   │   └── react-swagger.jsx
+│   │
+│   ├── auth/
+│   │   ├── Layout.jsx
+│   │   └── login/
+│   │
+│   ├── dashboard/
+│   │   ├── layout.jsx
+│   │   ├── monitoring/
+│   │   ├── products/
+│   │   ├── transactions/
+│   │   └── users/
+│   │
+│   ├── pos/
+│   │   ├── Layout.jsx
+│   │   ├── page.jsx
+│   │   └── ProductGrid.jsx
+│   │
+│   ├── reports/
+│   │   └── page.jsx
+│   │
+│   ├── globals.css
+│   ├── layout.js
+│   └── page.js
+│
+├── backend/
+│   ├── actions/
+│   │   ├── checkout.action.js
+│   │   ├── product.action.js
+│   │   └── report.action.js
+│   │
+│   ├── service/
+│   │   ├── audit.service.js
+│   │   ├── dashboard.service.js
+│   │   ├── product.service.js
+│   │   ├── stock.service.js
+│   │   └── transaction.service.js
+│   │
+│   └── utils/
+│       ├── escpos.js
+│       ├── getClientIp.js
+│       ├── pdfGenerator.js
+│       └── rateLimiter.js
+│
+├── frontend/
+│   ├── components/
+│   │   ├── admin/
+│   │   ├── pos/
+│   │   ├── shared/
+│   │   └── ui/
+│   │
+│   ├── css/
+│   ├── data/
+│   └── services/
+│
+├── generated/
+│   └── prisma/
+│
+├── lib/
+│   ├── auth.js
+│   ├── prisma.js
+│   ├── pusher.js
+│   └── swagger.js
+│
+├── shared/
+│   ├── constants/
+│   └── utils/
+│
+└── proxy.js
 ```
 
 ---
 
-## Product
-
-Menyimpan data produk.
-
-```text
-id
-name
-price
-stock
-category
-image
-isActive
-createdAt
-updatedAt
-```
-
-`isActive` digunakan untuk soft delete.
-
----
-
-## Transaction
-
-Menyimpan transaksi penjualan.
-
-```text
-id
-total
-paymentMethod
-cashReceived
-change
-cashierId
-idempotencyKey
-createdAt
-```
-
----
-
-## TransactionItem
-
-Menyimpan detail produk pada transaksi.
-
-```text
-id
-transactionId
-productId
-quantity
-price
-subtotal
-```
-
----
-
-# 🔄 Transaction Flow
-
-```text
-Select Product
-       ↓
-Add to Cart
-       ↓
-Set Quantity
-       ↓
-Calculate Subtotal
-       ↓
-Calculate Total
-       ↓
-Payment
-       ↓
-Validate Stock
-       ↓
-Validate Payment
-       ↓
-Check Idempotency Key
-       ↓
-Create Transaction
-       ↓
-Create Transaction Items
-       ↓
-Update Product Stock
-       ↓
-Commit Database Transaction
-       ↓
-Create Audit Log
-       ↓
-Trigger Pusher Event
-       ↓
-Transaction Completed
-```
-
-Database transaction menggunakan Prisma transaction untuk menjaga konsistensi data.
-
----
-
-# 🔐 Security
-
-Security yang diterapkan:
-
-* JWT Authentication
-* HTTP Cookie Authentication
-* bcrypt password hashing
-* Role-based Authorization
-* Protected API
-* Server-side validation
-* Database validation
-* Rate limiting
-* reCAPTCHA
-* Idempotency
-* Audit logging
-* Stock validation
-* Server-side price validation
-* Server-side total calculation
-* Prisma transaction
-* PostgreSQL database
-
-### Prinsip penting
-
-Data dari client tidak langsung dipercaya.
-
-Contohnya:
-
-```text
-price
-total
-stock
-cashierId
-subtotal
-quantity
-```
-
-Server melakukan validasi dan perhitungan ulang sebelum menyimpan transaksi.
-
----
-
-# 🚦 Rate Limiting
-
-Login API menggunakan rate limiting untuk membantu mencegah brute-force attack.
-
-Contoh konsep:
-
-```text
-Login attempt
-      ↓
-Rate limiter
-      ↓
-Allowed?
-  ┌───┴───┐
- YES      NO
-  ↓        ↓
-Login    Reject
-```
-
-Jika jumlah percobaan melebihi batas, request akan ditolak sementara.
-
----
-
-# 🤖 reCAPTCHA
-
-Login dapat dilindungi menggunakan **Google reCAPTCHA v3** untuk membantu mendeteksi aktivitas otomatis/bot.
-
-Flow:
-
-```text
-Login Form
-    ↓
-reCAPTCHA
-    ↓
-Token
-    ↓
-Login API
-    ↓
-Verify Token
-    ↓
-Authentication
-```
-
----
-
-# ⏱️ Session Expiration
-
-JWT digunakan dengan expiration time untuk membatasi masa berlaku session.
-
-Contoh konfigurasi:
-
-```env
-JWT_EXPIRES_IN="12h"
-```
-
-Dengan konfigurasi tersebut, token akan expired setelah 12 jam.
-
----
-
-# 🌐 API Endpoints
+# 🔌 API Endpoints
 
 ## Authentication
 
-```text
-POST /api/v1/users/login
-POST /api/v1/users/register
-POST /api/v1/users/logout
-```
-
----
-
-## Products
-
-```text
-GET    /api/v1/products
-POST   /api/v1/products
-
-GET    /api/v1/products/:id
-PATCH  /api/v1/products/:id
-DELETE /api/v1/products/:id
-
-PATCH  /api/v1/products/:id/restore
-```
-
----
+| Method | Endpoint                               | Description |
+| ------ | -------------------------------------- | ----------- |
+| POST   | `/api/v1/users/login`                  | Login       |
+| POST   | `/api/v1/users/logout`                 | Logout      |
+| POST   | `/api/v1/users/register`               | Register    |
+| POST   | `/api/v1/users/reset-login/[username]` | Reset login |
 
 ## Users
 
-```text
-GET    /api/v1/users
-POST   /api/v1/users
-PATCH  /api/v1/users/:id
-DELETE /api/v1/users/:id
-```
+| Method    | Endpoint             | Description |
+| --------- | -------------------- | ----------- |
+| GET       | `/api/v1/users`      | Get users   |
+| GET       | `/api/v1/users/[id]` | Get user    |
+| PUT/PATCH | `/api/v1/users/[id]` | Update user |
+| DELETE    | `/api/v1/users/[id]` | Delete user |
 
----
+## Products
+
+| Method    | Endpoint                        | Description     |
+| --------- | ------------------------------- | --------------- |
+| GET       | `/api/v1/products`              | Get products    |
+| POST      | `/api/v1/products`              | Create product  |
+| GET       | `/api/v1/products/[id]`         | Get product     |
+| PUT/PATCH | `/api/v1/products/[id]`         | Update product  |
+| DELETE    | `/api/v1/products/[id]`         | Delete product  |
+| POST      | `/api/v1/products/[id]/restore` | Restore product |
 
 ## Transactions
 
-```text
-GET  /api/v1/transactions
-POST /api/v1/transactions
-GET  /api/v1/transactions/:id
-```
-
----
+| Method | Endpoint                    | Description            |
+| ------ | --------------------------- | ---------------------- |
+| GET    | `/api/v1/transactions`      | Get transactions       |
+| POST   | `/api/v1/transactions`      | Create transaction     |
+| GET    | `/api/v1/transactions/[id]` | Get transaction detail |
 
 ## Dashboard
 
-```text
-GET /api/v1/dashboard/analytics
-```
-
----
+| Method | Endpoint                       | Description         |
+| ------ | ------------------------------ | ------------------- |
+| GET    | `/api/v1/dashboard/analytics`  | Dashboard analytics |
+| GET    | `/api/v1/dashboard/monitoring` | Monitoring data     |
 
 ## Reports
 
-```text
-GET /api/v1/reports/pdf
-```
+| Method | Endpoint              | Description         |
+| ------ | --------------------- | ------------------- |
+| GET    | `/api/v1/reports/pdf` | Generate PDF report |
 
-Parameter:
+## Audit Log
 
-```text
-type=product
-type=transaction
-type=all
-```
-
----
-
-# 📚 Libraries & Dependencies
-
-Berikut library utama yang digunakan dalam project.
-
-## Core
-
-### Next.js
-
-Framework utama untuk frontend dan backend.
-
-```bash
-npm install next
-```
-
-### React
-
-Library UI.
-
-```bash
-npm install react react-dom
-```
+| Method | Endpoint                  | Description    |
+| ------ | ------------------------- | -------------- |
+| GET    | `/api/v1/audit-logs`      | Get audit logs |
+| GET    | `/api/v1/audit-logs/test` | Test audit log |
 
 ---
 
-# 🗄️ Database & ORM
+# 📚 Swagger API Documentation
 
-### Prisma
+API documentation tersedia menggunakan Swagger.
 
-ORM untuk PostgreSQL.
-
-```bash
-npm install prisma @prisma/client
-```
-
-Project menggunakan Prisma PostgreSQL adapter:
-
-```bash
-npm install @prisma/adapter-pg pg
-```
-
-Generate Prisma Client:
-
-```bash
-npx prisma generate
-```
-
-Migration:
-
-```bash
-npx prisma migrate dev
-```
-
----
-
-# 🔐 Authentication & Security
-
-### JSON Web Token
-
-Digunakan untuk authentication.
-
-```bash
-npm install jsonwebtoken
-```
-
-### bcrypt
-
-Digunakan untuk hashing password.
-
-```bash
-npm install bcrypt
-```
-
-### reCAPTCHA
-
-Digunakan untuk perlindungan login terhadap bot dan automated requests.
-
----
-
-# 🎨 UI & Styling
-
-### CSS Modules
-
-Digunakan untuk styling component/page secara modular.
-
-Next.js sudah mendukung CSS Modules secara built-in.
-
-### Lucide React
-
-Icon library.
-
-```bash
-npm install lucide-react
-```
-
-### SweetAlert2
-
-Digunakan untuk dialog, confirmation, dan notification.
-
-```bash
-npm install sweetalert2
-```
-
-### React Toastify
-
-Digunakan untuk toast notification.
-
-```bash
-npm install react-toastify
-```
-
----
-
-# 📊 Data Visualization
-
-### Recharts
-
-Digunakan untuk dashboard analytics dan grafik penjualan.
-
-```bash
-npm install recharts
-```
-
-Contoh chart:
+Route:
 
 ```text
-Sales
-  │
-  │        ╭──╮
-  │   ╭────╯  ╰──╮
-  │───╯           ╰──
-  └──────────────────
-       Date
+/api-doc
 ```
 
----
+Swagger digunakan untuk:
 
-# 📄 PDF
+* Melihat daftar API
+* Melihat HTTP method
+* Melihat request
+* Melihat response
+* Testing endpoint
+* Dokumentasi API
 
-### PDFKit
-
-Digunakan untuk membuat laporan PDF.
-
-```bash
-npm install pdfkit
-```
-
-Digunakan untuk:
-
-* Product Report
-* Transaction Report
-* Combined Report
-
----
-
-# ⚡ Real-time
-
-### Pusher
-
-Server-side Pusher.
-
-```bash
-npm install pusher
-```
-
-### Pusher JS
-
-Client-side Pusher.
-
-```bash
-npm install pusher-js
-```
-
-Digunakan untuk real-time notification/event seperti:
+Swagger configuration:
 
 ```text
-transaction-created
+src/lib/swagger.js
+```
+
+Swagger UI:
+
+```text
+src/app/api-doc/react-swagger.jsx
 ```
 
 ---
 
-# 🛡️ Rate Limiting
+# 🧪 Testing
 
-Project menggunakan utility rate limiting pada backend untuk membatasi request tertentu, terutama login.
+Project dapat diuji menggunakan beberapa pendekatan.
+
+### API Testing
+
+API dapat diuji menggunakan:
+
+* Swagger
+* Postman
+* Browser
+* Custom testing script
+
+### Security Testing
+
+Beberapa pengujian keamanan yang dapat dilakukan:
+
+* SQL Injection
+* Authentication testing
+* Rate limit testing
+* Authorization testing
+* Security headers
+* CSP testing
+
+Contoh SQL injection test:
+
+```text
+Username: '
+Password: test
+```
+
+Response yang diharapkan:
+
+```text
+401 Unauthorized
+```
+
+---
+
+# 🚦 Load Testing
+
+Project juga dapat diuji menggunakan Python dengan virtual users.
 
 Contoh:
 
 ```text
-Login API
-    ↓
-Rate Limiter
-    ↓
-Allowed / Blocked
+testing-user/
+├── testing-products.py
+├── testing-transactions.py
+└── testing-login.py
 ```
+
+Load testing dapat digunakan untuk mengukur:
+
+* Response time
+* Throughput
+* Success rate
+* Failed request
+* Average latency
+* P95 latency
+* Server behavior under concurrent requests
+
+Contoh hasil:
+
+```text
+Virtual Users : 50
+Total Requests: 50
+Success Rate  : 100%
+Throughput    : 8.73 req/s
+```
+
+> Hasil load test sangat bergantung pada hardware, database, network, query, konfigurasi server, dan environment tempat testing dilakukan.
 
 ---
 
-# 🧰 Development Tools
+# ⚡ Performance Considerations
 
-Tools yang digunakan selama development:
+Beberapa optimasi yang diterapkan atau dapat dikembangkan:
 
-* VS Code
-* Git
-* GitHub
-* Postman
-* Prisma Studio
-* Chrome DevTools
-* Vercel
-* Neon PostgreSQL
+* Pagination
+* Limit query
+* Database indexing
+* Efficient Prisma queries
+* Avoid unnecessary data fetching
+* API caching jika diperlukan
+* Rate limiting
+* Connection pooling
+* Query optimization
+* Realtime update menggunakan Pusher
+
+Untuk endpoint dengan jumlah data besar, pagination digunakan agar server tidak mengambil seluruh data sekaligus.
+
+---
+
+# 📱 Progressive Web App
+
+Aplikasi mendukung konsep **Progressive Web App (PWA)**.
+
+Komponen PWA:
+
+```text
+manifest.webmanifest
+sw.js
+icons/
+```
+
+Tujuannya agar aplikasi dapat memberikan pengalaman seperti aplikasi desktop/mobile.
+
+---
+
+# 🛠️ Tech Stack
+
+## Frontend
+
+* Next.js
+* React
+* JavaScript
+* JSX
+* CSS
+* CSS Modules
+* Recharts
+* Lucide React
+* React Toastify
+
+## Backend
+
+* Next.js App Router
+* Node.js
+* Prisma
+* PostgreSQL
+* JWT
+* bcrypt
+* Pusher
+
+## Documentation
+
+* Swagger
+* next-swagger-doc
+* swagger-ui-react
+
+## Reporting
+
+* PDFKit
+
+## Security
+
+* bcrypt
+* JWT
+* reCAPTCHA v3
+* Rate Limiting
+* CSP
+* Security Headers
+* RBAC
 
 ---
 
@@ -1142,17 +871,15 @@ Masuk ke project:
 cd kasir-nextjs
 ```
 
----
-
-# 2. Install Dependencies
+## 2. Install Dependencies
 
 ```bash
 npm install
 ```
 
----
+Semua dependency yang terdapat di `package.json` akan otomatis di-install.
 
-# 3. Environment Variables
+## 3. Environment Variables
 
 Buat file:
 
@@ -1160,49 +887,43 @@ Buat file:
 .env
 ```
 
-Contoh:
+Kemudian isi konfigurasi yang dibutuhkan:
 
 ```env
 DATABASE_URL="your_postgresql_database_url"
 
-JWT_SECRET="your_secret_key"
-
-JWT_EXPIRES_IN="12h"
-
-NEXT_PUBLIC_PUSHER_KEY="your_pusher_key"
-
-PUSHER_APP_ID="your_pusher_app_id"
-
-PUSHER_SECRET="your_pusher_secret"
-
-PUSHER_CLUSTER="your_pusher_cluster"
+JWT_SECRET="your_jwt_secret"
 
 NEXT_PUBLIC_RECAPTCHA_SITE_KEY="your_recaptcha_site_key"
 
 RECAPTCHA_SECRET_KEY="your_recaptcha_secret_key"
+
+PUSHER_APP_ID="your_pusher_app_id"
+PUSHER_KEY="your_pusher_key"
+PUSHER_SECRET="your_pusher_secret"
+PUSHER_CLUSTER="your_pusher_cluster"
+
+NEXT_PUBLIC_PUSHER_KEY="your_pusher_key"
+NEXT_PUBLIC_PUSHER_CLUSTER="your_pusher_cluster"
 ```
 
-> Jangan commit `.env` ke GitHub.
+> Jangan commit file `.env` ke repository.
 
----
-
-# 4. Generate Prisma Client
+## 4. Generate Prisma Client
 
 ```bash
 npx prisma generate
 ```
 
----
+## 5. Database Migration
 
-# 5. Database Migration
-
-Development:
+Untuk development:
 
 ```bash
 npx prisma migrate dev
 ```
 
-Production:
+Untuk production:
 
 ```bash
 npx prisma migrate deploy
@@ -1210,17 +931,9 @@ npx prisma migrate deploy
 
 ---
 
-# 6. Prisma Studio
+# 🚀 Running Development Server
 
-Untuk melihat database:
-
-```bash
-npx prisma studio
-```
-
----
-
-# 7. Jalankan Development Server
+Jalankan:
 
 ```bash
 npm run dev
@@ -1234,7 +947,7 @@ http://localhost:5000
 
 ---
 
-# 🏗️ Build Production
+# 🏗️ Production Build
 
 Build aplikasi:
 
@@ -1242,7 +955,7 @@ Build aplikasi:
 npm run build
 ```
 
-Jalankan production:
+Start production server:
 
 ```bash
 npm start
@@ -1250,174 +963,264 @@ npm start
 
 ---
 
-# 🧪 Testing API
+# 🔍 Lint
 
-API dapat diuji menggunakan:
+Jalankan ESLint:
 
-* Postman
-* Browser
-* Chrome DevTools
-* REST Client
+```bash
+npm run lint
+```
+
+ESLint digunakan untuk membantu mendeteksi:
+
+* Potential bugs
+* React issues
+* Hook issues
+* Code quality issues
+* Unused variables
+* Invalid patterns
+
+Disarankan memperbaiki warning/error ESLint daripada menonaktifkan rule secara global.
+
+---
+
+# 🗂️ Important Routes
+
+| Route                           | Description           |
+| ------------------------------- | --------------------- |
+| `/`                             | Home                  |
+| `/auth/login`                   | Login                 |
+| `/dashboard`                    | Dashboard             |
+| `/dashboard/products`           | Product management    |
+| `/dashboard/products/tambah`    | Add product           |
+| `/dashboard/products/edit/[id]` | Edit product          |
+| `/dashboard/transactions`       | Transactions          |
+| `/dashboard/transactions/[id]`  | Transaction detail    |
+| `/dashboard/users`              | User management       |
+| `/dashboard/monitoring`         | System monitoring     |
+| `/reports`                      | Reports               |
+| `/pos`                          | Point of Sale         |
+| `/api-doc`                      | Swagger documentation |
+
+---
+
+# 🔄 Main Transaction Architecture
+
+```text
+                 ┌──────────────┐
+                 │   POS Page   │
+                 └──────┬───────┘
+                        │
+                        ▼
+                 Payment Modal
+                        │
+                        ▼
+              Checkout / Transaction
+                        │
+                        ▼
+              Transaction Service
+                        │
+             ┌──────────┼──────────┐
+             ▼          ▼          ▼
+        Transaction   Stock     Audit Log
+             │        Update
+             │
+             ▼
+        TransactionItem
+             │
+             ▼
+           Product
+                        │
+                        ▼
+                    Pusher
+                        │
+                        ▼
+                   Dashboard
+```
+
+---
+
+# 🧩 Backend Responsibility
+
+### `backend/actions`
+
+Berisi action yang menjadi penghubung antara API/UI dengan service.
 
 Contoh:
 
 ```text
-POST /api/v1/products
-POST /api/v1/transactions
-GET  /api/v1/products
-GET  /api/v1/transactions
+checkout.action.js
+product.action.js
+report.action.js
 ```
 
----
+### `backend/service`
 
-# 🚀 Deployment
-
-Project dapat di-deploy menggunakan Vercel.
-
-Production flow:
+Berisi business logic utama aplikasi.
 
 ```text
-GitHub
-   ↓
-Push Code
-   ↓
-Vercel
-   ↓
-npm run build
-   ↓
-Prisma Generate
-   ↓
-Next.js Build
-   ↓
-Production
+audit.service.js
+dashboard.service.js
+product.service.js
+stock.service.js
+transaction.service.js
 ```
 
-Database menggunakan PostgreSQL/Neon.
+### `backend/utils`
 
----
-
-# ⚠️ Production Notes
-
-File upload sebaiknya tidak disimpan langsung ke filesystem server menggunakan:
+Berisi utility yang digunakan oleh backend.
 
 ```text
-/public/products
+escpos.js
+getClientIp.js
+pdfGenerator.js
+rateLimiter.js
 ```
-
-karena filesystem pada platform serverless seperti Vercel bersifat ephemeral/read-only pada bagian tertentu.
-
-Untuk production, gunakan object storage seperti:
-
-* Vercel Blob
-* Cloudinary
-* Amazon S3
-* Storage provider lainnya
-
-Database hanya menyimpan URL gambar.
 
 ---
 
-# 📈 Future Improvements
+# 🎨 Frontend Responsibility
 
-Roadmap pengembangan:
+### `frontend/components`
 
-* [x] Dashboard analytics
-* [x] Grafik penjualan
-* [x] Filter laporan berdasarkan tanggal
-* [x] Print receipt
-* [x] Product search
-* [x] Pagination
-* [x] Rate limiting
-* [x] Idempotency
-* [x] Audit log
-* [x] Real-time update
-* [x] PWA basic setup
-* [x] Soft delete product
-* [x] Restore product
-* [ ] Export Excel
-* [ ] Barcode scanner
-* [ ] Dark mode
-* [ ] Cloud image storage
-* [ ] Automated testing
-* [ ] Unit testing
+Berisi reusable UI components.
+
+Contoh:
+
+```text
+admin/
+pos/
+shared/
+ui/
+```
+
+### `frontend/services`
+
+Berisi logic komunikasi frontend dengan API.
+
+Contoh:
+
+```text
+authApi.js
+dashboardApi.js
+productApi.js
+transactionApi.js
+pusher.js
+```
+
+### `frontend/css`
+
+Berisi stylesheet dan CSS Modules.
+
+---
+
+# 🔗 Shared
+
+Folder:
+
+```text
+src/shared/
+```
+
+digunakan untuk logic yang dapat digunakan oleh beberapa bagian aplikasi.
+
+Contoh:
+
+```text
+shared/
+├── constants/
+└── utils/
+    ├── formatCurrency.js
+    └── formatDate.js
+```
+
+---
+
+# 🧠 Development Principles
+
+Project dikembangkan dengan beberapa prinsip:
+
+* Separation of concerns
+* Reusable components
+* Service-based backend logic
+* API-based communication
+* Server-side authorization
+* Database transactions
+* Input validation
+* Secure authentication
+* Error handling
+* Pagination
+* Performance testing
+* Security testing
+
+---
+
+# 🔒 Production Checklist
+
+Sebelum deployment production:
+
+* [ ] Set `DATABASE_URL`
+* [ ] Set `JWT_SECRET` yang kuat
+* [ ] Set reCAPTCHA credentials
+* [ ] Set Pusher credentials
+* [ ] Jangan commit `.env`
+* [ ] Jalankan `npm run lint`
+* [ ] Jalankan `npm run build`
+* [ ] Jalankan Prisma migration
+* [ ] Pastikan authorization API aktif
+* [ ] Pastikan rate limiting aktif
+* [ ] Pastikan CSP/security headers sesuai environment
+* [ ] Test login
+* [ ] Test transaction
+* [ ] Test stock update
+* [ ] Test role permissions
+* [ ] Test monitoring access
+* [ ] Test user management access
+* [ ] Test PDF report
+* [ ] Test realtime dashboard
+
+---
+
+# 🚧 Future Improvements
+
+Beberapa fitur yang dapat dikembangkan:
+
+* [ ] Automated unit testing
 * [ ] Integration testing
-* [ ] E2E testing
-
----
-
-# 🎯 Project Goals
-
-Project ini dibuat untuk menerapkan konsep **Full-Stack Web Development**, meliputi:
-
-* Frontend Development
-* Backend Development
-* REST API
-* Database Design
-* PostgreSQL
-* Prisma ORM
-* Authentication
-* Authorization
-* JWT
-* Password Hashing
-* Role-based Access Control
-* API Security
-* Rate Limiting
-* Idempotency
-* Audit Logging
-* Database Transactions
-* Real-time Communication
-* State Management
-* Responsive UI
-* PDF Generation
-* Deployment
+* [ ] End-to-end testing
+* [ ] Advanced monitoring
+* [ ] More detailed analytics
+* [ ] Export Excel
+* [ ] Backup & restore database
+* [ ] Inventory management yang lebih lengkap
+* [ ] Supplier management
+* [ ] Purchase/order management
+* [ ] Multi-store support
+* [ ] Advanced permission management
+* [ ] Automated CI/CD
+* [ ] Improved caching
+* [ ] Database query optimization
 
 ---
 
 # 👨‍💻 Developer
 
-## Muhammad Iqbal
+**Muhammad Iqbal**
 
-**Full-Stack Web Developer**
+Full-Stack Developer / Informatics Engineering Graduate
 
-### Skills
+Project:
 
-```text
-Next.js
-React.js
-JavaScript
-Node.js
-Prisma
-PostgreSQL
-Neon
-REST API
-JWT
-bcrypt
-Pusher
-Recharts
-Git
-GitHub
-Vercel
-```
-
----
-
-# 📄 License
-
-Project ini dikembangkan untuk:
-
-* Learning
-* Portfolio
-* Educational purposes
-* Full-Stack Web Development practice
-
----
-
-# ⭐ Support
-
-Jika project ini bermanfaat, jangan lupa memberikan ⭐ pada repository GitHub.
+**Toko Iqbal — Point of Sale**
 
 Repository:
 
 ```text
 https://github.com/iqbal0899/kasir-nextjs
 ```
+
+---
+
+# 📄 License
+
+This project is developed for learning, portfolio, and application development purposes.

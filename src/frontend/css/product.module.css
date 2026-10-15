@@ -360,6 +360,55 @@
   font-size: 14px;
 }
 
+.requestButton {
+  flex: 1;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 14px;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.requestButton:hover {
+  background: #1d4ed8;
+}
+
+.cardActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.editButton,
+.deleteButton {
+  flex: 1;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.requestButton {
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.requestButton:hover {
+  background: #1d4ed8;
+}
+
 
 /* ========================================
    TABLET BESAR

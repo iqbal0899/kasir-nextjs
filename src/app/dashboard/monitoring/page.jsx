@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import styles from "@/frontend/css/monitoring.module.css";
 import Button from "@/frontend/components/ui/Button";
+import { RefreshCw } from "lucide-react";
 
 export default function MonitoringPage() {
   const [data, setData] = useState(null);
@@ -14,16 +15,20 @@ export default function MonitoringPage() {
 
     const loadMonitoring = async () => {
       try {
-        const response = await fetch("/api/v1/dashboard/monitoring", {
-          cache: "no-store",
-          credentials: "include",
-        });
+        const response = await fetch(
+          "/api/v1/dashboard/monitoring",
+          {
+            cache: "no-store",
+            credentials: "include",
+          }
+        );
 
         const result = await response.json();
 
         if (!response.ok) {
           throw new Error(
-            result.message || "Gagal mengambil data monitoring"
+            result.message ||
+              "Gagal mengambil data monitoring"
           );
         }
 
@@ -32,7 +37,10 @@ export default function MonitoringPage() {
         }
       } catch (error) {
         if (!cancelled) {
-          console.error("Monitoring fetch error:", error);
+          console.error(
+            "Monitoring fetch error:",
+            error
+          );
         }
       } finally {
         if (!cancelled) {
@@ -55,38 +63,64 @@ export default function MonitoringPage() {
     };
   }, []);
 
+  // =====================================================
+  // MANUAL REFRESH
+  // =====================================================
+
   const handleRefresh = async () => {
     try {
       setRefreshing(true);
 
-      const response = await fetch("/api/v1/dashboard/monitoring", {
-        cache: "no-store",
-        credentials: "include",
-      });
+      const response = await fetch(
+        "/api/v1/dashboard/monitoring",
+        {
+          cache: "no-store",
+          credentials: "include",
+        }
+      );
 
       const result = await response.json();
 
       if (!response.ok) {
         throw new Error(
-          result.message || "Gagal mengambil data monitoring"
+          result.message ||
+            "Gagal mengambil data monitoring"
         );
       }
 
       setData(result);
     } catch (error) {
-      console.error("Monitoring refresh error:", error);
+      console.error(
+        "Monitoring refresh error:",
+        error
+      );
     } finally {
       setRefreshing(false);
     }
   };
 
+  // =====================================================
+  // INITIAL LOADING
+  // =====================================================
+
   if (loading) {
     return (
       <div className={styles.loading}>
-        Loading Monitoring...
+        <span
+          className={styles.loadingSpinner}
+          aria-hidden="true"
+        />
+
+        <span>
+          Loading Monitoring...
+        </span>
       </div>
     );
   }
+
+  // =====================================================
+  // EMPTY
+  // =====================================================
 
   if (!data) {
     return (
@@ -95,6 +129,10 @@ export default function MonitoringPage() {
       </div>
     );
   }
+
+  // =====================================================
+  // RENDER
+  // =====================================================
 
   return (
     <div className={styles.container}>
@@ -107,18 +145,31 @@ export default function MonitoringPage() {
 
           <p className={styles.lastUpdate}>
             Last update:{" "}
-            {new Date(data.timestamp).toLocaleString("id-ID")}
+            {new Date(
+              data.timestamp
+            ).toLocaleString("id-ID")}
           </p>
         </div>
 
         <Button
-  type="button"
-  className={styles.refreshButton}
-  onClick={handleRefresh}
-  disabled={refreshing}
->
-  {refreshing ? "Refreshing..." : "↻ Refresh"}
-</Button>
+          type="button"
+          className={styles.refreshButton}
+          onClick={handleRefresh}
+          disabled={refreshing}
+        >
+          <RefreshCw
+            size={16}
+            className={
+              refreshing
+                ? styles.refreshSpinner
+                : ""
+            }
+          />
+
+          {refreshing
+            ? "Refreshing..."
+            : "Refresh"}
+        </Button>
       </div>
 
       {/* MONITOR CARDS */}
@@ -187,12 +238,14 @@ export default function MonitoringPage() {
 
           <span
             className={
-              data.database.status === "healthy"
+              data.database.status ===
+              "healthy"
                 ? styles.healthy
                 : styles.unhealthy
             }
           >
-            {data.database.status === "healthy"
+            {data.database.status ===
+            "healthy"
               ? "🟢 Connected"
               : "🔴 Disconnected"}
           </span>

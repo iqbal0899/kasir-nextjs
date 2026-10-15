@@ -1,6 +1,11 @@
 "use client";
 
 import {
+  getMe,
+  logoutUser,
+} from "@/frontend/services/authApi";
+
+import {
   useCallback,
   useEffect,
   useState,
@@ -20,6 +25,7 @@ import ProductGrid from "../frontend/components/pos/ProductGrid";
 import CartSidebar from "../frontend/components/pos/CartSidebar";
 import PaymentModal from "../frontend/components/pos/PaymentModal";
 import ReceiptModal from "../frontend/components/pos/ReceiptModal";
+import Loading from "@/frontend/components/ui/Loading";
 
 export default function Home() {
   const router = useRouter();
@@ -127,39 +133,38 @@ export default function Home() {
   // AMBIL USER LOGIN
   // ========================================
 
-  useEffect(() => {
-    const storedUser =
-      localStorage.getItem("user");
 
-    if (storedUser) {
-      try {
-        const parsedUser =
-          JSON.parse(
-            storedUser
-          );
+useEffect(() => {
+  let active = true;
 
-        console.log(
-          "USER LOGIN:",
-          parsedUser
-        );
+  async function checkSession() {
+    try {
+      const currentUser = await getMe();
 
-        setUser(parsedUser);
-      } catch (error) {
-        console.error(
-          "USER DATA ERROR:",
-          error
-        );
+      if (active) {
+        setUser(currentUser);
+      }
+    } catch (error) {
+      if (!active) return;
 
-        localStorage.removeItem(
-          "user"
-        );
+      console.error("CHECK SESSION ERROR:", error);
 
-        toast.error(
-          "Data pengguna tidak valid. Silakan login kembali."
-        );
+      if (error.status === 401) {
+        setUser(null);
+        localStorage.removeItem("user");
+        router.replace("/auth/login");
+      } else {
+        toast.error("Gagal memeriksa sesi login.");
       }
     }
-  }, []);
+  }
+
+  checkSession();
+
+  return () => {
+    active = false;
+  };
+}, [router]);
 
   // ========================================
   // TOTAL
@@ -497,23 +502,25 @@ export default function Home() {
   // LOGOUT
   // ========================================
 
-  function handleLogout() {
-    localStorage.removeItem(
-      "token"
-    );
+  async function handleLogout() {
+  try {
+    await logoutUser();
 
-    localStorage.removeItem(
-      "user"
-    );
+    setUser(null);
+    setCart([]);
 
-    toast.info(
-      "Anda telah logout."
-    );
+    toast.info("Anda telah logout.");
+    router.replace("/auth/login");
+  } catch (error) {
+    console.error("LOGOUT ERROR:", error);
 
-    router.push(
-      "/auth/login"
+    toast.error(
+      error instanceof Error
+        ? error.message
+        : "Gagal logout"
     );
   }
+}
 
   // ========================================
   // RENDER
@@ -552,11 +559,20 @@ export default function Home() {
 
           <div className="pos-layout">
             <div>
+              {/* ====================================
+                  LOADING PRODUCTS
+              ==================================== */}
+
               {loadingProducts && (
-                <p>
-                  Memuat produk...
-                </p>
+                <Loading
+                  text="Memuat produk..."
+                  size="medium"
+                />
               )}
+
+              {/* ====================================
+                  PRODUCT ERROR
+              ==================================== */}
 
               {productError && (
                 <p
@@ -568,6 +584,10 @@ export default function Home() {
                 </p>
               )}
 
+              {/* ====================================
+                  EMPTY PRODUCTS
+              ==================================== */}
+
               {!loadingProducts &&
                 !productError &&
                 products.length ===
@@ -576,6 +596,10 @@ export default function Home() {
                     Belum ada produk.
                   </p>
                 )}
+
+              {/* ====================================
+                  PRODUCT GRID
+              ==================================== */}
 
               {!loadingProducts &&
                 !productError &&
@@ -642,4 +666,3 @@ export default function Home() {
     </div>
   );
 }
-

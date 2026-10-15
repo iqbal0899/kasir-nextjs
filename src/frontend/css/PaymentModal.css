@@ -1,43 +1,83 @@
+/* =====================================================
+   PAYMENT TOTAL
+===================================================== */
+
 .payment-total {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
+
+  width: 100%;
+  box-sizing: border-box;
+
   padding: 12px 14px;
+  margin-bottom: 16px;
+
   background: #f3f4f6;
   border-radius: 8px;
-  margin-bottom: 16px;
+
   font-size: 14px;
 }
 
-.payment-total strong {
-  font-size: 18px;
-  color: #2563eb;
+.payment-total span {
+  color: #4b5563;
 }
+
+.payment-total strong {
+  color: #2563eb;
+  font-size: 18px;
+  font-weight: 700;
+
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+
+/* =====================================================
+   PAYMENT METHODS
+===================================================== */
 
 .payment-methods {
   display: flex;
   gap: 8px;
+
+  width: 100%;
   margin-bottom: 16px;
 }
 
 .payment-method {
   flex: 1;
+
+  min-width: 0;
   min-height: 42px;
+
   padding: 10px;
+
   border: 1px solid #d1d5db;
   border-radius: 8px;
+
   background: #fff;
+  color: #374151;
+
   cursor: pointer;
+
   font-size: 13px;
   font-weight: 600;
+
   transition:
     background 0.15s ease,
     border-color 0.15s ease,
-    color 0.15s ease;
+    color 0.15s ease,
+    transform 0.1s ease;
 }
 
-.payment-method:hover {
+.payment-method:hover:not(:disabled) {
   border-color: #2563eb;
+}
+
+.payment-method:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
 .payment-method--active {
@@ -46,60 +86,228 @@
   color: #2563eb;
 }
 
+.payment-method:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+
+/* =====================================================
+   CASH PAYMENT
+===================================================== */
+
 .payment-cash {
   display: flex;
   flex-direction: column;
   gap: 12px;
+
+  width: 100%;
   margin-bottom: 16px;
 }
+
+
+/* =====================================================
+   DISABLED INPUT
+===================================================== */
+
+.payment-cash input:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+
+/* =====================================================
+   PAYMENT CHANGE
+===================================================== */
 
 .payment-change-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
+
   gap: 10px;
+
+  width: 100%;
+  box-sizing: border-box;
+
+  padding: 12px 14px;
+
+  border-radius: 8px;
+  background: #f3f4f6;
+
   font-size: 13px;
 }
 
-.payment-qris {
-  text-align: center;
-  margin-bottom: 16px;
-}
-
-.payment-qris-box {
-  width: 160px;
-  height: 160px;
-  margin: 0 auto 12px;
-  background: #f3f4f6;
-  border: 1px dashed #d1d5db;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  color: #9ca3af;
-}
-
-.payment-qris p {
-  font-size: 12px;
+.payment-change-row span {
   color: #6b7280;
-  line-height: 1.5;
-  margin: 0;
 }
+
+.payment-change-row strong {
+  color: #111827;
+  font-weight: 700;
+
+  text-align: right;
+}
+
 
 /* =====================================================
-   PAYMENT LOADING
+   QRIS PAYMENT
+===================================================== */
+
+.qris-payment {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  width: 100%;
+  box-sizing: border-box;
+
+  padding: 16px;
+
+  margin-bottom: 16px;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+
+  background: #ffffff;
+
+  text-align: center;
+}
+
+
+/* =====================================================
+   QR CODE
+===================================================== */
+
+.qris-payment img {
+  display: block;
+
+  width: min(280px, 70vw);
+  height: auto;
+  aspect-ratio: 1 / 1;
+
+  max-width: 100%;
+
+  object-fit: contain;
+
+  padding: 6px;
+  box-sizing: border-box;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+
+  background: #ffffff;
+}
+
+
+/* =====================================================
+   QRIS AMOUNT
+===================================================== */
+
+.qris-payment__amount {
+  width: 100%;
+
+  margin: 12px 0 4px;
+
+  color: #2563eb;
+
+  font-size: 18px;
+  font-weight: 700;
+
+  overflow-wrap: anywhere;
+}
+
+
+/* =====================================================
+   QRIS DESCRIPTION
+===================================================== */
+
+.qris-payment__description {
+  width: 100%;
+
+  margin: 0 0 12px;
+
+  color: #6b7280;
+
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+
+/* =====================================================
+   QRIS BUTTON
+===================================================== */
+
+.qris-payment button {
+  width: auto;
+  max-width: 100%;
+
+  margin-top: 10px;
+
+  min-height: 40px;
+
+  padding: 9px 16px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: #2563eb;
+  color: #ffffff;
+
+  cursor: pointer;
+
+  font-size: 10px;
+  font-weight: 600;
+
+  transition:
+    background 0.15s ease,
+    transform 0.1s ease;
+}
+
+.qris-payment button:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.qris-payment button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.qris-payment button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+
+/* =====================================================
+   LOADING QR
+===================================================== */
+
+.qris-payment > p {
+  margin: 0;
+
+  color: #6b7280;
+
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+
+/* =====================================================
+   PAYMENT LOADING SPINNER
 ===================================================== */
 
 .payment-loading-spinner {
+  display: inline-block;
+
   width: 16px;
   height: 16px;
+
+  margin-right: 8px;
+
   border: 2px solid currentColor;
   border-top-color: transparent;
-  border-radius: 50%;
 
-  display: inline-block;
-  margin-right: 8px;
+  border-radius: 50%;
 
   vertical-align: -3px;
 
@@ -112,56 +320,13 @@
   }
 }
 
-/* =====================================================
-   DISABLED PAYMENT METHOD
-===================================================== */
-
-.payment-method:disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
 
 /* =====================================================
-   DISABLED INPUT
-===================================================== */
-
-.payment-cash input:disabled {
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
-/* =====================================================
-   PAYMENT METHOD HOVER
-===================================================== */
-
-.payment-method:hover:not(:disabled) {
-  border-color: #2563eb;
-}
-
-/* =====================================================
-   DISABLED PAYMENT METHOD
-===================================================== */
-
-.payment-method:disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
-/* =====================================================
-   DISABLED INPUT
-===================================================== */
-
-.payment-cash input:disabled {
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
-
-/* ================================
    TABLET
-================================ */
+===================================================== */
 
 @media (max-width: 900px) {
+
   .payment-total {
     padding: 11px 13px;
     font-size: 13px;
@@ -171,13 +336,10 @@
     font-size: 17px;
   }
 
-  .payment-methods {
-    gap: 7px;
-  }
-
   .payment-method {
     min-height: 42px;
     padding: 9px;
+
     font-size: 13px;
   }
 
@@ -189,21 +351,27 @@
     font-size: 13px;
   }
 
-  .payment-qris-box {
-    width: 150px;
-    height: 150px;
+  .qris-payment {
+    padding: 14px;
+  }
+
+  .qris-payment img {
+    width: min(260px, 60vw);
   }
 }
 
 
-/* ================================
+/* =====================================================
    TABLET KECIL
-================================ */
+===================================================== */
 
 @media (max-width: 600px) {
+
   .payment-total {
     padding: 12px;
+
     margin-bottom: 14px;
+
     font-size: 13px;
   }
 
@@ -212,14 +380,15 @@
   }
 
   .payment-methods {
-    width: 100%;
     gap: 8px;
     margin-bottom: 14px;
   }
 
   .payment-method {
     min-height: 44px;
+
     padding: 10px 8px;
+
     font-size: 13px;
   }
 
@@ -229,33 +398,41 @@
   }
 
   .payment-change-row {
+    padding: 11px 12px;
+
     font-size: 13px;
   }
 
-  .payment-qris {
+  .qris-payment {
+    padding: 14px 10px;
     margin-bottom: 14px;
   }
 
-  .payment-qris-box {
-    width: 160px;
-    height: 160px;
+  .qris-payment img {
+    width: min(250px, 65vw);
   }
 
-  .payment-qris p {
+  .qris-payment__amount {
+    font-size: 17px;
+  }
+
+  .qris-payment__description {
     font-size: 12px;
-    padding: 0 10px;
   }
 }
 
 
-/* ================================
+/* =====================================================
    SMARTPHONE
-================================ */
+===================================================== */
 
 @media (max-width: 480px) {
+
   .payment-total {
     padding: 11px 12px;
+
     margin-bottom: 13px;
+
     font-size: 13px;
   }
 
@@ -263,53 +440,86 @@
     font-size: 16px;
   }
 
+
+  /* Payment Method */
+
   .payment-methods {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
     gap: 8px;
-    margin-bottom: 14px;
+
+    margin-bottom: 13px;
   }
 
   .payment-method {
     width: 100%;
+
     min-height: 44px;
+
     padding: 10px 8px;
+
     font-size: 12px;
   }
+
+
+  /* Cash */
 
   .payment-cash {
     gap: 10px;
-    margin-bottom: 14px;
+    margin-bottom: 13px;
   }
 
   .payment-change-row {
+    padding: 11px 12px;
+
     font-size: 12px;
   }
 
-  .payment-qris {
-    margin-bottom: 14px;
+
+  /* QRIS */
+
+  .qris-payment {
+    padding: 12px 8px;
+
+    margin-bottom: 13px;
   }
 
-  .payment-qris-box {
-    width: 150px;
-    height: 150px;
+  .qris-payment img {
+    width: min(230px, 68vw);
   }
 
-  .payment-qris p {
-    font-size: 11px;
-    line-height: 1.5;
+  .qris-payment__amount {
+    font-size: 16px;
+  }
+
+  .qris-payment__description {
     padding: 0 5px;
+
+    font-size: 11px;
+  }
+
+  .qris-payment button {
+    width: 100%;
+
+    min-height: 42px;
+
+    padding: 10px 12px;
+
+    font-size: 12px;
   }
 }
 
 
-/* ================================
+/* =====================================================
    SMARTPHONE KECIL
-================================ */
+===================================================== */
 
 @media (max-width: 360px) {
+
   .payment-total {
     padding: 10px;
+
     font-size: 12px;
   }
 
@@ -317,30 +527,44 @@
     font-size: 15px;
   }
 
+
   .payment-methods {
     gap: 6px;
   }
 
   .payment-method {
     min-height: 42px;
+
     padding: 9px 6px;
+
     font-size: 11px;
   }
+
 
   .payment-cash {
     gap: 9px;
   }
 
   .payment-change-row {
-    font-size: 12px;
+    padding: 10px;
+
+    font-size: 11px;
   }
 
-  .payment-qris-box {
-    width: 135px;
-    height: 135px;
+
+  .qris-payment {
+    padding: 10px 6px;
   }
 
-  .payment-qris p {
+  .qris-payment img {
+    width: min(210px, 65vw);
+  }
+
+  .qris-payment__amount {
+    font-size: 15px;
+  }
+
+  .qris-payment__description {
     font-size: 11px;
   }
 }

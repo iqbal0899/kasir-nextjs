@@ -11,7 +11,7 @@ import { getClientIp } from "@/backend/utils/getClientIp";
 
 export async function GET(request, { params }) {
   try {
-    const token = request.cookies.get("token")?.value;
+    const token = request.cookies.get("pos_token")?.value;
 
     if (!token) {
       return NextResponse.json(
@@ -95,7 +95,7 @@ export async function GET(request, { params }) {
 
 export async function DELETE(request, { params }) {
   try {
-    const token = request.cookies.get("token")?.value;
+    const token = request.cookies.get("pos_token")?.value;
 
     if (!token) {
       return NextResponse.json(
