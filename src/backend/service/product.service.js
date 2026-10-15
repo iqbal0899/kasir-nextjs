@@ -18,6 +18,7 @@ const INVENTORY_API_URL =
 
 console.dir(transfers, { depth: null });
 
+
 export async function getProducts({
   page = 1,
   limit = 10,
@@ -32,13 +33,6 @@ export async function getProducts({
 
   const where = {
     isActive: true,
-    inventoryTransfers: {
-      some: {
-        transfer: {
-          status: "COMPLETED",
-        },
-      },
-    },
   };
 
   if (startDateProduct || endDateProduct) {
@@ -66,7 +60,7 @@ export async function getProducts({
     }
   }
 
-  const [products, total] = await prisma.$transaction([
+  const [products, total, soldItems] = await Promise.all([
     prisma.product.findMany({
       where,
       skip: (currentPage - 1) * currentLimit,
@@ -82,42 +76,40 @@ export async function getProducts({
         },
       },
     }),
-    prisma.product.count({ where }),
+
+    prisma.product.count({
+      where,
+    }),
+
+    prisma.transactionItem.groupBy({
+      by: ["productId"],
+      _sum: {
+        quantity: true,
+      },
+    }),
   ]);
 
-  const [totalProducts, completedTransfers] = await Promise.all([
-  prisma.product.count(),
-  prisma.inventoryTransfer.findMany({
-    select: {
-      requestId: true,
-      status: true,
-      items: {
-        select: {
-          productId: true,
-          quantity: true,
-        },
-      },
-    },
-  }),
-]);
-
-console.log("TOTAL PRODUK POS:", totalProducts);
-console.dir(completedTransfers, { depth: null });
+  const soldStockMap = new Map(
+    soldItems.map((item) => [
+      item.productId,
+      item._sum.quantity ?? 0,
+    ])
+  );
 
   const data = products.map((product) => ({
     id: product.id,
     inventoryCode:
-      product.inventoryMappings[0]?.inventoryCode || null,
+      product.inventoryMappings[0]?.inventoryCode ?? null,
     name: product.name,
     price: Number(product.price),
     stock: product.stock,
-    category: product.category || null,
-    image: product.image || null,
+    category: product.category ?? null,
+    image: product.image ?? null,
     isActive: product.isActive,
     status: "ACTIVE",
     createdAt: product.createdAt,
     updatedAt: product.updatedAt,
-    soldStock: 0,
+    soldStock: soldStockMap.get(product.id) ?? 0,
   }));
 
   return {
@@ -130,6 +122,7 @@ console.dir(completedTransfers, { depth: null });
     },
   };
 }
+
 
 
 export async function getProductById(id) {

@@ -23,6 +23,25 @@ export async function POST(request) {
       );
     }
 
+    const cashier = await prisma.user.findUnique({
+  where: {
+    id: session.userId,
+  },
+  select: {
+    username: true,
+  },
+});
+
+if (!cashier?.username) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Username kasir tidak ditemukan",
+    },
+    { status: 401 }
+  );
+}
+
     const body = await request.json();
     const { items, note } = body;
 
@@ -105,6 +124,7 @@ export async function POST(request) {
         body: JSON.stringify({
           items: normalizedItems,
           note: normalizedNote,
+          requesterUsername: cashier.username,
         }),
         cache: "no-store",
         signal: AbortSignal.timeout(10000),
@@ -185,6 +205,7 @@ export async function POST(request) {
         data: {
           ...result.data,
           requestNumber,
+          requesterUsername: cashier.username,
         },
       },
       { status: 201 }

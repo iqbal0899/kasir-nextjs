@@ -18,22 +18,34 @@ export async function POST(request) {
       );
     }
 
-    const body = await request.json();
+   const body = await request.json();
 
-    const requestNumber =
-      typeof body.requestNumber === "string"
-        ? body.requestNumber.trim()
-        : "";
+const requestNumber =
+  typeof body.requestNumber === "string"
+    ? body.requestNumber.trim()
+    : "";
 
-    const status =
-      typeof body.status === "string"
-        ? body.status.toUpperCase()
-        : "";
+const status =
+  typeof body.status === "string"
+    ? body.status.toUpperCase()
+    : "";
 
-    const reason =
-      typeof body.reason === "string"
-        ? body.reason.trim()
-        : "";
+const reason =
+  typeof body.reason === "string"
+    ? body.reason.trim()
+    : "";
+
+const processedByUsername =
+  typeof body.processedByUsername === "string"
+    ? body.processedByUsername.trim()
+    : "";
+
+console.log("STATUS NOTIFICATION PAYLOAD:", {
+  requestNumber,
+  status,
+  reason,
+  processedByUsername,
+});
 
     if (
       !requestNumber ||
@@ -43,6 +55,16 @@ export async function POST(request) {
         {
           success: false,
           message: "Data status request tidak valid",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (!processedByUsername) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Username approver atau rejector wajib diisi",
         },
         { status: 400 }
       );
@@ -76,17 +98,20 @@ export async function POST(request) {
       );
     }
 
-    const title =
-      status === "APPROVED"
-        ? "Permintaan stok disetujui"
-        : "Permintaan stok ditolak";
+    
+const title =
+  status === "APPROVED"
+    ? "Permintaan stok disetujui"
+    : "Permintaan stok ditolak";
 
-    const message =
-      status === "APPROVED"
-        ? `Permintaan stok ${requestNumber} telah disetujui.`
-        : `Permintaan stok ${requestNumber} ditolak. Alasan: ${reason}`;
+const message =
+  status === "APPROVED"
+    ? `Permintaan stok ${requestNumber} telah disetujui oleh ${processedByUsername}.`
+    : `Permintaan stok ${requestNumber} ditolak oleh ${processedByUsername}. Alasan: ${reason}`;
+
 
     const result = await prisma.$transaction(
+
       async (tx) => {
         const notification = await tx.notification.create({
           data: {
@@ -111,6 +136,11 @@ export async function POST(request) {
       }
     );
 
+    console.log("NOTIFICATION SAVED:", {
+  title: result.title,
+  message: result.message,
+});
+
     return NextResponse.json({
       success: true,
       message: "Notifikasi berhasil disimpan",
@@ -119,6 +149,7 @@ export async function POST(request) {
         requestNumber,
         userId: inventoryRequest.userId,
         status,
+        processedByUsername,
       },
     });
   } catch (error) {
